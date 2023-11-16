@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cz.inovatika</groupId>
+    <artifactId>AltoEditor</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <altoEditor.version>${project.version}</altoEditor.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources/cz/inovatika/altoEditor/server</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>kramerius</id>
+            <name>Kramerius Repository</name>
+            <url>https://maven.pkg.github.com/ceskaexpedice/kramerius</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.javalin</groupId>
+            <artifactId>javalin</artifactId>
+            <version>5.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-endorsed-api</artifactId>
+            <version>7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.inovatika</groupId>
+            <artifactId>utils</artifactId>
+            <version>1.2.15</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.incad.kramerius</groupId>
+            <artifactId>common</artifactId>
+            <version>7.0.9</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.akubraproject</groupId>
+            <artifactId>akubra-core</artifactId>
+            <version>0.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.akubraproject</groupId>
+            <artifactId>akubra-fs</artifactId>
+            <version>0.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.akubraproject</groupId>
+            <artifactId>akubra-map</artifactId>
+            <version>0.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yourmediashelf.fedora.client</groupId>
+            <artifactId>fedora-client-core</artifactId>
+            <version>0.7</version>
+        </dependency>
+        <dependency>
+            <groupId>fast-md5</groupId>
+            <artifactId>fast-md5</artifactId>
+            <version>2.5</version>
+        </dependency>
+    </dependencies>
+
+</project>
