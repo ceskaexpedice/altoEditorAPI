@@ -12,6 +12,7 @@ import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
 import cz.inovatika.altoEditor.exception.RequestException;
 import cz.inovatika.altoEditor.kramerius.K7Downloader;
 import cz.inovatika.altoEditor.kramerius.K7ImageViewer;
+import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
 import cz.inovatika.altoEditor.response.AltoEditorStringRecordResponse;
 import cz.inovatika.altoEditor.server.AltoEditorInitializer;
@@ -25,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static cz.inovatika.altoEditor.db.DigitalObject.getObjectWithMaxVersion;
 import static cz.inovatika.altoEditor.editor.AltoDatastreamEditor.nextVersion;
+import static cz.inovatika.altoEditor.utils.Utils.getOptStringRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.getStringNodeValue;
 import static cz.inovatika.altoEditor.utils.Utils.getStringRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.setResult;
@@ -39,14 +40,14 @@ public class DigitalObjectResource {
 
     public static void getImage(Context context) {
         try {
-            String login = getStringRequestValue(context, "login");
+            String login = getOptStringRequestValue(context, "login");
             String pid = getStringRequestValue(context, "pid");
 
             Dao dbDao = new Dao();
-            List<DigitalObject> digitalObjects = dbDao.getDigitalObjects(null, pid);
+            List<DigitalObjectView> digitalObjects = dbDao.getDigitalObjects(null, pid);
 
             String instanceId = null;
-            for (DigitalObject digitalObject : digitalObjects) {
+            for (DigitalObjectView digitalObject : digitalObjects) {
                 if (digitalObject.getInstance() != null && !digitalObject.getInstance().isEmpty()) {
                     instanceId = digitalObject.getInstance();
                     break;
@@ -72,18 +73,29 @@ public class DigitalObjectResource {
 
     public static void getAlto(Context context) {
         try {
-            String login = getStringRequestValue(context, "login");
+            String login = getOptStringRequestValue(context, "login");
             String pid = getStringRequestValue(context, "pid");
+            String versionXml = getOptStringRequestValue(context, "versionXml");
 
             // hledani objektu konkretniho uzivatele
             Dao dbDao = new Dao();
-            List<DigitalObject> digitalObjects = dbDao.getDigitalObjects(login, pid);
+            List<DigitalObjectView> digitalObjects = dbDao.getDigitalObjects(login, pid);
 
             if (!digitalObjects.isEmpty()) {
                 LOG.debug("Version find in repositories using login and pid");
-                AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersion());
-                setStringResult(context, response);
-                return;
+                if (versionXml == null || versionXml.isEmpty()) {
+                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
+                    setStringResult(context, response);
+                    return;
+                }
+                for (DigitalObjectView digitalObject : digitalObjects) {
+                    if (versionXml.equals(digitalObject.getVersionXml())) {
+                        AltoEditorStringRecordResponse response = getAltoStream(digitalObject.getPid(), digitalObject.getVersionXml());
+                        setStringResult(context, response);
+                        return;
+                    }
+                }
+
             }
 
             // hledani objektu jineho uzivatele - zobrazeni defaultni verze
@@ -91,9 +103,18 @@ public class DigitalObjectResource {
 
             if (!digitalObjects.isEmpty()) {
                 LOG.debug("Object found in repositories using pid - return default version");
-                AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), AltoDatastreamEditor.ALTO_ID + ".0");
-                setStringResult(context, response);
-                return;
+                if (versionXml == null || versionXml.isEmpty()) {
+                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), AltoDatastreamEditor.ALTO_ID + ".0");
+                    setStringResult(context, response);
+                    return;
+                }
+                for (DigitalObjectView digitalObject : digitalObjects) {
+                    if (versionXml.equals(digitalObject.getVersionXml())) {
+                        AltoEditorStringRecordResponse response = getAltoStream(digitalObject.getPid(), digitalObject.getVersionXml());
+                        setStringResult(context, response);
+                        return;
+                    }
+                }
             }
 
             // stazeni noveho objektu z krameria
@@ -119,40 +140,44 @@ public class DigitalObjectResource {
 
             // hledani objektu konkretniho uzivatele
             Dao dbDao = new Dao();
-            List<DigitalObject> digitalObjects = dbDao.getDigitalObjects(login, pid);
+            List<DigitalObjectView> digitalObjects = dbDao.getDigitalObjects(login, pid);
 
             if (!digitalObjects.isEmpty()) {
                 LOG.debug("Version find in repositories using login and pid");
                 if (digitalObjects.size() > 1) {
                     throw new DigitalObjectException(pid, "More than one object for user");
                 } else {
-                    DigitalObject digitalObject = digitalObjects.get(0);
+                    DigitalObjectView digitalObject = digitalObjects.get(0);
                     AkubraStorage storage = AkubraStorage.getInstance();
                     AkubraObject akubraObject = storage.find(pid);
-                    AltoDatastreamEditor.updateAlto(akubraObject, data, "ALTO updated by user " + login, digitalObject.getVersion());
-                    dbDao.updateDigitalObject(digitalObject.getId(), digitalObject.getVersion());
+                    AltoDatastreamEditor.updateAlto(akubraObject, data, "ALTO updated by user " + login, digitalObject.getVersionXml());
+                    dbDao.updateDigitalObject(digitalObject.getId(), digitalObject.getVersionXml());
 
-                    AltoEditorStringRecordResponse response = getAltoStream(digitalObject.getPid(), digitalObject.getVersion());
+                    AltoEditorStringRecordResponse response = getAltoStream(digitalObject.getPid(), digitalObject.getVersionXml());
                     setStringResult(context, response);
                     return;
                 }
             }
 
             // hledani objektu jineho uzivatele - zobrazeni defaultni verze
-            digitalObjects = dbDao.getDigitalObjects(null, pid);
+            digitalObjects = dbDao.getDigitalObjectsWithMaxVersionByPid(pid);
             if (!digitalObjects.isEmpty()) {
-                DigitalObject digitalObject = getObjectWithMaxVersion(digitalObjects);
-                String versionId = nextVersion(digitalObject.getVersion());
-                LOG.debug("Object found in repositories using pid - using default version");
+                if (digitalObjects.size() > 1) {
+                    throw new DigitalObjectException(pid, "More than one object with max version");
+                } else {
+                    DigitalObjectView digitalObject = digitalObjects.get(0);
+                    String versionId = nextVersion(digitalObject.getVersionXml());
+                    LOG.debug("Object found in repositories using pid - using default version");
 
-                AkubraStorage storage = AkubraStorage.getInstance();
-                AkubraObject akubraObject = storage.find(pid);
-                AltoDatastreamEditor.updateAlto(akubraObject, data, "ALTO updated by user " + login, versionId);
-                dbDao.createDigitalObject(login, pid, versionId, digitalObject.getInstance(), Const.DIGITAL_OBJECT_STATE_EDITED);
+                    AkubraStorage storage = AkubraStorage.getInstance();
+                    AkubraObject akubraObject = storage.find(pid);
+                    AltoDatastreamEditor.updateAlto(akubraObject, data, "ALTO updated by user " + login, versionId);
+                    dbDao.createDigitalObject(login, pid, versionId, digitalObject.getInstance(), Const.DIGITAL_OBJECT_STATE_EDITED);
 
-                AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), versionId);
-                setStringResult(context, response);
-                return;
+                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), versionId);
+                    setStringResult(context, response);
+                    return;
+                }
             } else {
                 throw new DigitalObjectNotFoundException(pid, String.format("This pid \"%s\" not found in repository."));
             }

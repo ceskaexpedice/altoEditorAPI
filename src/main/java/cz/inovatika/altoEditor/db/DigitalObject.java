@@ -1,6 +1,7 @@
 package cz.inovatika.altoEditor.db;
 
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
+import java.beans.Transient;
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -75,19 +76,19 @@ public class DigitalObject {
         }
     }
 
-    public static DigitalObject getObjectWithMaxVersion(List<DigitalObject> digitalObjects) {
-        DigitalObject objectWithMaxVersion = null;
-        for (DigitalObject digitalObject : digitalObjects) {
-            if (objectWithMaxVersion == null) {
-                objectWithMaxVersion = digitalObject;
-            } else {
-                Integer maxVersionId = AltoDatastreamEditor.getVersionId(objectWithMaxVersion.getVersion());
-                Integer currentVersionId = AltoDatastreamEditor.getVersionId(objectWithMaxVersion.getVersion());
-                if (currentVersionId > maxVersionId) {
-                    objectWithMaxVersion = digitalObject;
-                }
-            }
-        }
-        return objectWithMaxVersion;
-    }
+//    public static DigitalObject getObjectWithMaxVersion(List<DigitalObject> digitalObjects) {
+//        DigitalObject objectWithMaxVersion = null;
+//        for (DigitalObject digitalObject : digitalObjects) {
+//            if (objectWithMaxVersion == null) {
+//                objectWithMaxVersion = digitalObject;
+//            } else {
+//                Integer maxVersionId = AltoDatastreamEditor.getVersionId(objectWithMaxVersion.getVersionId());
+//                Integer currentVersionId = AltoDatastreamEditor.getVersionId(objectWithMaxVersion.getVersionId());
+//                if (currentVersionId > maxVersionId) {
+//                    objectWithMaxVersion = digitalObject;
+//                }
+//            }
+//        }
+//        return objectWithMaxVersion;
+//    }
 }

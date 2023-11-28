@@ -7,6 +7,8 @@ import cz.inovatika.altoEditor.db.Dao;
 import cz.inovatika.altoEditor.db.DigitalObject;
 import cz.inovatika.altoEditor.db.User;
 import cz.inovatika.altoEditor.db.Version;
+import cz.inovatika.altoEditor.exception.RequestException;
+import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
 import cz.inovatika.altoEditor.server.AltoEditorInitializer;
 import java.io.IOException;
@@ -17,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import static cz.inovatika.altoEditor.utils.Const.DEFAULT_RESOURCE_SQL;
 import static cz.inovatika.altoEditor.utils.Utils.getBooleanNodeValue;
+import static cz.inovatika.altoEditor.utils.Utils.getOptStringRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.getStringNodeValue;
 import static cz.inovatika.altoEditor.utils.Utils.getStringRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.readFile;
@@ -135,8 +138,20 @@ public class DbResource {
 
     public static void getAllDigitalObjects(Context context) {
         try {
+            String orderBy = getOptStringRequestValue(context, "orderBy");
+            if (orderBy != null) {
+                if (!("id".equals(orderBy) || "rUserId".equals(orderBy) || "instance".equals(orderBy) || "pid".equals(orderBy) || "version".equals(orderBy) || "datum".equals(orderBy) || "state".equals(orderBy))) {
+                    throw new RequestException("orderBy", String.format("Unsupported param \"%s\".", orderBy));
+                }
+            }
+            String orderSort = getOptStringRequestValue(context, "orderSort");
+            if (orderSort != null) {
+                if (!("asc".equals(orderSort) || "desc".equals(orderSort))) {
+                    throw new RequestException("orderSort", String.format("Unsupported param \"%s\".", orderSort));
+                }
+            }
             Dao dbDao = new Dao();
-            List<DigitalObject> digitalObjects = dbDao.getAllDigitalObjects();
+            List<DigitalObjectView> digitalObjects = dbDao.getAllDigitalObjects(orderBy, orderSort);
             setResult(context, new AltoEditorResponse(digitalObjects));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -145,11 +160,24 @@ public class DbResource {
 
     public static void getDigitalObjects(Context context) {
         try {
-            String login = getStringRequestValue(context, "login");
-            String pid = getStringRequestValue(context, "pid");
+            String login = getOptStringRequestValue(context, "login");
+            String pid = getOptStringRequestValue(context, "pid");
+
+            String orderBy = getOptStringRequestValue(context, "orderBy");
+            if (orderBy != null) {
+                if (!("id".equals(orderBy) || "rUserId".equals(orderBy) || "instance".equals(orderBy) || "pid".equals(orderBy) || "version".equals(orderBy) || "datum".equals(orderBy) || "state".equals(orderBy))) {
+                    throw new RequestException("orderBy", String.format("Unsupported param \"%s\".", orderBy));
+                }
+            }
+            String orderSort = getOptStringRequestValue(context, "orderSort");
+            if (orderSort != null) {
+                if (!("asc".equals(orderSort) || "desc".equals(orderSort))) {
+                    throw new RequestException("orderSort", String.format("Unsupported param \"%s\".", orderSort));
+                }
+            }
 
             Dao dbDao = new Dao();
-            List<DigitalObject> digitalObjects = dbDao.getDigitalObjects(login, pid);
+            List<DigitalObjectView> digitalObjects = dbDao.getDigitalObjects(login, pid, orderBy, orderSort);
             setResult(context, new AltoEditorResponse(digitalObjects));
 
         } catch (Exception ex) {
@@ -166,7 +194,7 @@ public class DbResource {
             String instance = getStringNodeValue(node, "instance");
 
             Dao dbDao = new Dao();
-            List<DigitalObject> digitalObjects = dbDao.getDigitalObjects(login, pid);
+            List<DigitalObjectView> digitalObjects = dbDao.getDigitalObjects(login, pid);
             if (digitalObjects != null && !digitalObjects.isEmpty()) {
                 throw new IOException(String.format("User login \"%s\" already exists.", login));
             } else {
@@ -193,13 +221,13 @@ public class DbResource {
             String version = getStringNodeValue(node, "version");
 
             Dao dbDao = new Dao();
-            List<DigitalObject> digitalObjects = dbDao.getDigitalObjects(login, pid);
+            List<DigitalObjectView> digitalObjects = dbDao.getDigitalObjects(login, pid);
             if (digitalObjects == null && digitalObjects.isEmpty()) {
                 throw new IOException(String.format("Digital object login \"%s\" and \"%s\" doees not exists.", login, pid));
             } else if (digitalObjects.size() > 1) {
                 throw new IOException(String.format("There are more than 1 record with login \"%s\" and \"%s\" doees not exists.", login, pid));
             } else {
-                DigitalObject digitalObject = digitalObjects.get(0);
+                DigitalObjectView digitalObject = digitalObjects.get(0);
                 dbDao.updateDigitalObject(digitalObject.getId(), version);
                 digitalObject = dbDao.getDigitalObjectById(digitalObject.getId());
                 setResult(context, new AltoEditorResponse(digitalObject));

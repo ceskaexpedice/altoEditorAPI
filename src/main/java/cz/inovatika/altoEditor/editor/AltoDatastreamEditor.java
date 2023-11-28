@@ -85,31 +85,31 @@ public final class AltoDatastreamEditor {
      * @throws cz.inovatika.altoEditor.exception.AltoEditorException failure
      */
     public static void importAlto(DigitalObject dObj, URI altoUri, String msg, String versionId) throws AltoEditorException {
-        try {
-            if (!isAlto(altoUri)) {
-                throw new DigitalObjectException(dObj.getPid(),
-                        String.format("%s: missing expected ALTO version: %s",
-                                altoUri.toASCIIString(), AltoDatastreamEditor.ALTO_FORMAT_URI),
-                        null);
-            }
-        } catch (Exception ex) {
-            throw new DigitalObjectException(dObj.getPid(), altoUri.toASCIIString(), ex);
-        }
+//        try {
+//            if (!isAlto(altoUri)) {
+//                throw new DigitalObjectException(dObj.getPid(),
+//                        String.format("%s: missing expected ALTO version: %s",
+//                                altoUri.toASCIIString(), AltoDatastreamEditor.ALTO_FORMAT_URI),
+//                        null);
+//            }
+//        } catch (Exception ex) {
+//            throw new DigitalObjectException(dObj.getPid(), altoUri.toASCIIString(), ex);
+//        }
         XmlStreamEditor editor = dObj.getEditor(altoProfile());
         editor.write(altoUri, editor.getLastModified(versionId), msg, versionId);
     }
 
     public static void updateAlto(DigitalObject dObj, String alto, String msg, String versionId) throws AltoEditorException {
-        try {
-            if (!isAlto(alto)) {
-                throw new DigitalObjectException(dObj.getPid(),
-                        String.format("%s: missing expected ALTO version: %s",
-                                ALTO_ID, AltoDatastreamEditor.ALTO_FORMAT_URI),
-                        null);
-            }
-        } catch (Exception ex) {
-            throw new DigitalObjectException(dObj.getPid(), ALTO_ID, ex);
-        }
+//        try {
+//            if (!isAlto(alto)) {
+//                throw new DigitalObjectException(dObj.getPid(),
+//                        String.format("%s: missing expected ALTO version: %s",
+//                                ALTO_ID, AltoDatastreamEditor.ALTO_FORMAT_URI),
+//                        null);
+//            }
+//        } catch (Exception ex) {
+//            throw new DigitalObjectException(dObj.getPid(), ALTO_ID, ex);
+//        }
         XmlStreamEditor editor = dObj.getEditor(altoProfile());
         editor.write(alto.getBytes(StandardCharsets.UTF_8), editor.getLastModified(versionId), msg, versionId);
         dObj.flush();

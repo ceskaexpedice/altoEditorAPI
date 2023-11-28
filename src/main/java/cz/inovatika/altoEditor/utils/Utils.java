@@ -153,6 +153,19 @@ public class Utils {
         }
     }
 
+    public static String getOptStringRequestValue(Context context, String key) throws RequestException {
+        if (context != null) {
+            if (context.req() != null) {
+                String value = context.req().getParameter(key);
+                return value;
+            } else {
+                throw new RequestException(key, "Request in Context is null");
+            }
+        } else {
+            throw new RequestException(key, "Context is null");
+        }
+    }
+
     public static InputStream readFile(String resource) throws IOException {
         Enumeration<URL> resources = AltoEditorInitializer.class.getClassLoader().getResources(resource);
         URL lastResource = null;
