@@ -398,7 +398,7 @@ public class Dao {
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            statement.executeUpdate("update digitalobject set version = '" + versionId + "' datum = NOW() where id = '" + objectId + "'");
+            statement.executeUpdate("update digitalobject set version = '" + versionId + "', datum = NOW() where id = '" + objectId + "'");
 
         } finally {
             Utils.closeSilently(statement);
