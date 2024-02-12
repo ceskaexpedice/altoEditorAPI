@@ -64,7 +64,7 @@ import static cz.inovatika.altoEditor.utils.FoxmlUtils.getDatastream;
 
 public class AkubraStorage {
 
-    private static final Logger LOG = Logger.getLogger(AkubraStorage.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(AkubraStorage.class.getName());
     private XPathFactory xPathFactory;
     private static AkubraStorage INSTANCE;
     private AkubraManager manager;
@@ -112,7 +112,7 @@ public class AkubraStorage {
             InputStream inputStream = new FileInputStream(foxml);
             this.manager.addOrReplaceObject(pid, inputStream);
 
-            LOG.log(Level.FINE, "Object with PID {0} added to repository.", pid);
+            LOGGER.log(Level.FINE, "Object with PID {0} added to repository.", pid);
         } catch (LowlevelStorageException | IOException | DigitalObjectExistException e) {
             throw new StorageException(pid, "Error during adding new object", e);
         }
@@ -147,7 +147,7 @@ public class AkubraStorage {
             InputStream inputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
             this.manager.addOrReplaceObject(object.getPid(), inputStream);
 
-            LOG.log(Level.FINE, "Object with PID {0} added to repository.", object.getPid());
+            LOGGER.log(Level.FINE, "Object with PID {0} added to repository.", object.getPid());
         } catch (TransformerException | URISyntaxException | LowlevelStorageException | IOException e) {
             throw new StorageException(object.getPid(), "Error during adding new object", e);
         }
@@ -740,7 +740,7 @@ public class AkubraStorage {
                                 if (datastreamVersionType.getXmlContent() != null && datastreamVersionType.getXmlContent().getAny() != null && !datastreamVersionType.getXmlContent().getAny().isEmpty()) {
                                     Element node = datastreamVersionType.getXmlContent().getAny().get(0);
                                     if (node != null) {
-                                        LOG.fine("Created note from xmlContent");
+                                        LOGGER.fine("Created note from xmlContent");
                                         Source xmlSource = new DOMSource(node);
                                         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                                         Result outputTarget = new StreamResult(outputStream);

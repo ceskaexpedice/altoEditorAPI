@@ -1,19 +1,57 @@
-package cz.inovatika.altoEditor.db;
+package cz.inovatika.altoEditor.db.models;
 
+import cz.inovatika.altoEditor.db.dao.Dao;
+import cz.inovatika.altoEditor.db.dao.VersionDao;
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.HashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class Version {
+public class DigitalObject {
 
-    public Integer id = null;
-    public Timestamp datum = null;
-    public Integer version = null;
+    protected static final Logger LOGGER = LoggerFactory.getLogger(DigitalObject.class.getName());
 
-    public Version(ResultSet rs) {
+    private Integer id = null;
+    private Integer rUserId = null;
+    private String instance = null;
+    private String pid = null;
+    private String version = null;
+    private Timestamp datum = null;
+    private String state = null;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public Integer getrUserId() {
+        return rUserId;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public Timestamp getDatum() {
+        return datum;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public String getInstance() {
+        return instance;
+    }
+
+    public DigitalObject(ResultSet rs) {
         try {
             if (rs != null) {
                 final ResultSetMetaData metaData = rs.getMetaData();
@@ -21,13 +59,11 @@ public class Version {
                 for (int i = 1; i <= metaData.getColumnCount(); i++) {
                     resultFields.put(metaData.getColumnName(i).toUpperCase(), metaData.getColumnType(i));
                 }
-                Field[] declaredFields = Version.class.getDeclaredFields();
+                Field[] declaredFields = DigitalObject.class.getDeclaredFields();
                 for (Field declaredField : declaredFields) {
                     String f = declaredField.getName().toUpperCase();
                     if (resultFields.containsKey(f)) {
                         if (resultFields.get(f).equals(Types.INTEGER)) {
-                            declaredField.set(this, rs.getInt(f));
-                        } else if (resultFields.get(f).equals(Types.BIGINT)) {
                             declaredField.set(this, rs.getInt(f));
                         } else if (resultFields.get(f).equals(Types.TIMESTAMP)) {
                             declaredField.set(this, rs.getTimestamp(f));
@@ -38,7 +74,7 @@ public class Version {
                 }
             }
         } catch (Exception ex) {
-            Dao.LOG.error("Chyba nacteni verze z DB {}", id);
+            LOGGER.error("Chyba nacteni digitalniho objektu z DB {}", id);
             ex.printStackTrace();
         }
     }

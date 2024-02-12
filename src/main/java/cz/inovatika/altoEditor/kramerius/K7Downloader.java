@@ -15,6 +15,7 @@ import cz.inovatika.altoEditor.utils.Utils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import org.apache.http.HttpEntity;
@@ -29,20 +30,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static cz.inovatika.altoEditor.kramerius.KrameriusOptions.findKrameriusInstance;
+import static cz.inovatika.altoEditor.utils.FileUtils.createFolder;
+import static cz.inovatika.altoEditor.utils.FileUtils.deleteFolder;
+import static cz.inovatika.altoEditor.utils.FileUtils.getFile;
+import static cz.inovatika.altoEditor.utils.FileUtils.getPidAsFile;
+import static cz.inovatika.altoEditor.utils.FileUtils.writeToFile;
 import static cz.inovatika.altoEditor.utils.FoxmlUtils.closeQuietly;
-import static cz.inovatika.altoEditor.utils.FoxmlUtils.deleteFolder;
-import static cz.inovatika.altoEditor.utils.FoxmlUtils.getPidAsFile;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 public class K7Downloader {
 
-    private static final Logger LOG = LoggerFactory.getLogger(K7Downloader.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(K7Downloader.class.getName());
 
     public void downloadFoxml(String pid, String instanceId, String login) throws AltoEditorException, IOException {
         AkubraStorage storage = AkubraStorage.getInstance();
         if (storage.exist(pid)) {
-            LOG.warn("Object already exists in repo");
+            LOGGER.warn("Object already exists in repo");
             return;
         }
 
@@ -55,7 +59,7 @@ public class K7Downloader {
         String token = authenticator.authenticate();
 
         if (token == null || token.isEmpty()) {
-            LOG.error("Kramerius token is null");
+            LOGGER.error("Kramerius token is null");
             throw new AltoEditorException(instanceId, "Kramerius token is null");
         }
 
@@ -135,7 +139,7 @@ public class K7Downloader {
         String foxmlUrl = Config.getKrameriusInstanceUrl(instance.getId()) +
                 Config.getKrameriusInstanceUrlDownloadFoxml(instance.getId()) +
                 pid + "/foxml";
-        LOG.info("Trying to download FOXML from " + foxmlUrl);
+        LOGGER.info("Trying to download FOXML from " + foxmlUrl);
 
         HttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(foxmlUrl);
@@ -149,39 +153,39 @@ public class K7Downloader {
 
         HttpResponse response = httpClient.execute(httpGet);
         if (HTTP_OK == response.getStatusLine().getStatusCode()) {
-            LOG.debug("Http response Download FOXML success");
+            LOGGER.debug("Http response Download FOXML success");
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 String result = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
                 if (result != null && !result.isEmpty()) {
                     return result;
                 } else {
-                    LOG.warn("Downloaded FOXML but result is null or empty");
+                    LOGGER.warn("Downloaded FOXML but result is null or empty");
                     throw new IOException("Downloaded FOXML but result is null or empty");
                 }
             } else {
-                LOG.warn("Downloaded FOXML but entity is null");
+                LOGGER.warn("Downloaded FOXML but entity is null");
                 throw new IOException("Downloaded FOXML but entity is null");
             }
         } else if (HTTP_INTERNAL_ERROR == response.getStatusLine().getStatusCode()) {
-            LOG.warn("Downloading FOXML ended with code " + response.getStatusLine().getStatusCode());
+            LOGGER.warn("Downloading FOXML ended with code " + response.getStatusLine().getStatusCode());
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 String result = EntityUtils.toString(response.getEntity());
                 if (result != null && !result.isEmpty()) {
                     JSONObject object = new JSONObject(result);
-                    LOG.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and reason is " + object.get("message"));
+                    LOGGER.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and reason is " + object.get("message"));
                     throw new IOException("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and reason is " + object.get("message"));
                 } else {
-                    LOG.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the result is null");
+                    LOGGER.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the result is null");
                     throw new IOException("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the result is null");
                 }
             } else {
-                LOG.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the entity is null");
+                LOGGER.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the entity is null");
                 throw new IOException("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the entity is null");
             }
         } else {
-            LOG.warn("Downloading FOXML ended with code " + response.getStatusLine().getStatusCode());
+            LOGGER.warn("Downloading FOXML ended with code " + response.getStatusLine().getStatusCode());
             throw new IOException("Downloading FOXML ended with code " + response.getStatusLine().getStatusCode());
         }
     }
@@ -190,7 +194,7 @@ public class K7Downloader {
         String foxmlUrl = Config.getKrameriusInstanceUrl(instance.getId()) +
                 Config.getKrameriusInstanceUrlDownloadFoxml(instance.getId()) +
                 pid + "/ocr/alto";
-        LOG.info("Trying to download Alto from " + foxmlUrl);
+        LOGGER.info("Trying to download Alto from " + foxmlUrl);
 
         HttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(foxmlUrl);
@@ -204,39 +208,39 @@ public class K7Downloader {
 
         HttpResponse response = httpClient.execute(httpGet);
         if (HTTP_OK == response.getStatusLine().getStatusCode()) {
-            LOG.debug("Http response Download FOXML success");
+            LOGGER.debug("Http response Download FOXML success");
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 String result = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
                 if (result != null && !result.isEmpty()) {
                     return result;
                 } else {
-                    LOG.warn("Downloaded FOXML but result is null or empty");
+                    LOGGER.warn("Downloaded FOXML but result is null or empty");
                     throw new IOException("Downloaded FOXML but result is null or empty");
                 }
             } else {
-                LOG.warn("Downloaded FOXML but entity is null");
+                LOGGER.warn("Downloaded FOXML but entity is null");
                 throw new IOException("Downloaded FOXML but entity is null");
             }
         } else if (HTTP_INTERNAL_ERROR == response.getStatusLine().getStatusCode()) {
-            LOG.warn("Downloading FOXML ended with code " + response.getStatusLine().getStatusCode());
+            LOGGER.warn("Downloading FOXML ended with code " + response.getStatusLine().getStatusCode());
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 String result = EntityUtils.toString(response.getEntity());
                 if (result != null && !result.isEmpty()) {
                     JSONObject object = new JSONObject(result);
-                    LOG.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and reason is " + object.get("message"));
+                    LOGGER.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and reason is " + object.get("message"));
                     throw new IOException("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and reason is " + object.get("message"));
                 } else {
-                    LOG.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the result is null");
+                    LOGGER.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the result is null");
                     throw new IOException("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the result is null");
                 }
             } else {
-                LOG.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the entity is null");
+                LOGGER.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the entity is null");
                 throw new IOException("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the entity is null");
             }
         } else {
-            LOG.warn("Downloading FOXML ended with code " + response.getStatusLine().getStatusCode());
+            LOGGER.warn("Downloading FOXML ended with code " + response.getStatusLine().getStatusCode());
             throw new IOException("Downloading FOXML ended with code " + response.getStatusLine().getStatusCode());
         }
     }
@@ -251,46 +255,67 @@ public class K7Downloader {
         writeToFile(altoContent, altoFile, pid);
     }
 
-    private void writeToFile(String content, File file, String pid) throws IOException {
-        if (file.exists()) {
-            deleteFolder(file);
-        }
+    public File saveImage(String pid, String instanceId) throws AltoEditorException, IOException {
+        return saveImage(pid, pid, instanceId);
+    }
 
-        if (!file.createNewFile()) {
-            LOG.warn("Can not create file " + file.getAbsolutePath());
-            throw new IOException("Nepodařilo se vytvořit soubor " + file.getAbsolutePath());
-        }
+    public File saveImage(String parentPid, String pid, String instanceId) throws AltoEditorException, IOException {
+        File peroPath = createFolder(new File(Config.getPeroPath()), false);
+        File parentFile = createFolder(new File(peroPath, getPidAsFile(parentPid)), true);
 
-        FileOutputStream outputStream = null;
-        OutputStreamWriter outputStreamWriter = null;
+        File imageFile = getFile(parentFile, pid, "IMAGE");
+
+        InputStream imageContent = null;
         try {
-            outputStream = new FileOutputStream(file);
-            outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-            outputStreamWriter.write(content);
+            imageContent = downloadImage(pid, instanceId);
+            writeToFile(imageContent, imageFile, pid);
         } finally {
-            closeQuietly(outputStreamWriter, pid);
-            closeQuietly(outputStream, pid);
+            closeQuietly(imageContent, pid);
         }
+        return parentFile;
     }
 
-    private File getFile(String pid) throws AltoEditorException {
-        return getFile(pid, null);
-    }
+    private InputStream downloadImage(String pid, String instanceId) throws IOException, AltoEditorException {
+        K7ImageViewer imageViewer = new K7ImageViewer();
+        HttpResponse response = imageViewer.getResponse(pid, instanceId);
 
-    private File getFile(String pid, String stream) throws AltoEditorException {
-        File tmpFolder = new File(Utils.getDefaultHome(), "tmp");
-        if (!tmpFolder.exists()) {
-            if (!tmpFolder.mkdirs()) {
-                LOG.error("It is not possible to create tmp folder in " + Utils.getDefaultHome().getAbsolutePath());
-                throw new AltoEditorException("It is not possible to create tmp folder in " + Utils.getDefaultHome().getAbsolutePath());
+        if (HTTP_OK == response.getStatusLine().getStatusCode()) {
+            LOGGER.debug("Http response Download FOXML success");
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                return entity.getContent();
+//                String result = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+//                if (result != null && !result.isEmpty()) {
+//                    return result;
+//                } else {
+//                    LOGGER.warn("Downloaded FOXML but result is null or empty");
+//                    throw new IOException("Downloaded FOXML but result is null or empty");
+//                }
+            } else {
+                LOGGER.warn("Downloaded Image but entity is null");
+                throw new IOException("Downloaded Image but entity is null");
             }
-        }
-        File pidFile;
-        if (stream != null && !stream.isEmpty()) {
-            pidFile = new File(tmpFolder, stream + "_" + getPidAsFile(pid) + ".xml");
+        } else if (HTTP_INTERNAL_ERROR == response.getStatusLine().getStatusCode()) {
+            LOGGER.warn("Downloading Image ended with code " + response.getStatusLine().getStatusCode());
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                String result = EntityUtils.toString(response.getEntity());
+                if (result != null && !result.isEmpty()) {
+                    JSONObject object = new JSONObject(result);
+                    LOGGER.warn("Downloaded Image ended with code " + response.getStatusLine().getStatusCode() + " and reason is " + object.get("message"));
+                    throw new IOException("Downloaded Image ended with code " + response.getStatusLine().getStatusCode() + " and reason is " + object.get("message"));
+                } else {
+                    LOGGER.warn("Downloaded Image ended with code " + response.getStatusLine().getStatusCode() + " and the result is null");
+                    throw new IOException("Downloaded Image ended with code " + response.getStatusLine().getStatusCode() + " and the result is null");
+                }
+            } else {
+                LOGGER.warn("Downloaded Image ended with code " + response.getStatusLine().getStatusCode() + " and the entity is null");
+                throw new IOException("Downloaded Image ended with code " + response.getStatusLine().getStatusCode() + " and the entity is null");
+            }
         } else {
-            pidFile = new File(tmpFolder, getPidAsFile(pid) + ".xml");
+            LOGGER.warn("Downloading Image ended with code " + response.getStatusLine().getStatusCode());
+            throw new IOException("Downloading Image ended with code " + response.getStatusLine().getStatusCode());
         }
-        return pidFile;
+
     }
 }

@@ -1,7 +1,7 @@
 package cz.inovatika.altoEditor.models;
 
-import cz.inovatika.altoEditor.db.DigitalObject;
-import cz.inovatika.altoEditor.db.User;
+import cz.inovatika.altoEditor.db.models.DigitalObject;
+import cz.inovatika.altoEditor.db.models.User;
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import java.sql.Timestamp;
 

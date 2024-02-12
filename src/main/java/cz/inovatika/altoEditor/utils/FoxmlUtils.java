@@ -52,7 +52,7 @@ import org.w3c.dom.Element;
 
 public class FoxmlUtils {
 
-    private static final Logger LOG = Logger.getLogger(FoxmlUtils.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(FoxmlUtils.class.getName());
     private static JAXBContext defaultJaxbContext;
     private static ThreadLocal<Marshaller> defaultMarshaller = new ThreadLocal<Marshaller>();
     private static ThreadLocal<Unmarshaller> defaultUnmarshaller = new ThreadLocal<Unmarshaller>();
@@ -385,7 +385,7 @@ public class FoxmlUtils {
             try {
                 c.close();
             } catch (IOException ex) {
-                LOG.log(Level.SEVERE, description, ex);
+                LOGGER.log(Level.SEVERE, description, ex);
             }
         }
     }
@@ -612,27 +612,6 @@ public class FoxmlUtils {
     public static String getActualDateAsString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ACTUAL_DATE_PATTERN);
         return LocalDateTime.now().format(formatter);
-    }
-
-    public static String getPidAsFile(String value) {
-        if (value.startsWith("uuid:")) {
-            return value.substring(5);
-        }
-        return value;
-    }
-
-    public static void deleteFolder(File folder) {
-        File[] files = folder.listFiles();
-        if (files != null) {
-            for (File f : files) {
-                if (f.isDirectory()) {
-                    deleteFolder(f);
-                } else {
-                    f.delete();
-                }
-            }
-        }
-        folder.delete();
     }
 
     public enum ControlGroup {

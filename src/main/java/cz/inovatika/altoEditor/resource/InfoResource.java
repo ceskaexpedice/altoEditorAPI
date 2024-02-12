@@ -13,7 +13,7 @@ import static cz.inovatika.altoEditor.utils.Utils.setResult;
 
 public class InfoResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(InfoResource.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(InfoResource.class.getName());
 
     public static void info(Context ctx) {
         setContext(ctx, "application/json; charset=utf-8");

@@ -16,7 +16,7 @@ import static cz.inovatika.altoEditor.kramerius.KrameriusOptions.findKrameriusIn
 
 public class K7ImageViewer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(K7ImageViewer.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(K7ImageViewer.class.getName());
 
     public HttpResponse getResponse(String pid, String instanceId) throws IOException, AltoEditorException {
 
@@ -29,14 +29,14 @@ public class K7ImageViewer {
         String token = authenticator.authenticate();
 
         if (token == null || token.isEmpty()) {
-            LOG.error("Kramerius token is null");
+            LOGGER.error("Kramerius token is null");
             throw new AltoEditorException(instanceId, "Kramerius token is null");
         }
 
         String imageUrl = Config.getKrameriusInstanceUrl(instanceId) +
                 Config.getKrameriusInstanceUrlImage(instanceId) +
                 pid + "/full/max/0/default.jpg";
-        LOG.info("Trying to download image from " + imageUrl);
+        LOGGER.info("Trying to download image from " + imageUrl);
 
         HttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(imageUrl);

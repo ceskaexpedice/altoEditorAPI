@@ -21,6 +21,10 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Enumeration;
 import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
@@ -30,7 +34,7 @@ import static cz.inovatika.altoEditor.utils.Const.APP_HOME;
 
 public class Utils {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Utils.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(Utils.class.getName());
 
     public static File getDefaultHome() {
         File userHome = new File(System.getProperty("user.home"));
@@ -55,7 +59,7 @@ public class Utils {
             ctx.result(stream);
         } catch (UnsupportedEncodingException ex) {
             ctx.result(ex.getMessage());
-            LOG.error(ex.getMessage());
+            LOGGER.error(ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -67,7 +71,7 @@ public class Utils {
             ctx.header("Content-Disposition", pid + ".jpg");
         } catch (IOException ex) {
             ctx.result(ex.getMessage());
-            LOG.error(ex.getMessage());
+            LOGGER.error(ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -102,13 +106,13 @@ public class Utils {
                 } else if (object instanceof Statement) {
                     ((Statement) object).close();
                 } else {
-                    LOG.warn("Unknown object to close");
+                    LOGGER.warn("Unknown object to close");
                 }
             } catch (IOException e) {
-                LOG.warn("Unable to close the stream.");
+                LOGGER.warn("Unable to close the stream.");
                 e.printStackTrace();
             } catch (SQLException e) {
-                LOG.warn("Unable to close the db connection.");
+                LOGGER.warn("Unable to close the db connection.");
                 e.printStackTrace();
             }
         }
@@ -124,6 +128,15 @@ public class Utils {
             }
         } else {
             throw new RequestException(key, String.format("Missing value of param \"%s\".", key));
+        }
+    }
+
+    public static String getOptStringNodeValue(JsonNode node, String key) throws AltoEditorException {
+        if (node.get(key) != null) {
+            JsonNode keyNode = node.get(key);
+            return keyNode.textValue();
+        } else {
+            return null;
         }
     }
 
@@ -172,7 +185,7 @@ public class Utils {
         while (resources.hasMoreElements()) {
             URL url = resources.nextElement();
             lastResource = url;
-            LOG.debug(url.toExternalForm());
+            LOGGER.debug(url.toExternalForm());
         }
 
         if (lastResource == null) {
@@ -218,5 +231,14 @@ public class Utils {
             }
         }
         return path;
+    }
+
+    public static String getNextDate(String currentDate) throws ParseException {
+        final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        final Date date = format.parse(currentDate);
+        final Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.DAY_OF_YEAR, 1);
+        return format.format(calendar.getTime());
     }
 }

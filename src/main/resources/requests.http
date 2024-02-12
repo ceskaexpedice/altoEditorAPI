@@ -7,7 +7,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 
 ### show sql
 
-GET {{url}}/altoEditor/db
+GET {{url}}/db
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
@@ -15,7 +15,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 
 ### init db sql
 
-POST {{url}}/altoEditor/db
+POST {{url}}/db
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
@@ -24,14 +24,14 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 
 ### show list versions
 
-GET {{url}}/altoEditor/db/versions
+GET {{url}}/db/versions
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
 
 ### show actual version
 
-GET {{url}}/altoEditor/db/actualVersion
+GET {{url}}/db/actualVersion
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
@@ -76,6 +76,12 @@ GET {{url}}/db/objects
 ### get digital Object
 GET {{url}}/db/object?login=lukasSyk&pid={{uuid}}
 
+### get all batches
+GET {{url}}/db/batches
+
+### get batches
+GET {{url}}/db/batch?folder=PERO&create=2024-02-12&priority=LOW
+
 ### get Image
 GET {{url}}/object/image?login=lukasSyk&pid={{uuid}}&instance=k7
 
@@ -90,23 +96,16 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 
 {"login":"inovatika","pid":"{{uuid2}}", "data":"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<alto xmlns=\"http://www.loc.gov/standards/alto/ns-v2#\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.loc.gov/standards/alto/ns-v2# http://www.loc.gov/standards/alto/v2/alto-2-0.xsd\">\n  <Description>\n    <MeasurementUnit>pixel</MeasurementUnit>\n    <sourceImageInformation>\n      <fileName>00002.tif</fileName>\n    </sourceImageInformation>\n    <OCRProcessing ID=\"Processing\">\n      <ocrProcessingStep>\n        <processingStepSettings>Image Resolution:400</processingStepSettings>\n        <processingSoftware>\n          <softwareCreator>I2S</softwareCreator>\n          <softwareName>Limb</softwareName>\n          <softwareVersion>4.3.0.0</softwareVersion>\n          <applicationDescription>Abbyy11 OCR Engine</applicationDescription>\n        </processingSoftware>\n      </ocrProcessingStep>\n    </OCRProcessing>\n  </Description>\n  <Styles>\n    <TextStyle ID=\"StyleId-0\" FONTSIZE=\"20\" FONTFAMILY=\"Times New Roman\"/>\n    <TextStyle ID=\"StyleId-1\" FONTSIZE=\"15\" FONTFAMILY=\"Times New Roman\"/>\n    <TextStyle ID=\"StyleId-2\" FONTSIZE=\"8\" FONTFAMILY=\"Times New Roman\"/>\n    <TextStyle ID=\"StyleId-3\" FONTSIZE=\"7\" FONTFAMILY=\"Times New Roman\"/>\n    <TextStyle ID=\"StyleId-4\" FONTSIZE=\"5\" FONTFAMILY=\"Arial\"/>\n    <TextStyle ID=\"StyleId-5\" FONTSIZE=\"10\" FONTFAMILY=\"Times New Roman\"/>\n    <TextStyle ID=\"StyleId-6\" FONTSIZE=\"4\" FONTFAMILY=\"Times New Roman\"/>\n    <TextStyle ID=\"StyleId-7\" FONTSIZE=\"14\" FONTFAMILY=\"Times New Roman\"/>\n  </Styles>\n  <Layout>\n    <Page ID=\"P1\" PHYSICAL_IMG_NR=\"1\" HEIGHT=\"2700\" WIDTH=\"1750\" ACCURACY=\"0.411014\" QUALITY_DETAIL=\"23 words, 78 chars, 32 with recognition greater than 50% (41,03%)\">\n      <TopMargin ID=\"P1_TM00001\" HPOS=\"0\" VPOS=\"0\" WIDTH=\"1750\" HEIGHT=\"0\"/>\n      <LeftMargin ID=\"P1_LM00001\" HPOS=\"0\" VPOS=\"0\" WIDTH=\"0\" HEIGHT=\"2700\"/>\n      <RightMargin ID=\"P1_RM00001\" HPOS=\"1744\" VPOS=\"0\" WIDTH=\"6\" HEIGHT=\"2700\"/>\n      <BottomMargin ID=\"P1_BM00001\" HPOS=\"0\" VPOS=\"2700\" WIDTH=\"1750\" HEIGHT=\"0\"/>\n      <PrintSpace ID=\"P1_PS00001\" HPOS=\"0\" VPOS=\"0\" WIDTH=\"1744\" HEIGHT=\"2700\">\n        <Illustration ID=\"P1_ILL00001\" HPOS=\"0\" VPOS=\"0\" WIDTH=\"1721\" HEIGHT=\"1182\" IDNEXT=\"P1_TB00001\"/>\n        <TextBlock ID=\"P1_TB00001\" HPOS=\"437\" VPOS=\"1171\" WIDTH=\"927\" HEIGHT=\"270\" IDNEXT=\"P1_TB00002\">\n          <TextLine ID=\"P1_TL00001\" HPOS=\"717\" VPOS=\"1179\" WIDTH=\"620\" HEIGHT=\"104\">\n            <String ID=\"P1_S00001\" HPOS=\"717\" VPOS=\"1179\" WIDTH=\"404\" HEIGHT=\"82\" STYLEREFS=\"StyleId-0\" CONTENT=\"Knihovna\" WC=\"0.3125\" CC=\"394747910\"/>\n            <SP ID=\"P1_SP00001\" WIDTH=\"0\" HPOS=\"0\" VPOS=\"0\"/>\n            <String ID=\"P1_S00002\" HPOS=\"1307\" VPOS=\"1227\" WIDTH=\"30\" HEIGHT=\"56\" STYLEREFS=\"StyleId-0\" CONTENT=\"^\" WC=\"0.1\" CC=\"9\"/>\n          </TextLine>\n          <TextLine ID=\"P1_TL00002\" HPOS=\"635\" VPOS=\"1329\" WIDTH=\"722\" HEIGHT=\"90\">\n            <String ID=\"P1_S00003\" HPOS=\"635\" VPOS=\"1329\" WIDTH=\"124\" HEIGHT=\"70\" STYLEREFS=\"StyleId-0\" CONTENT=\"reál.\" WC=\"0.544\" CC=\"77700\"/>\n            <SP ID=\"P1_SP00002\" WIDTH=\"0\" HPOS=\"0\" VPOS=\"0\"/>\n            <String ID=\"P1_S00004\" HPOS=\"811\" VPOS=\"1345\" WIDTH=\"30\" HEIGHT=\"54\" STYLEREFS=\"StyleId-0\" CONTENT=\"a\" WC=\"0.03\" CC=\"9\"/>\n            <SP ID=\"P1_SP00003\" WIDTH=\"0\" HPOS=\"0\" VPOS=\"0\"/>\n            <String ID=\"P1_S00005\" HPOS=\"893\" VPOS=\"1331\" WIDTH=\"138\" HEIGHT=\"88\" STYLEREFS=\"StyleId-0\" CONTENT=\"vyšš.\" WC=\"0.494\" CC=\"110453\"/>\n            <SP ID=\"P1_SP00004\" WIDTH=\"0\" HPOS=\"0\" VPOS=\"0\"/>\n            <String ID=\"P1_S00006\" HPOS=\"1081\" VPOS=\"1331\" WIDTH=\"276\" HEIGHT=\"88\" STYLEREFS=\"StyleId-0\" CONTENT=\"gymnasia\" WC=\"0.39\" CC=\"610462944\"/>\n          </TextLine>\n        </TextBlock>\n        <TextBlock ID=\"P1_TB00002\" HPOS=\"601\" VPOS=\"1447\" WIDTH=\"615\" HEIGHT=\"161\" IDNEXT=\"P1_TB00003\">\n          <TextLine ID=\"P1_TL00003\" HPOS=\"769\" VPOS=\"1455\" WIDTH=\"280\" HEIGHT=\"52\">\n            <String ID=\"P1_S00007\" HPOS=\"769\" VPOS=\"1470\" WIDTH=\"39\" HEIGHT=\"36\" STYLEREFS=\"StyleId-1\" CONTENT=\"Y\" WC=\"0.25\" CC=\"7\"/>\n            <SP ID=\"P1_SP00005\" WIDTH=\"0\" HPOS=\"0\" VPOS=\"0\"/>\n            <String ID=\"P1_S00008\" HPOS=\"853\" VPOS=\"1455\" WIDTH=\"196\" HEIGHT=\"52\" STYLEREFS=\"StyleId-1\" CONTENT=\"Praze\" WC=\"0.366\" CC=\"27866\"/>\n          </TextLine>\n          <TextLine ID=\"P1_TL00004\" HPOS=\"609\" VPOS=\"1556\" WIDTH=\"599\" HEIGHT=\"44\">\n            <String ID=\"P1_S00009\" HPOS=\"609\" VPOS=\"1558\" WIDTH=\"44\" HEIGHT=\"35\" STYLEREFS=\"StyleId-2\" CONTENT=\"(v\" WC=\"0.15\" CC=\"79\"/>\n            <SP ID=\"P1_SP00006\" WIDTH=\"0\" HPOS=\"0\" VPOS=\"0\"/>\n            <String ID=\"P1_S00010\" HPOS=\"682\" VPOS=\"1556\" WIDTH=\"353\" HEIGHT=\"37\" STYLEREFS=\"StyleId-2\" CONTENT=\"Křemencové\" WC=\"0.662\" CC=\"2700064580\"/>\n            <SP ID=\"P1_SP00007\" WIDTH=\"0\" HPOS=\"0\" VPOS=\"0\"/>\n            <String ID=\"P1_S00011\" HPOS=\"1064\" VPOS=\"1559\" WIDTH=\"144\" HEIGHT=\"41\" STYLEREFS=\"StyleId-2\" CONTENT=\"ulici).\" WC=\"0.698571444\" CC=\"5060170\"/>\n          </TextLine>\n        </TextBlock>\n        <TextBlock ID=\"P1_TB00003\" HPOS=\"677\" VPOS=\"1709\" WIDTH=\"463\" HEIGHT=\"62\" IDNEXT=\"P1_ILL00002\">\n          <TextLine ID=\"P1_TL00005\" HPOS=\"685\" VPOS=\"1717\" WIDTH=\"447\" HEIGHT=\"46\">\n            <String ID=\"P1_S00012\" HPOS=\"685\" VPOS=\"1717\" WIDTH=\"150\" HEIGHT=\"46\" STYLEREFS=\"StyleId-2\" CONTENT=\"Čislo\" WC=\"0.51\" CC=\"27707\"/>\n            <SP ID=\"P1_SP00008\" WIDTH=\"0\" HPOS=\"0\" VPOS=\"0\"/>\n            <String ID=\"P1_S00013\" HPOS=\"864\" VPOS=\"1727\" WIDTH=\"268\" HEIGHT=\"36\" STYLEREFS=\"StyleId-2\" CONTENT=\"odborné:\" WC=\"0.22125\" CC=\"698661094\"/>\n          </TextLine>\n        </TextBlock>\n        <Illustration ID=\"P1_ILL00002\" HPOS=\"719\" VPOS=\"1760\" WIDTH=\"886\" HEIGHT=\"451\" IDNEXT=\"P1_TB00004\"/>\n        <TextBlock ID=\"P1_TB00004\" HPOS=\"23\" VPOS=\"2272\" WIDTH=\"37\" HEIGHT=\"46\" IDNEXT=\"P1_TB00005\">\n          <TextLine ID=\"P1_TL00006\" HPOS=\"31\" VPOS=\"2280\" WIDTH=\"21\" HEIGHT=\"30\">\n            <String ID=\"P1_S00014\" HPOS=\"31\" VPOS=\"2280\" WIDTH=\"21\" HEIGHT=\"30\" STYLEREFS=\"StyleId-3\" CONTENT=\"0\" WC=\"0.04\" CC=\"9\"/>\n          </TextLine>\n        </TextBlock>\n        <TextBlock ID=\"P1_TB00005\" HPOS=\"0\" VPOS=\"2424\" WIDTH=\"84\" HEIGHT=\"49\" IDNEXT=\"P1_TB00006\"/>\n        <TextBlock ID=\"P1_TB00006\" HPOS=\"266\" VPOS=\"2233\" WIDTH=\"23\" HEIGHT=\"39\" IDNEXT=\"P1_ILL00003\">\n          <TextLine ID=\"P1_TL00007\" HPOS=\"274\" VPOS=\"2241\" WIDTH=\"7\" HEIGHT=\"23\">\n            <String ID=\"P1_S00015\" HPOS=\"274\" VPOS=\"2241\" WIDTH=\"7\" HEIGHT=\"23\" STYLEREFS=\"StyleId-4\" CONTENT=\"■i\" WC=\"0.41\" CC=\"47\"/>\n          </TextLine>\n        </TextBlock>\n        <Illustration ID=\"P1_ILL00003\" HPOS=\"632\" VPOS=\"2256\" WIDTH=\"150\" HEIGHT=\"79\" IDNEXT=\"P1_TB00007\"/>\n        <TextBlock ID=\"P1_TB00007\" HPOS=\"573\" VPOS=\"2397\" WIDTH=\"39\" HEIGHT=\"40\" IDNEXT=\"P1_TB00008\"/>\n        <TextBlock ID=\"P1_TB00008\" HPOS=\"0\" VPOS=\"2588\" WIDTH=\"180\" HEIGHT=\"112\" IDNEXT=\"P1_ILL00004\">\n          <TextLine ID=\"P1_TL00008\" HPOS=\"22\" VPOS=\"2612\" WIDTH=\"150\" HEIGHT=\"43\">\n            <String ID=\"P1_S00016\" HPOS=\"22\" VPOS=\"2631\" WIDTH=\"14\" HEIGHT=\"18\" STYLEREFS=\"StyleId-5\" CONTENT=\"^\" WC=\"0.1\" CC=\"9\"/>\n            <SP ID=\"P1_SP00009\" WIDTH=\"0\" HPOS=\"0\" VPOS=\"0\"/>\n            <String ID=\"P1_S00017\" HPOS=\"149\" VPOS=\"2612\" WIDTH=\"23\" HEIGHT=\"43\" STYLEREFS=\"StyleId-2\" CONTENT=\";■\" WC=\"0.415\" CC=\"74\"/>\n          </TextLine>\n        </TextBlock>\n        <Illustration ID=\"P1_ILL00004\" HPOS=\"880\" VPOS=\"2239\" WIDTH=\"704\" HEIGHT=\"118\" IDNEXT=\"P1_TB00009\"/>\n        <TextBlock ID=\"P1_TB00009\" HPOS=\"1196\" VPOS=\"2355\" WIDTH=\"417\" HEIGHT=\"57\" IDNEXT=\"P1_TB00010\">\n          <TextLine ID=\"P1_TL00009\" HPOS=\"1204\" VPOS=\"2363\" WIDTH=\"401\" HEIGHT=\"41\">\n            <String ID=\"P1_S00018\" HPOS=\"1204\" VPOS=\"2373\" WIDTH=\"14\" HEIGHT=\"20\" STYLEREFS=\"StyleId-6\" CONTENT=\"/\" WC=\"0\" CC=\"10\"/>\n            <SP ID=\"P1_SP00010\" WIDTH=\"0\" HPOS=\"0\" VPOS=\"0\"/>\n            <String ID=\"P1_S00019\" HPOS=\"1257\" VPOS=\"2366\" WIDTH=\"2\" HEIGHT=\"27\" STYLEREFS=\"StyleId-6\" CONTENT=\"'\" WC=\"0.97\" CC=\"0\"/>\n            <SP ID=\"P1_SP00011\" WIDTH=\"0\" HPOS=\"0\" VPOS=\"0\"/>\n            <String ID=\"P1_S00020\" HPOS=\"1294\" VPOS=\"2363\" WIDTH=\"3\" HEIGHT=\"30\" STYLEREFS=\"StyleId-6\" CONTENT=\"'\" WC=\"1\" CC=\"0\"/>\n            <SP ID=\"P1_SP00012\" WIDTH=\"0\" HPOS=\"0\" VPOS=\"0\"/>\n            <String ID=\"P1_S00021\" HPOS=\"1513\" VPOS=\"2396\" WIDTH=\"9\" HEIGHT=\"8\" STYLEREFS=\"StyleId-7\" CONTENT=\".\" WC=\"0.54\" CC=\"4\"/>\n            <SP ID=\"P1_SP00013\" WIDTH=\"0\" HPOS=\"0\" VPOS=\"0\"/>\n            <String ID=\"P1_S00022\" HPOS=\"1593\" VPOS=\"2382\" WIDTH=\"12\" HEIGHT=\"22\" STYLEREFS=\"StyleId-6\" CONTENT=\"*\" WC=\"1\" CC=\"0\"/>\n          </TextLine>\n        </TextBlock>\n        <TextBlock ID=\"P1_TB00010\" HPOS=\"1720\" VPOS=\"2528\" WIDTH=\"24\" HEIGHT=\"43\" IDNEXT=\"P1_TB00010\">\n          <TextLine ID=\"P1_TL00010\" HPOS=\"1728\" VPOS=\"2536\" WIDTH=\"8\" HEIGHT=\"27\">\n            <String ID=\"P1_S00023\" HPOS=\"1728\" VPOS=\"2536\" WIDTH=\"8\" HEIGHT=\"27\" STYLEREFS=\"StyleId-3\" CONTENT=\"/\" WC=\"0.25\" CC=\"7\"/>\n          </TextLine>\n        </TextBlock>\n      </PrintSpace>\n    </Page>\n  </Layout>\n</alto>"}
 
-### Moje Revize  - z této obrazovky prejit na záznam editace
-GET {{url}}/db/object?login=lukasSyk&orderBy=pid&orderSort=desc
+### generate Pero
+POST {{url}}/object/pero
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
+Accept-Encoding: br,deflate,gzip,x-gzip
 
-### Revize
-GET {{url}}/db/objects?orderBy=datum&orderSort=asc
+{"login":"inovatika","pid":"{{uuid2}}","priority":"LOW"}
 
-### TOP LEFT
-GET {{url}}/db/object?pid={{uuid}}&orderBy=version&orderSort=asc
 
-### TOP RIGHT
-GET {{url}}/object/alto?pid={{uuid}}&versionXml=ALTO.0
 
-### DOWN RIGHT - v zavislosti na verzi, kterou vyberu v TOP left
-GET {{url}}/object/alto?pid={{uuid}}&versionXml={{version}}
-
-### DOWN LEFT
-GET {{url}}/object/image?pid={{uuid}}
 
 
 

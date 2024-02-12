@@ -3,16 +3,23 @@ package cz.inovatika.altoEditor.resource;
 import io.javalin.http.Context;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import cz.inovatika.altoEditor.db.Dao;
-import cz.inovatika.altoEditor.db.DigitalObject;
-import cz.inovatika.altoEditor.db.User;
-import cz.inovatika.altoEditor.db.Version;
+import cz.inovatika.altoEditor.db.dao.BatchDao;
+import cz.inovatika.altoEditor.db.dao.Dao;
+import cz.inovatika.altoEditor.db.dao.DigitalObjectDao;
+import cz.inovatika.altoEditor.db.dao.UserDao;
+import cz.inovatika.altoEditor.db.dao.VersionDao;
+import cz.inovatika.altoEditor.db.models.Batch;
+import cz.inovatika.altoEditor.db.models.User;
+import cz.inovatika.altoEditor.db.models.Version;
 import cz.inovatika.altoEditor.exception.RequestException;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
 import cz.inovatika.altoEditor.server.AltoEditorInitializer;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +35,7 @@ import static cz.inovatika.altoEditor.utils.Utils.setResult;
 
 public class DbResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DbResource.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(DbResource.class.getName());
 
     public static void showSchema(Context context) {
         try {
@@ -58,8 +65,8 @@ public class DbResource {
 
     public static void getVersions(Context context) {
         try {
-            Dao dbDao = new Dao();
-            List<Version> versionList = dbDao.getAllVersions();
+            VersionDao versionDao = new VersionDao();
+            List<Version> versionList = versionDao.getAllVersions();
             setResult(context, new AltoEditorResponse(versionList));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -68,8 +75,8 @@ public class DbResource {
 
     public static void getVersion(Context context) {
         try {
-            Dao dbDao = new Dao();
-            Version version = dbDao.getActualVersion();
+            VersionDao versionDao = new VersionDao();
+            Version version = versionDao.getActualVersion();
             setResult(context, new AltoEditorResponse(version));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -78,8 +85,8 @@ public class DbResource {
 
     public static void getAllUsers(Context context) {
         try {
-            Dao dbDao = new Dao();
-            List<User> users = dbDao.getAllUsers();
+            UserDao userDao = new UserDao();
+            List<User> users = userDao.getAllUsers();
             setResult(context, new AltoEditorResponse(users));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -89,7 +96,7 @@ public class DbResource {
     public static void getUser(Context context) {
         try {
             String login = getStringRequestValue(context, "login");
-            Dao dbDao = new Dao();
+            UserDao dbDao = new UserDao();
             User user = dbDao.getUserByLogin(login);
             setResult(context, new AltoEditorResponse(user));
         } catch (Exception ex) {
@@ -102,13 +109,13 @@ public class DbResource {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
             String login = getStringNodeValue(node, "login");
 
-            Dao dbDao = new Dao();
-            User user = dbDao.getUserByLogin(login);
+            UserDao userDao = new UserDao();
+            User user = userDao.getUserByLogin(login);
             if (user != null) {
                 throw new IOException(String.format("User login \"%s\" already exists.", login));
             } else {
-                dbDao.createUser(login);
-                user = dbDao.getUserByLogin(login);
+                userDao.createUser(login);
+                user = userDao.getUserByLogin(login);
                 setResult(context, new AltoEditorResponse(user));
             }
         } catch (Exception ex) {
@@ -122,18 +129,93 @@ public class DbResource {
             String login = getStringNodeValue(node, "login");
             String userId = getStringNodeValue(node, "userId");
 
-            Dao dbDao = new Dao();
-            User user = dbDao.getUserById(userId);
+            UserDao userDao = new UserDao();
+            User user = userDao.getUserById(userId);
             if (user == null) {
                 throw new IOException(String.format("User with id \"%s\" does not exists.", userId));
             } else {
-                dbDao.updateUser(userId, login);
-                user = dbDao.getUserById(userId);
+                userDao.updateUser(userId, login);
+                user = userDao.getUserById(userId);
                 setResult(context, new AltoEditorResponse(user));
             }
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
         }
+    }
+
+    public static void getAllBatches(Context context) {
+        try {
+            String orderBy = getOptStringRequestValue(context, "orderBy");
+            if (orderBy != null) {
+                if (!("id".equals(orderBy) || "folder".equals(orderBy) || "create".equals(orderBy) || "datum".equals(orderBy) || "state".equals(orderBy) || "estimateitemnumber".equals(orderBy) || "log".equals(orderBy) || "priority".equals(orderBy))) {
+                    throw new RequestException("orderBy", String.format("Unsupported param \"%s\".", orderBy));
+                }
+            }
+            String orderSort = getOptStringRequestValue(context, "orderSort");
+            if (orderSort != null) {
+                if (!("asc".equals(orderSort) || "desc".equals(orderSort))) {
+                    throw new RequestException("orderSort", String.format("Unsupported param \"%s\".", orderSort));
+                }
+            }
+            BatchDao batchDao = new BatchDao();
+            List<Batch> batches = batchDao.getAllBatches(orderBy, orderSort);
+            setResult(context, new AltoEditorResponse(batches));
+        } catch (Exception ex) {
+            setResult(context, AltoEditorResponse.asError(ex));
+        }
+    }
+
+    public static void getBatches(Context context) {
+        try {
+            String login = getOptStringRequestValue(context, "login");
+            String id = getOptStringRequestValue(context, "id");
+            String folder = getOptStringRequestValue(context, "folder");
+            String create = getOptStringRequestValue(context, "create");
+            String datum = getOptStringRequestValue(context, "datum");
+            String state = getOptStringRequestValue(context, "state");
+            String priority = getOptStringRequestValue(context, "priority");
+
+            String orderBy = getOptStringRequestValue(context, "orderBy");
+            if (orderBy != null) {
+                if (!("id".equals(orderBy) || "folder".equals(orderBy) || "create".equals(orderBy) || "datum".equals(orderBy) || "state".equals(orderBy) || "estimateitemnumber".equals(orderBy) || "log".equals(orderBy) || "priority".equals(orderBy))) {
+                    throw new RequestException("orderBy", String.format("Unsupported param \"%s\".", orderBy));
+                }
+            }
+            String orderSort = getOptStringRequestValue(context, "orderSort");
+            if (orderSort != null) {
+                if (!("asc".equals(orderSort) || "desc".equals(orderSort))) {
+                    throw new RequestException("orderSort", String.format("Unsupported param \"%s\".", orderSort));
+                }
+            }
+
+            if (create != null || datum != null) {
+                checkDateFormat("create", create);
+                checkDateFormat("datum", datum);
+            }
+
+            BatchDao batchDao = new BatchDao();
+            List<Batch> batches = batchDao.getBatches(id, folder, create, datum, state, priority, orderBy, orderSort);
+            setResult(context, new AltoEditorResponse(batches));
+
+        } catch (Exception ex) {
+            setResult(context, AltoEditorResponse.asError(ex));
+        }
+    }
+
+    private static void checkDateFormat(String key, String date) throws RequestException {
+        if (date == null) {
+            return;
+        } else {
+            DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            formatter .setLenient(false);
+            try {
+                formatter.parse(date);
+            } catch (ParseException e) {
+                throw new RequestException(key, String.format("Unsupported format \"%s\".", date));
+            }
+        }
+
+
     }
 
     public static void getAllDigitalObjects(Context context) {
@@ -150,8 +232,8 @@ public class DbResource {
                     throw new RequestException("orderSort", String.format("Unsupported param \"%s\".", orderSort));
                 }
             }
-            Dao dbDao = new Dao();
-            List<DigitalObjectView> digitalObjects = dbDao.getAllDigitalObjects(orderBy, orderSort);
+            DigitalObjectDao doDao = new DigitalObjectDao();
+            List<DigitalObjectView> digitalObjects = doDao.getAllDigitalObjects(orderBy, orderSort);
             setResult(context, new AltoEditorResponse(digitalObjects));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -176,8 +258,8 @@ public class DbResource {
                 }
             }
 
-            Dao dbDao = new Dao();
-            List<DigitalObjectView> digitalObjects = dbDao.getDigitalObjects(login, pid, orderBy, orderSort);
+            DigitalObjectDao doDao = new DigitalObjectDao();
+            List<DigitalObjectView> digitalObjects = doDao.getDigitalObjects(login, pid, orderBy, orderSort);
             setResult(context, new AltoEditorResponse(digitalObjects));
 
         } catch (Exception ex) {
@@ -193,13 +275,13 @@ public class DbResource {
             String version = getStringNodeValue(node, "version");
             String instance = getStringNodeValue(node, "instance");
 
-            Dao dbDao = new Dao();
-            List<DigitalObjectView> digitalObjects = dbDao.getDigitalObjects(login, pid);
+            DigitalObjectDao doDao = new DigitalObjectDao();
+            List<DigitalObjectView> digitalObjects = doDao.getDigitalObjects(login, pid);
             if (digitalObjects != null && !digitalObjects.isEmpty()) {
                 throw new IOException(String.format("User login \"%s\" already exists.", login));
             } else {
-                dbDao.createDigitalObject(login, pid, version, instance);
-                digitalObjects = dbDao.getDigitalObjects(login, pid);
+                doDao.createDigitalObject(login, pid, version, instance);
+                digitalObjects = doDao.getDigitalObjects(login, pid);
                 if (digitalObjects == null && digitalObjects.isEmpty()) {
                     throw new IOException(String.format("Digital object login \"%s\" and \"%s\" doees not exists.", login, pid));
                 } else if (digitalObjects.size() > 1) {
@@ -220,16 +302,16 @@ public class DbResource {
             String pid = getStringNodeValue(node, "pid");
             String version = getStringNodeValue(node, "version");
 
-            Dao dbDao = new Dao();
-            List<DigitalObjectView> digitalObjects = dbDao.getDigitalObjects(login, pid);
+            DigitalObjectDao doDao = new DigitalObjectDao();
+            List<DigitalObjectView> digitalObjects = doDao.getDigitalObjects(login, pid);
             if (digitalObjects == null && digitalObjects.isEmpty()) {
                 throw new IOException(String.format("Digital object login \"%s\" and \"%s\" doees not exists.", login, pid));
             } else if (digitalObjects.size() > 1) {
                 throw new IOException(String.format("There are more than 1 record with login \"%s\" and \"%s\" doees not exists.", login, pid));
             } else {
                 DigitalObjectView digitalObject = digitalObjects.get(0);
-                dbDao.updateDigitalObject(digitalObject.getId(), version);
-                digitalObject = dbDao.getDigitalObjectById(digitalObject.getId());
+                doDao.updateDigitalObject(digitalObject.getId(), version);
+                digitalObject = doDao.getDigitalObjectById(digitalObject.getId());
                 setResult(context, new AltoEditorResponse(digitalObject));
             }
         } catch (Exception ex) {

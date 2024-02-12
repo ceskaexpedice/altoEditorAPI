@@ -69,7 +69,7 @@ import static cz.inovatika.altoEditor.utils.FoxmlUtils.createXmlDate;
  */
 public final class LocalStorage {
 
-    private static final Logger LOG = Logger.getLogger(LocalStorage.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(LocalStorage.class.getName());
 
     public LocalObject load(String pid, File foxml) {
         DigitalObject dobj = FoxmlUtils.unmarshal(new StreamSource(foxml), DigitalObject.class);

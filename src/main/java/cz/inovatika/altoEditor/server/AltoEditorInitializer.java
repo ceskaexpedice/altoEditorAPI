@@ -3,6 +3,8 @@ package cz.inovatika.altoEditor.server;
 import io.javalin.Javalin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.inovatika.altoEditor.process.PeroProcess;
+import cz.inovatika.altoEditor.process.ProcessDispatcher;
 import cz.inovatika.altoEditor.resource.DbResource;
 import cz.inovatika.altoEditor.resource.DigitalObjectResource;
 import cz.inovatika.altoEditor.resource.InfoResource;
@@ -17,14 +19,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static cz.inovatika.altoEditor.utils.Const.APP_HOME;
 import static cz.inovatika.altoEditor.utils.Const.CONFIG_FILE_NAME;
 import static cz.inovatika.altoEditor.utils.Const.DEFAULT_RESOURCE_CONFIG;
 import static cz.inovatika.altoEditor.utils.Utils.checkFile;
@@ -33,7 +32,7 @@ import static cz.inovatika.altoEditor.utils.Utils.readFile;
 
 public class AltoEditorInitializer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AltoEditorInitializer.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(AltoEditorInitializer.class.getName());
     public static final ObjectMapper mapper = new ObjectMapper();
 
     public void start() {
@@ -41,9 +40,27 @@ public class AltoEditorInitializer {
             initHome();
             initStorage();
             initDb();
+            initProcesses();
             initApi();
         } catch (IOException ex) {
             throw new IllegalStateException(ex);
+        }
+    }
+
+    private void initProcesses() {
+        try {
+            PeroProcess.stopRunningBatches();
+        } catch (Throwable t) {
+            LOGGER.error("Impossible to stop running batches");
+        }
+
+        ProcessDispatcher dispatcher = new ProcessDispatcher();
+        ProcessDispatcher.setDefault(dispatcher);
+        dispatcher.init();
+        try {
+            PeroProcess.resumeAll(dispatcher);
+        } catch (Throwable t) {
+            LOGGER.error("Impossible to resume planned batches.");
         }
     }
 
@@ -51,7 +68,7 @@ public class AltoEditorInitializer {
         File appHome = getDefaultHome();
         if (!appHome.exists()) {
             appHome.mkdirs();
-            LOG.info("Created default home folder: {}", appHome.getAbsolutePath());
+            LOGGER.info("Created default home folder: {}", appHome.getAbsolutePath());
         }
         checkFile(appHome, true, true, true, true);
         copyDefaultConfig(appHome);
@@ -67,7 +84,7 @@ public class AltoEditorInitializer {
         if (!dataStreamStore.exists()) {
             dataStreamStore.mkdirs();
         }
-        LOG.info("Akubra storage set: " +
+        LOGGER.info("Akubra storage set: " +
                 "ObjectStore (" + objectStore.getAbsolutePath() + ") exists: " + objectStore.exists() + " pattern: " + Config.getObjectStorePattern() + ". " +
                 "DataStreamStore (" + dataStreamStore.getAbsolutePath() + ") exists: " + dataStreamStore.exists() + " pattern: " + Config.getDataStreamStorePattern()+ ".");
 
@@ -95,7 +112,7 @@ public class AltoEditorInitializer {
             }
         }
         Configurator.setAditionalConfigFile(cfgFile);
-        LOG.info("Config is in {}", cfgFile.getAbsolutePath());
+        LOGGER.info("Config is in {}", cfgFile.getAbsolutePath());
     }
 
     private void initApi() {
@@ -117,9 +134,12 @@ public class AltoEditorInitializer {
         app.get(Const.PATH_DB_DIGITAL_OBJECT, DbResource::getDigitalObjects);
         app.post(Const.PATH_DB_DIGITAL_OBJECT, DbResource::createDigitalObject);
         app.put(Const.PATH_DB_DIGITAL_OBJECT, DbResource::updateDigitalObject);
+        app.get(Const.PATH_DB_BATCHES, DbResource::getAllBatches);
+        app.get(Const.PATH_DB_BATCH, DbResource::getBatches);
         app.get(Const.PATH_DIGITAL_OBJECT_IMAGE, DigitalObjectResource::getImage);
         app.get(Const.PATH_DIGITAL_OBJECT_ALTO, DigitalObjectResource::getAlto);
         app.post(Const.PATH_DIGITAL_OBJECT_ALTO, DigitalObjectResource::updateAlto);
+        app.post(Const.PATH_DIGITAL_OBJECT_PERO_GENERATE, DigitalObjectResource::generatePero);
     }
 
     private static void initDb() {
@@ -129,6 +149,6 @@ public class AltoEditorInitializer {
         int poolSize = Config.getJdbcPoolSize();
 
         DataSource.configure(url, username, password, poolSize);
-        LOG.info("Connection to DB established.");
+        LOGGER.info("Connection to DB established.");
     }
 }

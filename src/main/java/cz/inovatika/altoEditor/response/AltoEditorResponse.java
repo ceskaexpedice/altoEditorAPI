@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class AltoEditorResponse {
 
-    private static final Logger LOG = Logger.getLogger(AltoEditorResponse.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(AltoEditorResponse.class.getName());
 
     public static final int STATUS_FAILURE = -1;
     public static final int STATUS_LOGIN_INCORRECT = -5;

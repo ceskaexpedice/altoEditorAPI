@@ -1,0 +1,67 @@
+package cz.inovatika.altoEditor.db.dao;
+
+import cz.inovatika.altoEditor.db.models.Batch;
+import cz.inovatika.altoEditor.utils.Const;
+import cz.inovatika.altoEditor.utils.Utils;
+import cz.inovatika.utils.db.DataSource;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static cz.inovatika.altoEditor.utils.Utils.readFile;
+
+public class Dao {
+
+    protected static final Logger LOGGER = LoggerFactory.getLogger(Dao.class.getName());
+
+    public boolean createSchema() throws SQLException, IOException {
+        boolean success = false;
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = DataSource.getConnection();
+            connection.setAutoCommit(true);
+
+            statement = connection.createStatement();
+            InputStream stream = readFile(Const.DEFAULT_RESOURCE_SQL);
+            String fileContent = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).lines().collect(Collectors.joining("\n"));
+
+            for (String line : fileContent.split("(?m);$")) {
+                statement.addBatch(line);
+            }
+
+            statement.executeBatch();
+
+            success = true;
+        } finally {
+            Utils.closeSilently(statement);
+            Utils.closeSilently(connection);
+        }
+        return success;
+    }
+
+    protected static String getOrderBy(String orderBy) {
+        return orderBy != null ? orderBy : "id";
+    }
+
+    protected static String getOrderSort(String orderSort) {
+        return orderSort != null ? orderSort : "asc";
+    }
+
+
+
+
+
+}

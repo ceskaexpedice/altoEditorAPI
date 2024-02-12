@@ -22,6 +22,7 @@ public class Config {
     private static final String PROP_APPLICATION_OBJECT_STORE_PATH = "application.objectStore.path";
     private static final String PROP_APPLICATION_DATA_STREAM_STORE_PATTERN = "application.dataStreamStore.pattern";
     private static final String PROP_APPLICATION_DATA_STREAM_STORE_PATH = "application.dataStreamStore.path";
+    private static final String PROP_APPLICATION_PERO_PATH = "application.pero.path";
 
     private static final String PROP_KRAMERIUS_INSTANCES = "krameriusInstances";
     private static final String PREFIX_KRAMERIUS_INSTANCE = "krameriusInstance";
@@ -41,6 +42,12 @@ public class Config {
     private static final String SUFFIX_KRAMERIUS_INSTANCE_TYPE = "type";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_EXPORT_FOXML_FOLDER = "exportFoxmlFolder";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_KRAMERIUS_IMPORT_FOXML_FOLDER = "krameriusImportFoxmlFolder";
+
+    private static final String PROP_PROCESSOR_PERO_EXEC = "processor.pero.exec";
+    private static final String PROP_PROCESSOR_PERO_ARG = "processor.pero.arg";
+    private static final String PROP_PROCESSOR_PERO_TIMEOUT = "processor.pero.timeout";
+    private static final String PROP_PROCESSOR_PERO_KEY = "processor.pero.key";
+
 
     public static final String getVersion() {
         return Configurator.get().getConfig().getString(PROP_APPLICATION_VERSION);
@@ -90,6 +97,10 @@ public class Config {
 
     public static final String getDataStreamStorePath() {
         return normalizePath(Configurator.get().getConfig().getString(PROP_APPLICATION_DATA_STREAM_STORE_PATH));
+    }
+
+    public static final String getPeroPath() {
+        return normalizePath(Configurator.get().getConfig().getString(PROP_APPLICATION_PERO_PATH));
     }
 
     public static final List<String> getKrameriusInstances() {
@@ -163,5 +174,21 @@ public class Config {
 
     public static final String getKrameriusInstanceKrameriusImportFoxmlFolder(String instance) {
         return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_KRAMERIUS_IMPORT_FOXML_FOLDER);
+    }
+
+    public static final String getProcessorPeroExec() {
+        return Configurator.get().getConfig().getString(PROP_PROCESSOR_PERO_EXEC);
+    }
+
+    public static final String getProcessorPeroArg() {
+        return Configurator.get().getConfig().getString(PROP_PROCESSOR_PERO_ARG);
+    }
+
+    public static final long getProcessorPeroTimeout() {
+        return Configurator.get().getConfig().getLong(PROP_PROCESSOR_PERO_TIMEOUT);
+    }
+
+    public static final String getProcessorPeroKey() {
+        return Configurator.get().getConfig().getString(PROP_PROCESSOR_PERO_KEY);
     }
 }

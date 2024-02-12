@@ -1,25 +1,25 @@
-package cz.inovatika.altoEditor.db;
+package cz.inovatika.altoEditor.db.models;
 
+import cz.inovatika.altoEditor.db.dao.Dao;
+import cz.inovatika.altoEditor.db.dao.VersionDao;
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.HashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class User {
+public class Version {
 
-    public Integer id = null;
-    public String login = null;
+    protected static final Logger LOGGER = LoggerFactory.getLogger(Version.class.getName());
 
-    public Integer getId() {
-        return id;
-    }
+    private Integer id = null;
+    private Timestamp datum = null;
+    private Integer version = null;
 
-    public String getLogin() {
-        return login;
-    }
-    public User(ResultSet rs) {
+    public Version(ResultSet rs) {
         try {
             if (rs != null) {
                 final ResultSetMetaData metaData = rs.getMetaData();
@@ -27,11 +27,13 @@ public class User {
                 for (int i = 1; i <= metaData.getColumnCount(); i++) {
                     resultFields.put(metaData.getColumnName(i).toUpperCase(), metaData.getColumnType(i));
                 }
-                Field[] declaredFields = User.class.getDeclaredFields();
+                Field[] declaredFields = Version.class.getDeclaredFields();
                 for (Field declaredField : declaredFields) {
                     String f = declaredField.getName().toUpperCase();
                     if (resultFields.containsKey(f)) {
                         if (resultFields.get(f).equals(Types.INTEGER)) {
+                            declaredField.set(this, rs.getInt(f));
+                        } else if (resultFields.get(f).equals(Types.BIGINT)) {
                             declaredField.set(this, rs.getInt(f));
                         } else if (resultFields.get(f).equals(Types.TIMESTAMP)) {
                             declaredField.set(this, rs.getTimestamp(f));
@@ -42,9 +44,8 @@ public class User {
                 }
             }
         } catch (Exception ex) {
-            Dao.LOG.error("Chyba nacteni uzivatele z DB {}", id);
+            LOGGER.error("Chyba nacteni verze z DB {}", id);
             ex.printStackTrace();
         }
     }
-
 }

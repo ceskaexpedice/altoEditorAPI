@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 public class KrameriusOptions {
 
-    private static final Logger LOG = Logger.getLogger(KrameriusOptions.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(KrameriusOptions.class.getName());
 
     private List<KrameriusInstance> krameriusInstances;
 
