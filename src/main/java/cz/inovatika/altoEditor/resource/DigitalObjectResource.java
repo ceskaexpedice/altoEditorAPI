@@ -4,7 +4,6 @@ import io.javalin.http.Context;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import cz.inovatika.altoEditor.db.dao.BatchDao;
-import cz.inovatika.altoEditor.db.dao.Dao;
 import cz.inovatika.altoEditor.db.dao.DigitalObjectDao;
 import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
@@ -14,8 +13,7 @@ import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
 import cz.inovatika.altoEditor.kramerius.K7Downloader;
 import cz.inovatika.altoEditor.kramerius.K7ImageViewer;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
-import cz.inovatika.altoEditor.process.PeroOperator;
-import cz.inovatika.altoEditor.process.PeroProcess;
+import cz.inovatika.altoEditor.process.FileGeneratorProcess;
 import cz.inovatika.altoEditor.process.ProcessDispatcher;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
 import cz.inovatika.altoEditor.response.AltoEditorStringRecordResponse;
@@ -23,7 +21,6 @@ import cz.inovatika.altoEditor.server.AltoEditorInitializer;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage.AkubraObject;
 import cz.inovatika.altoEditor.utils.Const;
-import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -198,7 +195,6 @@ public class DigitalObjectResource {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
             String pid = getStringNodeValue(node, "pid");
             String priority = getOptStringNodeValue(node, "priority");
-            String versionXml = "0";
 
             // hledani objektu konkretniho uzivatele
             DigitalObjectDao doDao = new DigitalObjectDao();
@@ -209,6 +205,7 @@ public class DigitalObjectResource {
             }
 
             if (!digitalObjects.isEmpty()) {
+                String versionXml = AltoDatastreamEditor.ALTO_ID + ".1";
                 LOGGER.debug("Version find in repositories using login and pid");
                 if (versionXml == null || versionXml.isEmpty()) {
                     AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
@@ -223,15 +220,16 @@ public class DigitalObjectResource {
                     }
                 }
             } else {
-                String instanceId = getInstanceFromDigitalObject(pid);
+                DigitalObjectView dObj = getDigitalObject(pid);
+                String instanceId = "";
+                if (dObj != null) {
+                    instanceId = dObj.getInstance();
+                }
                 if (isBlank(instanceId)) {
                     instanceId = getStringNodeValue(node, "instance");
                 }
-                K7Downloader downloader = new K7Downloader();
-                File parentFile = downloader.saveImage(pid, instanceId);
-
-                Batch batch = BatchDao.addNewBatch(parentFile.getAbsolutePath(), priority, parentFile.listFiles().length);
-                PeroProcess process = PeroProcess.prepare(batch);
+                Batch batch = BatchDao.addNewBatch(pid, priority, instanceId, 0);
+                FileGeneratorProcess process = FileGeneratorProcess.prepare(batch);
                 ProcessDispatcher.getDefault().addPeroProcess(process);
                 AltoEditorStringRecordResponse response = new AltoEditorStringRecordResponse();
                 response.setPid(pid);
@@ -244,13 +242,13 @@ public class DigitalObjectResource {
         }
     }
 
-    private static String getInstanceFromDigitalObject(String pid) throws SQLException {
+    private static DigitalObjectView getDigitalObject(String pid) throws SQLException {
         DigitalObjectDao doDao = new DigitalObjectDao();
         List<DigitalObjectView> digitalObjects = doDao.getDigitalObjects(null, pid);
         if (!digitalObjects.isEmpty()) {
             for (DigitalObjectView digitalObject : digitalObjects) {
                 if (!isBlank(digitalObject.getInstance())) {
-                    return digitalObject.getInstance();
+                    return digitalObject;
                 }
             }
         }

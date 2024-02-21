@@ -4,6 +4,7 @@ import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.altoEditor.utils.Utils;
 import cz.inovatika.utils.db.DataSource;
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.Connection;
@@ -13,10 +14,10 @@ import java.sql.Statement;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static cz.inovatika.altoEditor.db.dao.Dao.getNewId;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderBy;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderSort;
 import static cz.inovatika.altoEditor.utils.Utils.getNextDate;
@@ -26,8 +27,8 @@ public class BatchDao {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(BatchDao.class.getName());
 
-    public static Batch addNewBatch(String path, String priority, int estimateImageCount) throws SQLException {
-        int batchId = createNewBatch(path, priority, estimateImageCount);
+    public static Batch addNewBatch(String pid, String priority, String instanceId, Integer dObjId) throws SQLException {
+        int batchId = createNewBatch(pid, priority, instanceId, dObjId);
         return getBatchById(batchId);
     }
 
@@ -35,6 +36,19 @@ public class BatchDao {
         updateBatchState(Const.BATCH_STATE_RUNNING, batch.getId(), null);
         return getBatchById(batch.getId());
     }
+
+    public static Batch setSubStateBatch(Batch batch, String subState) throws SQLException {
+        updateBatchSubState(subState, batch.getId());
+        return getBatchById(batch.getId());
+    }
+
+    public static Batch updateInfoBatch(Batch batch, File folder) throws SQLException {
+        int estimateItemNumber = folder.listFiles().length;
+        String type = estimateItemNumber == 1 ? Const.BATCH_TYPE_SINGLE : Const.BATCH_TYPE_MULTIPLE;
+        updateBatchInfo(estimateItemNumber, type, batch.getId());
+        return getBatchById(batch.getId());
+    }
+
     public static Batch finishedWithError(Batch batch, Throwable t) throws SQLException {
         updateBatchState(Const.BATCH_STATE_FAILED, batch.getId(), toString(t));
         return getBatchById(batch.getId());
@@ -77,7 +91,7 @@ public class BatchDao {
 
     }
 
-    private static int createNewBatch(String path, String priority, int estimateImageCount) throws SQLException {
+    private static int createNewBatch(String pid, String priority, String instanceId, Integer dObjId) throws SQLException {
         Connection connection = null;
         Statement statement = null;
 
@@ -86,7 +100,8 @@ public class BatchDao {
             statement = connection.createStatement();
             int batchId = getNewId("batch_id_seq");
             if (batchId > 0) {
-                statement.executeUpdate("insert into batch(id, folder, datum, \"create\", state, estimateitemnumber, priority, log) values (" + batchId + ", '" + path + "' , NOW(), NOW(), '" + Const.BATCH_STATE_PLANNED + "', '" + estimateImageCount + "', '" + priority + "', '')");
+                statement.executeUpdate("insert into batch(id, pid, instance, createdate, updatedate, state, priority, objectId) values " +
+                        "(" + batchId + ", '" + pid + "' , '" + instanceId + "', NOW(), NOW(), '" + Const.BATCH_STATE_PLANNED + "', '" + priority +"', '" + dObjId +"')");
                 return batchId;
             } else {
                 throw new IllegalStateException("Wrong batch Id created.");
@@ -97,31 +112,39 @@ public class BatchDao {
         }
     }
 
-    private static int getNewId(String sequence) throws SQLException {
-        Connection connection = null;
-        Statement statement = null;
-        try {
-            connection = DataSource.getConnection();
-            statement = connection.createStatement();
-
-            final ResultSet resultSet = statement.executeQuery("select (NEXTVAL('" + sequence + "')) as newId");
-            while (resultSet.next()) {
-                return resultSet.getInt(resultSet.findColumn("newId"));
-            }
-        } finally {
-            Utils.closeSilently(statement);
-            Utils.closeSilently(connection);
-        }
-        return 0;
-    }
-
     private static void updateBatchState(String state, Integer batchId, String message) throws SQLException {
         Connection connection = null;
         Statement statement = null;
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            statement.executeUpdate("update batch set state = '" + state + "', log = '" + message + "', datum = NOW() where id = '" + batchId + "'");
+            statement.executeUpdate("update batch set state = '" + state + "', log = '" + message + "', updatedate = NOW(), substate = null where id = '" + batchId + "'");
+        } finally {
+            Utils.closeSilently(statement);
+            Utils.closeSilently(connection);
+        }
+    }
+
+    private static void updateBatchSubState(String subState, Integer batchId) throws SQLException {
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = DataSource.getConnection();
+            statement = connection.createStatement();
+            statement.executeUpdate("update batch set substate = '" + subState + "', updatedate = NOW() where id = '" + batchId + "'");
+        } finally {
+            Utils.closeSilently(statement);
+            Utils.closeSilently(connection);
+        }
+    }
+
+    private static void updateBatchInfo(int estimateItemNumber, String type, Integer batchId) throws SQLException {
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = DataSource.getConnection();
+            statement = connection.createStatement();
+            statement.executeUpdate("update batch set estimateitemnumber = '" + estimateItemNumber + "', type = '" + type + "', updatedate = NOW() where id = '" + batchId + "'");
         } finally {
             Utils.closeSilently(statement);
             Utils.closeSilently(connection);
@@ -147,14 +170,14 @@ public class BatchDao {
             Utils.closeSilently(connection);
         }
     }
-    public List<Batch> getBatches(String id, String folder, String create, String datum, String state, String priority, String orderBy, String orderSort) throws SQLException, ParseException {
+    public List<Batch> getBatches(String id, String pid, String createDate, String updateDate, String state, String substate, String priority, String type, String instanceId, String estimateItemNumber, String log, String orderBy, String orderSort) throws SQLException, ParseException {
         Connection connection = null;
         Statement statement = null;
         List<Batch> batches = new ArrayList<>();
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery("select * from batch " + getQuery(id, folder, create, datum, state, priority) + " order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
+            final ResultSet resultSet = statement.executeQuery("select * from batch " + getQuery(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log) + " order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
             while (resultSet.next()) {
                 Batch batch = new Batch(resultSet);
                 batches.add(batch);
@@ -166,29 +189,44 @@ public class BatchDao {
         }
     }
 
-    private String getQuery(String id, String folder, String create, String datum, String state, String priority) throws ParseException {
+    private String getQuery(String id, String pid, String createDate, String updateDate, String state, String substate, String priority, String type, String instanceId, String estimateItemNumber, String log) throws ParseException {
         StringBuilder queryBuilder = new StringBuilder();
-        if (isBlank(id) && isBlank(folder) && isBlank(create) && isBlank(datum) && isBlank(state) && isBlank(priority)) {
+        if (isBlank(id) && isBlank(pid) && isBlank(createDate) && isBlank(updateDate) && isBlank(state) && isBlank(substate) && isBlank(priority) && isBlank(type) && isBlank(instanceId) && isBlank(estimateItemNumber) && isBlank(log)) {
             return "";
         }
         queryBuilder.append("where");
         if (!isBlank(id)) {
             queryBuilder.append(" AND ").append("id = '" + id + "'");
         }
-        if (!isBlank(folder)) {
-            queryBuilder.append(" AND ").append("UPPER(folder) LIKE '%" + folder.toUpperCase().trim() + "%'");
+        if (!isBlank(pid)) {
+            queryBuilder.append(" AND ").append("UPPER(pid) = '" + pid.toUpperCase().trim() + "'");
         }
-        if (!isBlank(create)) {
-            queryBuilder.append(" AND ").append("\"create\" >= '" + create + "' AND \"create\" < '" + getNextDate(create) + "'");
+        if (!isBlank(createDate)) {
+            queryBuilder.append(" AND ").append("createDate >= '" + createDate + "' AND createDate < '" + getNextDate(createDate) + "'");
         }
-        if (!isBlank(datum)) {
-            queryBuilder.append(" AND ").append("datum >= '" + datum + "' AND datum < '" + getNextDate(datum) + "'");
+        if (!isBlank(updateDate)) {
+            queryBuilder.append(" AND ").append("updateDate >= '" + updateDate + "' AND updateDate < '" + getNextDate(updateDate) + "'");
         }
         if (!isBlank(state)) {
             queryBuilder.append(" AND ").append("UPPER(state) = '" + state.toUpperCase().trim() + "'");
         }
+        if (!isBlank(substate)) {
+            queryBuilder.append(" AND ").append("UPPER(substate) = '" + substate.toUpperCase().trim() + "'");
+        }
         if (!isBlank(priority)) {
             queryBuilder.append(" AND ").append("UPPER(priority) = '" + priority.toUpperCase().trim() + "'");
+        }
+        if (!isBlank(type)) {
+            queryBuilder.append(" AND ").append("UPPER(type) = '" + type.toUpperCase().trim() + "'");
+        }
+        if (!isBlank(instanceId)) {
+            queryBuilder.append(" AND ").append("UPPER(instanceId) = '" + instanceId.toUpperCase().trim() + "'");
+        }
+        if (!isBlank(estimateItemNumber)) {
+            queryBuilder.append(" AND ").append("estimateItemNumber = '" + estimateItemNumber.toUpperCase().trim() + "'");
+        }
+        if (!isBlank(log)) {
+            queryBuilder.append(" AND ").append("log LIKE '%" + priority.trim() + "%'");
         }
         String query = queryBuilder.toString();
         return query.replace("where AND ", "where ");

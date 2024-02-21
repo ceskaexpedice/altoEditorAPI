@@ -3,7 +3,7 @@ package cz.inovatika.altoEditor.server;
 import io.javalin.Javalin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.inovatika.altoEditor.process.PeroProcess;
+import cz.inovatika.altoEditor.process.FileGeneratorProcess;
 import cz.inovatika.altoEditor.process.ProcessDispatcher;
 import cz.inovatika.altoEditor.resource.DbResource;
 import cz.inovatika.altoEditor.resource.DigitalObjectResource;
@@ -49,7 +49,7 @@ public class AltoEditorInitializer {
 
     private void initProcesses() {
         try {
-            PeroProcess.stopRunningBatches();
+            FileGeneratorProcess.stopRunningBatches();
         } catch (Throwable t) {
             LOGGER.error("Impossible to stop running batches");
         }
@@ -58,7 +58,7 @@ public class AltoEditorInitializer {
         ProcessDispatcher.setDefault(dispatcher);
         dispatcher.init();
         try {
-            PeroProcess.resumeAll(dispatcher);
+            FileGeneratorProcess.resumeAll(dispatcher);
         } catch (Throwable t) {
             LOGGER.error("Impossible to resume planned batches.");
         }

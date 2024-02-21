@@ -16,5 +16,5 @@ INSERT INTO version (id, datum, version) VALUES (NEXTVAL('version_id_seq'), NOW(
 
 -- verze db 2
 CREATE SEQUENCE batch_id_seq INCREMENT BY 1 START WITH 1 MINVALUE 0;
-CREATE TABLE batch (id SERIAL NOT NULL, folder VARCHAR(255) NOT NULL, "create" TIMESTAMP NOT NULL, datum TIMESTAMP NOT NULL, state VARCHAR(20) NOT NULL, estimateItemNumber INT NOT NULL, log VARCHAR(255), priority VARCHAR(255), PRIMARY KEY (id));
+CREATE TABLE batch (id SERIAL NOT NULL, pid VARCHAR(255) NOT NULL, createDate TIMESTAMP NOT NULL, updateDate TIMESTAMP NOT NULL, state VARCHAR(20) NOT NULL, substate VARCHAR(20), priority VARCHAR(255) NOT NULL, instance VARCHAR(255) NOT NULL, type VARCHAR(255), estimateItemNumber INT, log VARCHAR(255), objectId INT, PRIMARY KEY (id));
 INSERT INTO version (id, datum, version) VALUES (NEXTVAL('version_id_seq'), NOW(), '2');

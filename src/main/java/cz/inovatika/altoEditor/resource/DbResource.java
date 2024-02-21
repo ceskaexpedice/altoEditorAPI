@@ -167,13 +167,18 @@ public class DbResource {
 
     public static void getBatches(Context context) {
         try {
-            String login = getOptStringRequestValue(context, "login");
+//            String login = getOptStringRequestValue(context, "login");
             String id = getOptStringRequestValue(context, "id");
-            String folder = getOptStringRequestValue(context, "folder");
-            String create = getOptStringRequestValue(context, "create");
-            String datum = getOptStringRequestValue(context, "datum");
+            String pid = getOptStringRequestValue(context, "pid");
+            String createDate = getOptStringRequestValue(context, "createDate");
+            String updateDate = getOptStringRequestValue(context, "updateDate");
             String state = getOptStringRequestValue(context, "state");
+            String substate = getOptStringRequestValue(context, "substate");
             String priority = getOptStringRequestValue(context, "priority");
+            String type = getOptStringRequestValue(context, "type");
+            String instanceId = getOptStringRequestValue(context, "instance");
+            String estimateItemNumber = getOptStringRequestValue(context, "estimateItemNumber");
+            String log = getOptStringRequestValue(context, "log");
 
             String orderBy = getOptStringRequestValue(context, "orderBy");
             if (orderBy != null) {
@@ -188,13 +193,13 @@ public class DbResource {
                 }
             }
 
-            if (create != null || datum != null) {
-                checkDateFormat("create", create);
-                checkDateFormat("datum", datum);
+            if (createDate != null || updateDate != null) {
+                checkDateFormat("createDate", createDate);
+                checkDateFormat("updateDate", updateDate);
             }
 
             BatchDao batchDao = new BatchDao();
-            List<Batch> batches = batchDao.getBatches(id, folder, create, datum, state, priority, orderBy, orderSort);
+            List<Batch> batches = batchDao.getBatches(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log, orderBy, orderSort);
             setResult(context, new AltoEditorResponse(batches));
 
         } catch (Exception ex) {
@@ -214,8 +219,6 @@ public class DbResource {
                 throw new RequestException(key, String.format("Unsupported format \"%s\".", date));
             }
         }
-
-
     }
 
     public static void getAllDigitalObjects(Context context) {

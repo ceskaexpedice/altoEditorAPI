@@ -119,7 +119,7 @@ public class PeroGenerator extends ExternalProcess {
 
     @Override
     public boolean isOk() {
-        return super.isOk() && outputOcr.exists() && outputOcr.length() > 0 &&
+        return outputOcr.exists() &&
                 outputAlto.exists() && outputAlto.length() > 0;
     }
 }

@@ -34,7 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Dispatcher controls scheduling of {@link PeroProcess}.
+ * Dispatcher controls scheduling of {@link FileGeneratorProcess}.
  *
  * For now it runs processes in single thread to preserve memory resources.
  *
@@ -101,7 +101,7 @@ public final class ProcessDispatcher {
         }
     }
 
-    public Future<PeroProcess> addPeroProcess(PeroProcess task) {
+    public Future<FileGeneratorProcess> addPeroProcess(FileGeneratorProcess task) {
         return addTask(task);
     }
 
@@ -132,7 +132,7 @@ public final class ProcessDispatcher {
             @Override
             protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
                 RunnableFuture<T> newTaskFor = super.newTaskFor(runnable, value);
-                return new PriorityFuture<>(newTaskFor, ((PeroProcess) value).getBatch().getPriority(), ((PeroProcess) value).getBatch().getCreate());
+                return new PriorityFuture<>(newTaskFor, ((FileGeneratorProcess) value).getBatch().getPriority(), ((FileGeneratorProcess) value).getBatch().getCreateDate());
             }
 
         };

@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -263,14 +264,34 @@ public class K7Downloader {
         File peroPath = createFolder(new File(Config.getPeroPath()), false);
         File parentFile = createFolder(new File(peroPath, getPidAsFile(parentPid)), true);
 
-        File imageFile = getFile(parentFile, pid, "IMAGE");
 
-        InputStream imageContent = null;
-        try {
-            imageContent = downloadImage(pid, instanceId);
-            writeToFile(imageContent, imageFile, pid);
-        } finally {
-            closeQuietly(imageContent, pid);
+
+        K7ObjectInfo k7ObjectInfo = new K7ObjectInfo();
+        String model = k7ObjectInfo.objectInfo(pid, instanceId, "PERO");
+        if (model == null) {
+            throw new IOException("Unknown model for pid = " + pid);
+        }
+        if ("page".equals(model)) {
+            File imageFile = getFile(parentFile, pid, "IMAGE");
+            InputStream imageContent = null;
+            try {
+                imageContent = downloadImage(pid, instanceId);
+                writeToFile(imageContent, imageFile, pid);
+            } finally {
+                closeQuietly(imageContent, pid);
+            }
+        } else {
+            List<String> childrenPids = k7ObjectInfo.getChildrenPids(pid, instanceId, "PERO");
+            for (String childrenPid : childrenPids) {
+                File imageFile = getFile(parentFile, childrenPid, "IMAGE");
+                InputStream imageContent = null;
+                try {
+                    imageContent = downloadImage(childrenPid, instanceId);
+                    writeToFile(imageContent, imageFile, childrenPid);
+                } finally {
+                    closeQuietly(imageContent, childrenPid);
+                }
+            }
         }
         return parentFile;
     }

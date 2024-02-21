@@ -4,6 +4,7 @@ import io.javalin.http.Context;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import cz.inovatika.altoEditor.exception.AltoEditorException;
 import cz.inovatika.altoEditor.exception.RequestException;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
@@ -26,7 +27,11 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.List;
 import org.apache.http.HttpResponse;
+import org.codehaus.jackson.node.ArrayNode;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,6 +121,20 @@ public class Utils {
                 e.printStackTrace();
             }
         }
+    }
+
+    public static JSONArray getJSONArray(JSONObject object, String key) {
+        if (object == null) {
+            return null;
+        }
+        return object.getJSONArray(key);
+    }
+
+    public static JSONObject getJSONObject(JSONObject object, String key) {
+        if (object == null) {
+            return null;
+        }
+        return object.getJSONObject(key);
     }
 
     public static String getStringNodeValue(JsonNode node, String key) throws AltoEditorException {

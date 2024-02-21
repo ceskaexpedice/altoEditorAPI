@@ -172,7 +172,11 @@ public final class AltoDatastreamEditor {
 
     public static String nextVersion(String version) {
         Integer currentVersionId = getVersionId(version);
-        version = AltoDatastreamEditor.ALTO_ID + "." + (currentVersionId + 1);
+        if (currentVersionId > 2) {
+            version = AltoDatastreamEditor.ALTO_ID + "." + (currentVersionId + 1);
+        } else {
+            version = AltoDatastreamEditor.ALTO_ID + ".2";
+        }
         return version;
     }
 

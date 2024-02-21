@@ -52,6 +52,24 @@ public class Dao {
         return success;
     }
 
+    protected static int getNewId(String sequence) throws SQLException {
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = DataSource.getConnection();
+            statement = connection.createStatement();
+
+            final ResultSet resultSet = statement.executeQuery("select (NEXTVAL('" + sequence + "')) as newId");
+            while (resultSet.next()) {
+                return resultSet.getInt(resultSet.findColumn("newId"));
+            }
+        } finally {
+            Utils.closeSilently(statement);
+            Utils.closeSilently(connection);
+        }
+        return 0;
+    }
+
     protected static String getOrderBy(String orderBy) {
         return orderBy != null ? orderBy : "id";
     }

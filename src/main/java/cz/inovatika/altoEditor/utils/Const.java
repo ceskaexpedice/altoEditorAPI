@@ -17,15 +17,23 @@ public class Const {
     public static final String DIGITAL_OBJECT_STATE_ACCEPTED = "ACCEPTED";
     public static final String DIGITAL_OBJECT_STATE_REJECTED = "REJECTED";
     public static final String DIGITAL_OBJECT_STATE_UPLOADED = "UPLOADED";
+    public static final String DIGITAL_OBJECT_STATE_GENERATED = "GENERATED";
 
     public static final String BATCH_STATE_PLANNED = "PLANNED";
     public static final String BATCH_STATE_RUNNING = "RUNNING";
     public static final String BATCH_STATE_DONE = "DONE";
     public static final String BATCH_STATE_FAILED = "FAILED";
 
+    public static final String BATCH_SUBSTATE_DOWNLOADING = "DOWNLOADING";
+    public static final String BATCH_SUBSTATE_GENERATING = "GENERATING";
+    public static final String BATCH_SUBSTATE_SAVING = "SAVING";
+
     public static final String BATCH_PRIORITY_LOW = "LOW";
     public static final String BATCH_PRIORITY_MEDIUM = "MEDIUM";
     public static final String BATCH_PRIORITY_HIGH = "HIGH";
+
+    public static final String BATCH_TYPE_MULTIPLE = "MULTIPLE";
+    public static final String BATCH_TYPE_SINGLE = "SINGLE";
 
     public static final String FOXML_PROPERTY_CREATEDATE = "info:fedora/fedora-system:def/model#createdDate";
     public static final String FOXML_PROPERTY_LABEL = "info:fedora/fedora-system:def/model#label";
@@ -55,7 +63,4 @@ public class Const {
     public static final String PATH_DIGITAL_OBJECT_IMAGE = getPath(PATH_DIGITAL_OBJECT, "image");
     public static final String PATH_DIGITAL_OBJECT_ALTO = getPath(PATH_DIGITAL_OBJECT, "alto");
     public static final String PATH_DIGITAL_OBJECT_PERO_GENERATE = getPath(PATH_DIGITAL_OBJECT, "pero");
-
-
-
 }

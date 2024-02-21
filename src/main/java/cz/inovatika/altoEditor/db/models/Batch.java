@@ -14,32 +14,49 @@ public class Batch {
     protected static final Logger LOGGER = LoggerFactory.getLogger(Batch.class.getName());
 
     public Integer id = null;
-    public String folder = null;
-    public Timestamp datum = null;
-    public Timestamp create = null;
+    public String pid = null;
+    public Timestamp createDate = null;
+    public Timestamp updateDate = null;
     public String state = null;
+    public String substate = null;
+    public String priority = null;
+    public String type = null;
+    public String instance = null;
+    public Integer objectId = null;
     public Integer estimateItemNumber = null;
     public String log = null;
-    public String priority = null;
+
 
     public Integer getId() {
         return id;
     }
 
-    public String getFolder() {
-        return folder;
+    public String getPid() {
+        return pid;
     }
 
-    public Timestamp getCreate() {
-        return create;
+    public Timestamp getCreateDate() {
+        return createDate;
     }
 
-    public Timestamp getDatum() {
-        return datum;
+    public Timestamp getUpdateDate() {
+        return updateDate;
     }
 
     public String getState() {
         return state;
+    }
+
+    public String getSubstate() {
+        return substate;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getInstance() {
+        return instance;
     }
 
     public Integer getEstimateItemNumber() {
@@ -54,7 +71,9 @@ public class Batch {
         return priority;
     }
 
-
+    public Integer getObjectId() {
+        return objectId;
+    }
 
     public Batch(ResultSet rs) {
         try {
