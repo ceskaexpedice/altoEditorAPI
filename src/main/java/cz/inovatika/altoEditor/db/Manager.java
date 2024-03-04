@@ -1,19 +1,15 @@
 package cz.inovatika.altoEditor.db;
 
 import cz.inovatika.altoEditor.db.dao.BatchDao;
+import cz.inovatika.altoEditor.db.dao.DigitalObjectDao;
 import cz.inovatika.altoEditor.db.models.Batch;
+import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.utils.Const;
-import cz.inovatika.altoEditor.utils.Utils;
-import cz.inovatika.utils.db.DataSource;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -77,6 +73,62 @@ public class Manager {
 
     public static List<Batch> findRunningBatches() throws SQLException {
         return BatchDao.findRunningBatches();
+    }
+
+    public static List<DigitalObjectView> getAllDigitalObjects(String orderBy, String orderSort) throws SQLException {
+        return DigitalObjectDao.getAllDigitalObjects(orderBy, orderSort);
+    }
+
+    public static List<DigitalObjectView> getDigitalObjects(String login, String pid) throws SQLException {
+        return DigitalObjectDao.getDigitalObjects(login, pid, null, null);
+    }
+
+    public static List<DigitalObjectView> getDigitalObjects(String login, String pid, String orderBy, String orderSort) throws SQLException {
+        return DigitalObjectDao.getDigitalObjects(login, pid, orderBy, orderSort);
+    }
+
+    public static List<DigitalObjectView> getDigitalObjectsWithMaxVersionByPid(String pid) throws SQLException {
+        return DigitalObjectDao.getDigitalObjectsWithMaxVersionByPid(pid);
+    }
+
+    public static List<DigitalObjectView> getDigitalObjectsByPid(String pid, String orderBy, String orderSort) throws SQLException {
+        return DigitalObjectDao.getDigitalObjectsByPid(pid, orderBy, orderSort);
+    }
+
+    public static void updateDigitalObject(Integer objectId, String versionXml) throws SQLException {
+        DigitalObjectDao.updateDigitalObject(objectId, versionXml);
+    }
+
+    public static void updateDigitalObjectWithState(Integer objectId, String state) throws SQLException {
+        DigitalObjectDao.updateDigitalObjectWithState(objectId, state);
+    }
+
+    public static void createDigitalObject(String login, String pid, String version, String instanceId) throws SQLException {
+        createDigitalObject(login, pid, null, null, null, version, instanceId);
+    }
+
+    public static void createDigitalObject(String login, String pid, String label, String parentPid, String parentLabel, String version, String instanceId) throws SQLException {
+        createDigitalObject(login, pid, label, parentPid, parentLabel, version, instanceId, Const.DIGITAL_OBJECT_STATE_NEW);
+    }
+
+    public static void createDigitalObject(String login, String pid, String versionXml, String instanceId, String state) throws SQLException {
+        createDigitalObject(login, pid, null, null, null, versionXml, instanceId, state);
+    }
+
+    public static void createDigitalObject(String login, String pid, String label, String parentPid, String parentLabel, String versionXml, String instanceId, String state) throws SQLException {
+        DigitalObjectDao.createDigitalObject(login, pid, label, parentPid, parentLabel, versionXml, instanceId, state);
+    }
+
+    public static List<DigitalObjectView> getDigitalObjectsByUserIdAndPid(Integer userId, String pid, String orderBy, String orderSort) throws SQLException {
+        return DigitalObjectDao.getDigitalObjectsByUserIdAndPid(userId, pid, orderBy, orderSort);
+    }
+
+    public static DigitalObjectView getDigitalObjectById(Integer objectId) throws SQLException {
+        return DigitalObjectDao.getDigitalObjectById(objectId);
+    }
+
+    public static List<DigitalObjectView> getDigitalObjectsByUserId(Integer userId, String orderBy, String orderSort) throws SQLException {
+        return DigitalObjectDao.getDigitalObjectsByUserId(userId, orderBy, orderSort);
     }
 
 }

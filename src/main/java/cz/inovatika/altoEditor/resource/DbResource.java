@@ -5,7 +5,6 @@ import io.javalin.http.Context;
 import com.fasterxml.jackson.databind.JsonNode;
 import cz.inovatika.altoEditor.db.Manager;
 import cz.inovatika.altoEditor.db.dao.Dao;
-import cz.inovatika.altoEditor.db.dao.DigitalObjectDao;
 import cz.inovatika.altoEditor.db.dao.UserDao;
 import cz.inovatika.altoEditor.db.dao.VersionDao;
 import cz.inovatika.altoEditor.db.models.Batch;
@@ -233,8 +232,7 @@ public class DbResource {
                     throw new RequestException("orderSort", String.format("Unsupported param \"%s\".", orderSort));
                 }
             }
-            DigitalObjectDao doDao = new DigitalObjectDao();
-            List<DigitalObjectView> digitalObjects = doDao.getAllDigitalObjects(orderBy, orderSort);
+            List<DigitalObjectView> digitalObjects = Manager.getAllDigitalObjects(orderBy, orderSort);
             setResult(context, new AltoEditorResponse(digitalObjects));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -258,9 +256,7 @@ public class DbResource {
                     throw new RequestException("orderSort", String.format("Unsupported param \"%s\".", orderSort));
                 }
             }
-
-            DigitalObjectDao doDao = new DigitalObjectDao();
-            List<DigitalObjectView> digitalObjects = doDao.getDigitalObjects(login, pid, orderBy, orderSort);
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid, orderBy, orderSort);
             setResult(context, new AltoEditorResponse(digitalObjects));
 
         } catch (Exception ex) {
@@ -276,14 +272,13 @@ public class DbResource {
             String version = getStringNodeValue(node, "version");
             String instance = getStringNodeValue(node, "instance");
 
-            DigitalObjectDao doDao = new DigitalObjectDao();
-            List<DigitalObjectView> digitalObjects = doDao.getDigitalObjects(login, pid);
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
             if (digitalObjects != null && !digitalObjects.isEmpty()) {
                 throw new IOException(String.format("User login \"%s\" already exists.", login));
             } else {
 
-                doDao.createDigitalObject(login, pid, version, instance);
-                digitalObjects = doDao.getDigitalObjects(login, pid);
+                Manager.createDigitalObject(login, pid, version, instance);
+                digitalObjects = Manager.getDigitalObjects(login, pid);
                 if (digitalObjects == null && digitalObjects.isEmpty()) {
                     throw new IOException(String.format("Digital object login \"%s\" and \"%s\" doees not exists.", login, pid));
                 } else if (digitalObjects.size() > 1) {
@@ -304,16 +299,15 @@ public class DbResource {
             String pid = getStringNodeValue(node, "pid");
             String version = getStringNodeValue(node, "version");
 
-            DigitalObjectDao doDao = new DigitalObjectDao();
-            List<DigitalObjectView> digitalObjects = doDao.getDigitalObjects(login, pid);
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
             if (digitalObjects == null && digitalObjects.isEmpty()) {
                 throw new IOException(String.format("Digital object login \"%s\" and \"%s\" doees not exists.", login, pid));
             } else if (digitalObjects.size() > 1) {
                 throw new IOException(String.format("There are more than 1 record with login \"%s\" and \"%s\" doees not exists.", login, pid));
             } else {
                 DigitalObjectView digitalObject = digitalObjects.get(0);
-                doDao.updateDigitalObject(digitalObject.getId(), version);
-                digitalObject = doDao.getDigitalObjectById(digitalObject.getId());
+                Manager.updateDigitalObject(digitalObject.getId(), version);
+                digitalObject = Manager.getDigitalObjectById(digitalObject.getId());
                 setResult(context, new AltoEditorResponse(digitalObject));
             }
         } catch (Exception ex) {

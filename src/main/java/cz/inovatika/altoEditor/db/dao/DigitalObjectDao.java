@@ -22,7 +22,7 @@ public class DigitalObjectDao {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(DigitalObjectDao.class.getName());
 
-    public List<DigitalObjectView> getAllDigitalObjects(String orderBy, String orderSort) throws SQLException {
+    public static List<DigitalObjectView> getAllDigitalObjects(String orderBy, String orderSort) throws SQLException {
         Connection connection = null;
         Statement statement = null;
         List<DigitalObjectView> digitalObjects = new ArrayList();
@@ -44,11 +44,7 @@ public class DigitalObjectDao {
         }
     }
 
-    public List<DigitalObjectView> getDigitalObjects(String login, String pid) throws SQLException {
-        return getDigitalObjects(login, pid, null, null);
-    }
-
-    public List<DigitalObjectView> getDigitalObjects(String login, String pid, String orderBy, String orderSort) throws SQLException {
+    public static List<DigitalObjectView> getDigitalObjects(String login, String pid, String orderBy, String orderSort) throws SQLException {
         UserDao userDao = new UserDao();
         if (login != null && !login.isEmpty() && pid != null && !pid.isEmpty()) {
             User user = userDao.getUserByLogin(login);
@@ -74,7 +70,7 @@ public class DigitalObjectDao {
         }
     }
 
-    public List<DigitalObjectView> getDigitalObjectsWithMaxVersionByPid(String pid) throws SQLException {
+    public static List<DigitalObjectView> getDigitalObjectsWithMaxVersionByPid(String pid) throws SQLException {
         if (pid == null) {
             return null;
         }
@@ -100,7 +96,7 @@ public class DigitalObjectDao {
         }
     }
 
-    public List<DigitalObjectView> getDigitalObjectsByPid(String pid, String orderBy, String orderSort) throws SQLException {
+    public static List<DigitalObjectView> getDigitalObjectsByPid(String pid, String orderBy, String orderSort) throws SQLException {
         if (pid == null) {
             return null;
         }
@@ -125,7 +121,7 @@ public class DigitalObjectDao {
         }
     }
 
-    public void updateDigitalObject(Integer objectId, String versionXml) throws SQLException {
+    public static void updateDigitalObject(Integer objectId, String versionXml) throws SQLException {
         if (objectId == null || versionXml == null) {
             return;
         }
@@ -143,7 +139,7 @@ public class DigitalObjectDao {
         }
     }
 
-    public void updateDigitalObjectWithState(Integer objectId, String state) throws SQLException {
+    public static void updateDigitalObjectWithState(Integer objectId, String state) throws SQLException {
         if (objectId == null || state == null) {
             return;
         }
@@ -160,19 +156,7 @@ public class DigitalObjectDao {
         }
     }
 
-    public void createDigitalObject(String login, String pid, String version, String instanceId) throws SQLException {
-        createDigitalObject(login, pid, null, null, null, version, instanceId);
-    }
-
-    public void createDigitalObject(String login, String pid, String label, String parentPid, String parentLabel, String version, String instanceId) throws SQLException {
-        createDigitalObject(login, pid, label, parentPid, parentLabel, version, instanceId, Const.DIGITAL_OBJECT_STATE_NEW);
-    }
-
-    public void createDigitalObject(String login, String pid, String versionXml, String instanceId, String state) throws SQLException {
-        createDigitalObject(login, pid, null, null, null, versionXml, instanceId, state);
-    }
-
-    public void createDigitalObject(String login, String pid, String label, String parentPid, String parentLabel, String versionXml, String instanceId, String state) throws SQLException {
+    public static void createDigitalObject(String login, String pid, String label, String parentPid, String parentLabel, String versionXml, String instanceId, String state) throws SQLException {
         if (login == null || pid == null || versionXml == null) {
             return;
         }
@@ -196,7 +180,7 @@ public class DigitalObjectDao {
         }
     }
 
-    public List<DigitalObjectView> getDigitalObjectsByUserIdAndPid(Integer userId, String pid, String orderBy, String orderSort) throws SQLException {
+    public static List<DigitalObjectView> getDigitalObjectsByUserIdAndPid(Integer userId, String pid, String orderBy, String orderSort) throws SQLException {
         if (userId == null || pid == null) {
             return null;
         }
@@ -221,7 +205,7 @@ public class DigitalObjectDao {
         }
     }
 
-    public DigitalObjectView getDigitalObjectById(Integer objectId) throws SQLException {
+    public static DigitalObjectView getDigitalObjectById(Integer objectId) throws SQLException {
         if (objectId == null) {
             return null;
         }
@@ -245,7 +229,7 @@ public class DigitalObjectDao {
         }
     }
 
-    public List<DigitalObjectView> getDigitalObjectsByUserId(Integer userId, String orderBy, String orderSort) throws SQLException {
+    public static List<DigitalObjectView> getDigitalObjectsByUserId(Integer userId, String orderBy, String orderSort) throws SQLException {
         if (userId == null) {
             return null;
         }

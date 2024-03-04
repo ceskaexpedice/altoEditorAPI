@@ -4,7 +4,6 @@ import io.javalin.http.Context;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import cz.inovatika.altoEditor.db.Manager;
-import cz.inovatika.altoEditor.db.dao.DigitalObjectDao;
 import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import cz.inovatika.altoEditor.exception.AltoEditorException;
@@ -49,8 +48,7 @@ public class DigitalObjectResource {
             String login = getOptStringRequestValue(context, "login");
             String pid = getStringRequestValue(context, "pid");
 
-            DigitalObjectDao doDao = new DigitalObjectDao();
-            List<DigitalObjectView> digitalObjects = doDao.getDigitalObjects(null, pid);
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(null, pid);
 
             String instanceId = null;
             for (DigitalObjectView digitalObject : digitalObjects) {
@@ -84,8 +82,7 @@ public class DigitalObjectResource {
             String versionXml = getOptStringRequestValue(context, "versionXml");
 
             // hledani objektu konkretniho uzivatele
-            DigitalObjectDao doDao = new DigitalObjectDao();
-            List<DigitalObjectView> digitalObjects = doDao.getDigitalObjects(login, pid);
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
 
             if (!digitalObjects.isEmpty()) {
                 LOGGER.debug("Version find in repositories using login and pid");
@@ -104,7 +101,7 @@ public class DigitalObjectResource {
             }
 
             // hledani objektu jineho uzivatele - zobrazeni defaultni verze
-            digitalObjects = doDao.getDigitalObjects(null, pid);
+            digitalObjects = Manager.getDigitalObjects(null, pid);
 
             if (!digitalObjects.isEmpty()) {
                 LOGGER.debug("Object found in repositories using pid - return default version");
@@ -127,7 +124,7 @@ public class DigitalObjectResource {
 
             K7Downloader downloader = new K7Downloader();
             downloader.downloadFoxml(pid, instanceId, login);
-            doDao.createDigitalObject("AltoEditor", pid, AltoDatastreamEditor.ALTO_ID + ".0", instanceId);
+            Manager.createDigitalObject("AltoEditor", pid, AltoDatastreamEditor.ALTO_ID + ".0", instanceId);
             AltoEditorStringRecordResponse response = getAltoStream(pid, AltoDatastreamEditor.ALTO_ID + ".0");
             setStringResult(context, response);
 
@@ -145,8 +142,7 @@ public class DigitalObjectResource {
 
 
             // hledani objektu konkretniho uzivatele
-            DigitalObjectDao doDao = new DigitalObjectDao();
-            List<DigitalObjectView> digitalObjects = doDao.getDigitalObjects(login, pid);
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
 
             if (!digitalObjects.isEmpty()) {
                 LOGGER.debug("Version find in repositories using login and pid");
@@ -157,7 +153,7 @@ public class DigitalObjectResource {
                     AkubraStorage storage = AkubraStorage.getInstance();
                     AkubraObject akubraObject = storage.find(pid);
                     AltoDatastreamEditor.updateAlto(akubraObject, data, "ALTO updated by user " + login, digitalObject.getVersionXml());
-                    doDao.updateDigitalObject(digitalObject.getId(), digitalObject.getVersionXml());
+                    Manager.updateDigitalObject(digitalObject.getId(), digitalObject.getVersionXml());
 
                     AltoEditorStringRecordResponse response = getAltoStream(digitalObject.getPid(), digitalObject.getVersionXml());
                     setStringResult(context, response);
@@ -166,7 +162,7 @@ public class DigitalObjectResource {
             }
 
             // hledani objektu jineho uzivatele - zobrazeni defaultni verze
-            digitalObjects = doDao.getDigitalObjectsWithMaxVersionByPid(pid);
+            digitalObjects = Manager.getDigitalObjectsWithMaxVersionByPid(pid);
             if (!digitalObjects.isEmpty()) {
                 if (digitalObjects.size() > 1) {
                     throw new DigitalObjectException(pid, "More than one object with max version");
@@ -178,7 +174,7 @@ public class DigitalObjectResource {
                     AkubraStorage storage = AkubraStorage.getInstance();
                     AkubraObject akubraObject = storage.find(pid);
                     AltoDatastreamEditor.updateAlto(akubraObject, data, "ALTO updated by user " + login, versionId);
-                    doDao.createDigitalObject(login, pid, versionId, digitalObject.getInstance(), Const.DIGITAL_OBJECT_STATE_EDITED);
+                    Manager.createDigitalObject(login, pid, versionId, digitalObject.getInstance(), Const.DIGITAL_OBJECT_STATE_EDITED);
 
                     AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), versionId);
                     setStringResult(context, response);
@@ -199,8 +195,7 @@ public class DigitalObjectResource {
             String priority = getOptStringNodeValue(node, "priority");
 
             // hledani objektu konkretniho uzivatele
-            DigitalObjectDao doDao = new DigitalObjectDao();
-            List<DigitalObjectView> digitalObjects = doDao.getDigitalObjects("PERO", pid);
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects("PERO", pid);
 
             if (priority == null) {
                 priority = Const.BATCH_PRIORITY_MEDIUM;
@@ -251,13 +246,12 @@ public class DigitalObjectResource {
             Integer objectId = getIntegerNodeValue(node, "id");
 
             // hledani objektu konkretniho uzivatele
-            DigitalObjectDao doDao = new DigitalObjectDao();
-            DigitalObjectView digitalObject = doDao.getDigitalObjectById(objectId);
+            DigitalObjectView digitalObject = Manager.getDigitalObjectById(objectId);
 
             if (digitalObject != null) {
                 LOGGER.debug("Digital Object find in repositories using objectId");
-                doDao.updateDigitalObjectWithState(objectId, Const.DIGITAL_OBJECT_STATE_ACCEPTED);
-                digitalObject = doDao.getDigitalObjectById(objectId);
+                Manager.updateDigitalObjectWithState(objectId, Const.DIGITAL_OBJECT_STATE_ACCEPTED);
+                digitalObject = Manager.getDigitalObjectById(objectId);
                 setResult(context, new AltoEditorResponse(digitalObject));
             } else {
                 throw new DigitalObjectNotFoundException(String.valueOf(objectId), String.format("This objectId \"%s\" not found in repository.", objectId));
@@ -274,13 +268,12 @@ public class DigitalObjectResource {
             Integer objectId = getIntegerNodeValue(node, "id");
 
             // hledani objektu konkretniho uzivatele
-            DigitalObjectDao doDao = new DigitalObjectDao();
-            DigitalObjectView digitalObject = doDao.getDigitalObjectById(objectId);
+            DigitalObjectView digitalObject = Manager.getDigitalObjectById(objectId);
 
             if (digitalObject != null) {
                 LOGGER.debug("Digital Object find in repositories using objectId");
-                doDao.updateDigitalObjectWithState(objectId, Const.DIGITAL_OBJECT_STATE_REJECTED);
-                digitalObject = doDao.getDigitalObjectById(objectId);
+                Manager.updateDigitalObjectWithState(objectId, Const.DIGITAL_OBJECT_STATE_REJECTED);
+                digitalObject = Manager.getDigitalObjectById(objectId);
                 setResult(context, new AltoEditorResponse(digitalObject));
             } else {
                 throw new DigitalObjectNotFoundException(String.valueOf(objectId), String.format("This objectId \"%s\" not found in repository.", objectId));
@@ -291,8 +284,7 @@ public class DigitalObjectResource {
     }
 
     private static DigitalObjectView getDigitalObject(String pid) throws SQLException {
-        DigitalObjectDao doDao = new DigitalObjectDao();
-        List<DigitalObjectView> digitalObjects = doDao.getDigitalObjects(null, pid);
+        List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(null, pid);
         if (!digitalObjects.isEmpty()) {
             for (DigitalObjectView digitalObject : digitalObjects) {
                 if (!isBlank(digitalObject.getInstance())) {

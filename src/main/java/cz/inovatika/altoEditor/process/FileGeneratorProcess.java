@@ -1,7 +1,6 @@
 package cz.inovatika.altoEditor.process;
 
 import cz.inovatika.altoEditor.db.Manager;
-import cz.inovatika.altoEditor.db.dao.DigitalObjectDao;
 import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import cz.inovatika.altoEditor.kramerius.K7Downloader;
@@ -95,11 +94,10 @@ public class FileGeneratorProcess implements Runnable {
                     AltoDatastreamEditor.importAlto(akubraObject, altoFile.toURI(), "ALTO updated by PERO.", AltoDatastreamEditor.ALTO_ID + ".1");
                     akubraObject.flush();
                     deleteFolder(folder);
-                    DigitalObjectDao doDao = new DigitalObjectDao();
                     if (batch.getObjectId() == null || batch.getObjectId() == 0) {
-                        doDao.createDigitalObject("PERO", batch.getPid(), AltoDatastreamEditor.ALTO_ID + ".1", batch.getInstance(), Const.DIGITAL_OBJECT_STATE_GENERATED);
+                        Manager.createDigitalObject("PERO", batch.getPid(), AltoDatastreamEditor.ALTO_ID + ".1", batch.getInstance(), Const.DIGITAL_OBJECT_STATE_GENERATED);
                     } else {
-                        doDao.updateDigitalObjectWithState(batch.getObjectId(), Const.DIGITAL_OBJECT_STATE_GENERATED);
+                        Manager.updateDigitalObjectWithState(batch.getObjectId(), Const.DIGITAL_OBJECT_STATE_GENERATED);
                     }
                     batch = Manager.finishedSuccesfully(batch);
                 } else {
