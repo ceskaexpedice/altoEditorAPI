@@ -3,7 +3,7 @@ package cz.inovatika.altoEditor.resource;
 import io.javalin.http.Context;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import cz.inovatika.altoEditor.db.dao.BatchDao;
+import cz.inovatika.altoEditor.db.Manager;
 import cz.inovatika.altoEditor.db.dao.Dao;
 import cz.inovatika.altoEditor.db.dao.DigitalObjectDao;
 import cz.inovatika.altoEditor.db.dao.UserDao;
@@ -157,8 +157,7 @@ public class DbResource {
                     throw new RequestException("orderSort", String.format("Unsupported param \"%s\".", orderSort));
                 }
             }
-            BatchDao batchDao = new BatchDao();
-            List<Batch> batches = batchDao.getAllBatches(orderBy, orderSort);
+            List<Batch> batches = Manager.getAllBatches(orderBy, orderSort);
             setResult(context, new AltoEditorResponse(batches));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -198,8 +197,7 @@ public class DbResource {
                 checkDateFormat("updateDate", updateDate);
             }
 
-            BatchDao batchDao = new BatchDao();
-            List<Batch> batches = batchDao.getBatches(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log, orderBy, orderSort);
+            List<Batch> batches = Manager.getBatches(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log, orderBy, orderSort);
             setResult(context, new AltoEditorResponse(batches));
 
         } catch (Exception ex) {
@@ -283,6 +281,7 @@ public class DbResource {
             if (digitalObjects != null && !digitalObjects.isEmpty()) {
                 throw new IOException(String.format("User login \"%s\" already exists.", login));
             } else {
+
                 doDao.createDigitalObject(login, pid, version, instance);
                 digitalObjects = doDao.getDigitalObjects(login, pid);
                 if (digitalObjects == null && digitalObjects.isEmpty()) {

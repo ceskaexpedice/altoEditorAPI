@@ -161,10 +161,18 @@ public class DigitalObjectDao {
     }
 
     public void createDigitalObject(String login, String pid, String version, String instanceId) throws SQLException {
-        createDigitalObject(login, pid, version, instanceId, Const.DIGITAL_OBJECT_STATE_NEW);
+        createDigitalObject(login, pid, null, null, null, version, instanceId);
+    }
+
+    public void createDigitalObject(String login, String pid, String label, String parentPid, String parentLabel, String version, String instanceId) throws SQLException {
+        createDigitalObject(login, pid, label, parentPid, parentLabel, version, instanceId, Const.DIGITAL_OBJECT_STATE_NEW);
     }
 
     public void createDigitalObject(String login, String pid, String versionXml, String instanceId, String state) throws SQLException {
+        createDigitalObject(login, pid, null, null, null, versionXml, instanceId, state);
+    }
+
+    public void createDigitalObject(String login, String pid, String label, String parentPid, String parentLabel, String versionXml, String instanceId, String state) throws SQLException {
         if (login == null || pid == null || versionXml == null) {
             return;
         }
@@ -180,8 +188,8 @@ public class DigitalObjectDao {
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            statement.executeUpdate("insert into digitalobject (id, ruserid, pid, version, datum, state, instance) values " +
-                    "(NEXTVAL('digitalobject_id_seq'), '" + user.getId() + "', '" + pid +"', '" + versionId + "', now(), '" + state + "', '" + instanceId + "')");
+            statement.executeUpdate("insert into digitalobject (id, ruserid, pid, label, parentPid, parentLabel, version, datum, state, instance) values " +
+                    "(NEXTVAL('digitalobject_id_seq'), '" + user.getId() + "', '" + pid +"', '"+ label +"', '"+ parentPid +"', '"+ parentLabel +"', '" + versionId + "', now(), '" + state + "', '" + instanceId + "')");
         } finally {
             Utils.closeSilently(statement);
             Utils.closeSilently(connection);

@@ -27,49 +27,7 @@ public class BatchDao {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(BatchDao.class.getName());
 
-    public static Batch addNewBatch(String pid, String priority, String instanceId, Integer dObjId) throws SQLException {
-        int batchId = createNewBatch(pid, priority, instanceId, dObjId);
-        return getBatchById(batchId);
-    }
-
-    public static Batch startWaitingBatch(Batch batch) throws SQLException {
-        updateBatchState(Const.BATCH_STATE_RUNNING, batch.getId(), null);
-        return getBatchById(batch.getId());
-    }
-
-    public static Batch setSubStateBatch(Batch batch, String subState) throws SQLException {
-        updateBatchSubState(subState, batch.getId());
-        return getBatchById(batch.getId());
-    }
-
-    public static Batch updateInfoBatch(Batch batch, File folder) throws SQLException {
-        int estimateItemNumber = folder.listFiles().length;
-        String type = estimateItemNumber == 1 ? Const.BATCH_TYPE_SINGLE : Const.BATCH_TYPE_MULTIPLE;
-        updateBatchInfo(estimateItemNumber, type, batch.getId());
-        return getBatchById(batch.getId());
-    }
-
-    public static Batch finishedWithError(Batch batch, Throwable t) throws SQLException {
-        updateBatchState(Const.BATCH_STATE_FAILED, batch.getId(), toString(t));
-        return getBatchById(batch.getId());
-    }
-
-    public static Batch finishedSuccesfully(Batch batch) throws SQLException {
-        updateBatchState(Const.BATCH_STATE_DONE, batch.getId(), null);
-        return getBatchById(batch.getId());
-    }
-
-    private static String toString(Throwable t) {
-        StringWriter sw = new StringWriter();
-        t.printStackTrace(new PrintWriter(sw, true));
-        String exception = sw.toString();
-        if (exception.length() > 240) {
-            exception = exception.substring(0, 239);
-        }
-        return exception;
-    }
-
-    private static Batch getBatchById(Integer batchId) throws SQLException {
+    public static Batch getBatchById(Integer batchId) throws SQLException {
         if (batchId == null) {
             return null;
         }
@@ -91,7 +49,7 @@ public class BatchDao {
 
     }
 
-    private static int createNewBatch(String pid, String priority, String instanceId, Integer dObjId) throws SQLException {
+    public static int createNewBatch(String pid, String priority, String instanceId, Integer dObjId) throws SQLException {
         Connection connection = null;
         Statement statement = null;
 
@@ -112,7 +70,7 @@ public class BatchDao {
         }
     }
 
-    private static void updateBatchState(String state, Integer batchId, String message) throws SQLException {
+    public static void updateBatchState(String state, Integer batchId, String message) throws SQLException {
         Connection connection = null;
         Statement statement = null;
         try {
@@ -125,7 +83,7 @@ public class BatchDao {
         }
     }
 
-    private static void updateBatchSubState(String subState, Integer batchId) throws SQLException {
+    public static void updateBatchSubState(String subState, Integer batchId) throws SQLException {
         Connection connection = null;
         Statement statement = null;
         try {
@@ -138,7 +96,7 @@ public class BatchDao {
         }
     }
 
-    private static void updateBatchInfo(int estimateItemNumber, String type, Integer batchId) throws SQLException {
+    public static void updateBatchInfo(int estimateItemNumber, String type, Integer batchId) throws SQLException {
         Connection connection = null;
         Statement statement = null;
         try {
@@ -151,7 +109,7 @@ public class BatchDao {
         }
     }
 
-    public List<Batch> getAllBatches(String orderBy, String orderSort) throws SQLException {
+    public static List<Batch> getAllBatches(String orderBy, String orderSort) throws SQLException {
         Connection connection = null;
         Statement statement = null;
         List<Batch> batches = new ArrayList<>();
@@ -170,7 +128,8 @@ public class BatchDao {
             Utils.closeSilently(connection);
         }
     }
-    public List<Batch> getBatches(String id, String pid, String createDate, String updateDate, String state, String substate, String priority, String type, String instanceId, String estimateItemNumber, String log, String orderBy, String orderSort) throws SQLException, ParseException {
+
+    public static List<Batch> getBatches(String id, String pid, String createDate, String updateDate, String state, String substate, String priority, String type, String instanceId, String estimateItemNumber, String log, String orderBy, String orderSort) throws SQLException, ParseException {
         Connection connection = null;
         Statement statement = null;
         List<Batch> batches = new ArrayList<>();
@@ -189,7 +148,7 @@ public class BatchDao {
         }
     }
 
-    private String getQuery(String id, String pid, String createDate, String updateDate, String state, String substate, String priority, String type, String instanceId, String estimateItemNumber, String log) throws ParseException {
+    private static String getQuery(String id, String pid, String createDate, String updateDate, String state, String substate, String priority, String type, String instanceId, String estimateItemNumber, String log) throws ParseException {
         StringBuilder queryBuilder = new StringBuilder();
         if (isBlank(id) && isBlank(pid) && isBlank(createDate) && isBlank(updateDate) && isBlank(state) && isBlank(substate) && isBlank(priority) && isBlank(type) && isBlank(instanceId) && isBlank(estimateItemNumber) && isBlank(log)) {
             return "";
@@ -232,7 +191,7 @@ public class BatchDao {
         return query.replace("where AND ", "where ");
     }
 
-    public List<Batch> findWaitingBatches() throws SQLException {
+    public static List<Batch> findWaitingBatches() throws SQLException {
         Connection connection = null;
         Statement statement = null;
         List<Batch> batches = new ArrayList<>();
@@ -252,7 +211,7 @@ public class BatchDao {
         }
     }
 
-    public List<Batch> findRunningBatches() throws SQLException {
+    public static List<Batch> findRunningBatches() throws SQLException {
         Connection connection = null;
         Statement statement = null;
         List<Batch> batches = new ArrayList<>();

@@ -19,6 +19,9 @@ public class DigitalObject {
     private Integer rUserId = null;
     private String instance = null;
     private String pid = null;
+    private String label = null;
+    private String parentPid = null;
+    private String parentLabel = null;
     private String version = null;
     private Timestamp datum = null;
     private String state = null;
@@ -49,6 +52,18 @@ public class DigitalObject {
 
     public String getInstance() {
         return instance;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public String getParentPid() {
+        return parentPid;
+    }
+
+    public String getParentLabel() {
+        return parentLabel;
     }
 
     public DigitalObject(ResultSet rs) {

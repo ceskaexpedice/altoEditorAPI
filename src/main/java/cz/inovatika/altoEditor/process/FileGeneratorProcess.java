@@ -1,6 +1,6 @@
 package cz.inovatika.altoEditor.process;
 
-import cz.inovatika.altoEditor.db.dao.BatchDao;
+import cz.inovatika.altoEditor.db.Manager;
 import cz.inovatika.altoEditor.db.dao.DigitalObjectDao;
 import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
@@ -29,16 +29,16 @@ public class FileGeneratorProcess implements Runnable {
     }
 
     public static void stopRunningBatches() throws SQLException {
-        BatchDao batchDao = new BatchDao();
-        List<Batch> runningBatches = batchDao.findRunningBatches();
+        Manager manager = new Manager();
+        List<Batch> runningBatches = manager.findRunningBatches();
         for (Batch batch : runningBatches) {
-            batchDao.finishedWithError(batch, new Exception("Application has been stopped."));
+            manager.finishedWithError(batch, new Exception("Application has been stopped."));
         }
     }
 
     public static void resumeAll(ProcessDispatcher dispatcher) throws SQLException {
-        BatchDao batchDao = new BatchDao();
-        List<Batch> batches2schedule = batchDao.findWaitingBatches();
+        Manager manager = new Manager();
+        List<Batch> batches2schedule = manager.findWaitingBatches();
         for (Batch batch : batches2schedule) {
             try {
                 FileGeneratorProcess resume = FileGeneratorProcess.resume(batch);
@@ -73,23 +73,23 @@ public class FileGeneratorProcess implements Runnable {
             throw new IllegalStateException("Batch is null");
         }
         try {
-            batch = BatchDao.startWaitingBatch(batch);
+            batch = Manager.startWaitingBatch(batch);
 
             K7Downloader downloader = new K7Downloader();
-            batch = BatchDao.setSubStateBatch(batch, Const.BATCH_SUBSTATE_DOWNLOADING);
+            batch = Manager.setSubStateBatch(batch, Const.BATCH_SUBSTATE_DOWNLOADING);
             File folder = downloader.saveImage(batch.getPid(), batch.getInstance());
-            batch = BatchDao.updateInfoBatch(batch, folder);
+            batch = Manager.updateInfoBatch(batch, folder);
             PeroOperator operator = new PeroOperator();
-            batch = BatchDao.setSubStateBatch(batch, Const.BATCH_SUBSTATE_GENERATING);
+            batch = Manager.setSubStateBatch(batch, Const.BATCH_SUBSTATE_GENERATING);
             PeroOperator.Result result = operator.generate(folder);
             if (result.getException() != null) {
-                batch = BatchDao.finishedWithError(batch, result.getException());
+                batch = Manager.finishedWithError(batch, result.getException());
                 throw result.getException();
             }
             if (Const.BATCH_TYPE_SINGLE.equals(batch.getType())) {
                 File altoFile = getAltoFile(folder);
                 if (altoFile != null) {
-                    batch = BatchDao.setSubStateBatch(batch, Const.BATCH_SUBSTATE_SAVING);
+                    batch = Manager.setSubStateBatch(batch, Const.BATCH_SUBSTATE_SAVING);
                     AkubraStorage storage = AkubraStorage.getInstance();
                     AkubraStorage.AkubraObject akubraObject = storage.find(batch.getPid());
                     AltoDatastreamEditor.importAlto(akubraObject, altoFile.toURI(), "ALTO updated by PERO.", AltoDatastreamEditor.ALTO_ID + ".1");
@@ -101,17 +101,17 @@ public class FileGeneratorProcess implements Runnable {
                     } else {
                         doDao.updateDigitalObjectWithState(batch.getObjectId(), Const.DIGITAL_OBJECT_STATE_GENERATED);
                     }
-                    batch = BatchDao.finishedSuccesfully(batch);
+                    batch = Manager.finishedSuccesfully(batch);
                 } else {
-                    batch = BatchDao.finishedWithError(batch, new Exception("Alto file is missing!"));
+                    batch = Manager.finishedWithError(batch, new Exception("Alto file is missing!"));
                 }
             } else {
-                BatchDao.finishedSuccesfully(batch);
+                Manager.finishedSuccesfully(batch);
             }
             return batch;
         } catch (Throwable t) {
             t.printStackTrace();
-            return BatchDao.finishedWithError(batch, t);
+            return Manager.finishedWithError(batch, t);
         }
     }
 

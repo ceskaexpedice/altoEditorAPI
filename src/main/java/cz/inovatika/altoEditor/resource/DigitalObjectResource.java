@@ -3,7 +3,7 @@ package cz.inovatika.altoEditor.resource;
 import io.javalin.http.Context;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import cz.inovatika.altoEditor.db.dao.BatchDao;
+import cz.inovatika.altoEditor.db.Manager;
 import cz.inovatika.altoEditor.db.dao.DigitalObjectDao;
 import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
@@ -230,7 +230,7 @@ public class DigitalObjectResource {
                 if (isBlank(instanceId)) {
                     instanceId = getStringNodeValue(node, "instance");
                 }
-                Batch batch = BatchDao.addNewBatch(pid, priority, instanceId, 0);
+                Batch batch = Manager.addNewBatch(pid, priority, instanceId, 0);
                 FileGeneratorProcess process = FileGeneratorProcess.prepare(batch);
                 ProcessDispatcher.getDefault().addPeroProcess(process);
                 AltoEditorStringRecordResponse response = new AltoEditorStringRecordResponse();
