@@ -143,6 +143,7 @@ public class DigitalObjectResource {
             String pid = getStringNodeValue(node, "pid");
             String data = getStringNodeValue(node, "data");
 
+
             // hledani objektu konkretniho uzivatele
             DigitalObjectDao doDao = new DigitalObjectDao();
             List<DigitalObjectView> digitalObjects = doDao.getDigitalObjects(login, pid);

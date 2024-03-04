@@ -100,6 +100,7 @@ public final class AltoDatastreamEditor {
     }
 
     public static void updateAlto(DigitalObject dObj, String alto, String msg, String versionId) throws AltoEditorException {
+        alto = fixAlto(alto);
         try {
             if (!isAlto(alto)) {
                 throw new DigitalObjectException(dObj.getPid(),
@@ -113,6 +114,17 @@ public final class AltoDatastreamEditor {
         XmlStreamEditor editor = dObj.getEditor(altoProfile());
         editor.write(alto.getBytes(StandardCharsets.UTF_8), editor.getLastModified(versionId), msg, versionId);
         dObj.flush();
+    }
+
+    // TODO na klientovi - opravit misto posilani elementu root posilat hlavicku alta
+    private static String fixAlto(String alto) {
+        if (alto.startsWith("<root>")) {
+            alto = alto.replace("<root>", "<?xml version=\"1.0\" encoding=\"utf-8\"?><alto xmlns=\"http://www.loc.gov/standards/alto/ns-v2#\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.loc.gov/standards/alto/ns-v2# http://www.loc.gov/standards/alto/v2/alto-2-0.xsd\">");
+        }
+        if (alto.endsWith("</root>")) {
+            alto = alto.replace("</root>", "</alto>");
+        }
+        return alto;
     }
 
     /**
