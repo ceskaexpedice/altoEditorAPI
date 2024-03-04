@@ -5,7 +5,6 @@ import io.javalin.http.Context;
 import com.fasterxml.jackson.databind.JsonNode;
 import cz.inovatika.altoEditor.db.Manager;
 import cz.inovatika.altoEditor.db.dao.Dao;
-import cz.inovatika.altoEditor.db.dao.UserDao;
 import cz.inovatika.altoEditor.db.dao.VersionDao;
 import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.db.models.User;
@@ -84,8 +83,7 @@ public class DbResource {
 
     public static void getAllUsers(Context context) {
         try {
-            UserDao userDao = new UserDao();
-            List<User> users = userDao.getAllUsers();
+            List<User> users = Manager.getAllUsers();
             setResult(context, new AltoEditorResponse(users));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -95,8 +93,7 @@ public class DbResource {
     public static void getUser(Context context) {
         try {
             String login = getStringRequestValue(context, "login");
-            UserDao dbDao = new UserDao();
-            User user = dbDao.getUserByLogin(login);
+            User user = Manager.getUserByLogin(login);
             setResult(context, new AltoEditorResponse(user));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -108,13 +105,12 @@ public class DbResource {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
             String login = getStringNodeValue(node, "login");
 
-            UserDao userDao = new UserDao();
-            User user = userDao.getUserByLogin(login);
+            User user = Manager.getUserByLogin(login);
             if (user != null) {
                 throw new IOException(String.format("User login \"%s\" already exists.", login));
             } else {
-                userDao.createUser(login);
-                user = userDao.getUserByLogin(login);
+                Manager.createUser(login);
+                user = Manager.getUserByLogin(login);
                 setResult(context, new AltoEditorResponse(user));
             }
         } catch (Exception ex) {
@@ -128,13 +124,12 @@ public class DbResource {
             String login = getStringNodeValue(node, "login");
             String userId = getStringNodeValue(node, "userId");
 
-            UserDao userDao = new UserDao();
-            User user = userDao.getUserById(userId);
+            User user = Manager.getUserById(userId);
             if (user == null) {
                 throw new IOException(String.format("User with id \"%s\" does not exists.", userId));
             } else {
-                userDao.updateUser(userId, login);
-                user = userDao.getUserById(userId);
+                Manager.updateUser(userId, login);
+                user = Manager.getUserById(userId);
                 setResult(context, new AltoEditorResponse(user));
             }
         } catch (Exception ex) {

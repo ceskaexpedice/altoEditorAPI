@@ -16,7 +16,7 @@ public class UserDao {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(UserDao.class.getName());
 
-    public List<User> getAllUsers() throws SQLException {
+    public static List<User> getAllUsers() throws SQLException {
         Connection connection = null;
         Statement statement = null;
         List<User> users = new ArrayList();
@@ -36,7 +36,7 @@ public class UserDao {
         }
     }
 
-    public User getUserByLogin(String login) throws SQLException {
+    public static User getUserByLogin(String login) throws SQLException {
         if (login == null) {
             return null;
         }
@@ -57,7 +57,7 @@ public class UserDao {
         }
     }
 
-    public User getUserById(String userId) throws SQLException {
+    public static User getUserById(String userId) throws SQLException {
         if (userId == null) {
             return null;
         }
@@ -78,7 +78,7 @@ public class UserDao {
         }
     }
 
-    public void createUser(String login) throws SQLException {
+    public static void createUser(String login) throws SQLException {
         if (login == null) {
             return;
         }
@@ -94,7 +94,7 @@ public class UserDao {
         }
     }
 
-    public void updateUser(String userId, String login) throws SQLException {
+    public static void updateUser(String userId, String login) throws SQLException {
         if (userId == null || login == null) {
             return;
         }

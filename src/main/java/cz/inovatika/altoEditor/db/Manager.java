@@ -2,14 +2,22 @@ package cz.inovatika.altoEditor.db;
 
 import cz.inovatika.altoEditor.db.dao.BatchDao;
 import cz.inovatika.altoEditor.db.dao.DigitalObjectDao;
+import cz.inovatika.altoEditor.db.dao.UserDao;
 import cz.inovatika.altoEditor.db.models.Batch;
+import cz.inovatika.altoEditor.db.models.User;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.utils.Const;
+import cz.inovatika.altoEditor.utils.Utils;
+import cz.inovatika.utils.db.DataSource;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -129,6 +137,26 @@ public class Manager {
 
     public static List<DigitalObjectView> getDigitalObjectsByUserId(Integer userId, String orderBy, String orderSort) throws SQLException {
         return DigitalObjectDao.getDigitalObjectsByUserId(userId, orderBy, orderSort);
+    }
+
+    public static List<User> getAllUsers() throws SQLException {
+        return UserDao.getAllUsers();
+    }
+
+    public static User getUserByLogin(String login) throws SQLException {
+        return UserDao.getUserByLogin(login);
+    }
+
+    public static User getUserById(String userId) throws SQLException {
+        return UserDao.getUserById(userId);
+    }
+
+    public static void createUser(String login) throws SQLException {
+        UserDao.createUser(login);
+    }
+
+    public static void updateUser(String userId, String login) throws SQLException {
+        UserDao.updateUser(userId, login);
     }
 
 }

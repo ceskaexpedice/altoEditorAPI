@@ -1,9 +1,9 @@
 package cz.inovatika.altoEditor.db.dao;
 
+import cz.inovatika.altoEditor.db.Manager;
 import cz.inovatika.altoEditor.db.models.DigitalObject;
 import cz.inovatika.altoEditor.db.models.User;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
-import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.altoEditor.utils.Utils;
 import cz.inovatika.utils.db.DataSource;
 import java.sql.Connection;
@@ -30,12 +30,10 @@ public class DigitalObjectDao {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
 
-            UserDao userDao = new UserDao();
-
             final ResultSet resultSet = statement.executeQuery("select * from digitalobject where not state in ('NEW', 'GENERATED') order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
             while (resultSet.next()) {
                 DigitalObject digitalObject = new DigitalObject(resultSet);
-                digitalObjects.add(new DigitalObjectView(digitalObject, userDao.getUserById(String.valueOf(digitalObject.getrUserId()))));
+                digitalObjects.add(new DigitalObjectView(digitalObject, Manager.getUserById(String.valueOf(digitalObject.getrUserId()))));
             }
             return digitalObjects;
         } finally {
@@ -45,20 +43,19 @@ public class DigitalObjectDao {
     }
 
     public static List<DigitalObjectView> getDigitalObjects(String login, String pid, String orderBy, String orderSort) throws SQLException {
-        UserDao userDao = new UserDao();
         if (login != null && !login.isEmpty() && pid != null && !pid.isEmpty()) {
-            User user = userDao.getUserByLogin(login);
+            User user = Manager.getUserByLogin(login);
             if (user == null || user.getId() == null) {
 //                throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
-                userDao.createUser(login);
-                user = userDao.getUserByLogin(login);
+                Manager.createUser(login);
+                user = Manager.getUserByLogin(login);
                 if (user == null || user.getId() == null) {
                     throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
                 }
             }
             return getDigitalObjectsByUserIdAndPid(user.getId(), pid, orderBy, orderSort);
         } else if (login != null && !login.isEmpty()) {
-            User user = userDao.getUserByLogin(login);
+            User user = Manager.getUserByLogin(login);
             if (user == null || user.getId() == null) {
                 throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
             }
@@ -80,14 +77,13 @@ public class DigitalObjectDao {
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            UserDao userDao = new UserDao();
 
             final ResultSet resultSet = statement.executeQuery("select * from digitalobject where pid = '" + pid + "' and version = (\n" +
                     "select max(version) from digitalobject where pid = '" + pid + "')");
 
             while (resultSet.next()) {
                 DigitalObject digitalObject = new DigitalObject(resultSet);
-                digitalObjects.add(new DigitalObjectView(digitalObject, userDao.getUserById(String.valueOf(digitalObject.getrUserId()))));
+                digitalObjects.add(new DigitalObjectView(digitalObject, Manager.getUserById(String.valueOf(digitalObject.getrUserId()))));
             }
             return digitalObjects;
         } finally {
@@ -106,13 +102,12 @@ public class DigitalObjectDao {
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            UserDao userDao = new UserDao();
 
             final ResultSet resultSet = statement.executeQuery("select * from digitalobject where pid = '" + pid + "' order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
 
             while (resultSet.next()) {
                 DigitalObject digitalObject = new DigitalObject(resultSet);
-                digitalObjects.add(new DigitalObjectView(digitalObject, userDao.getUserById(String.valueOf(digitalObject.getrUserId()))));
+                digitalObjects.add(new DigitalObjectView(digitalObject, Manager.getUserById(String.valueOf(digitalObject.getrUserId()))));
             }
             return digitalObjects;
         } finally {
@@ -160,12 +155,11 @@ public class DigitalObjectDao {
         if (login == null || pid == null || versionXml == null) {
             return;
         }
-        UserDao userDao = new UserDao();
         String versionId = versionXml.substring(versionXml.indexOf(".") + 1);
-        User user = userDao.getUserByLogin(login);
+        User user = Manager.getUserByLogin(login);
         if (user == null || user.getId() == null) {
-            userDao.createUser(login);
-            user = userDao.getUserByLogin(login);
+            Manager.createUser(login);
+            user = Manager.getUserByLogin(login);
         }
         Connection connection = null;
         Statement statement = null;
@@ -190,13 +184,12 @@ public class DigitalObjectDao {
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            UserDao userDao = new UserDao();
 
             final ResultSet resultSet = statement.executeQuery("select * from digitalobject where ruserid = '" + userId + "' and pid = '" + pid + "' order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
 
             while (resultSet.next()) {
                 DigitalObject digitalObject = new DigitalObject(resultSet);
-                digitalObjects.add(new DigitalObjectView(digitalObject, userDao.getUserById(String.valueOf(digitalObject.getrUserId()))));
+                digitalObjects.add(new DigitalObjectView(digitalObject, Manager.getUserById(String.valueOf(digitalObject.getrUserId()))));
             }
             return digitalObjects;
         } finally {
@@ -214,13 +207,12 @@ public class DigitalObjectDao {
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            UserDao userDao = new UserDao();
 
             final ResultSet resultSet = statement.executeQuery("select * from digitalobject where id = '" + objectId + "'");
 
             while (resultSet.next()) {
                 DigitalObject digitalObject = new DigitalObject(resultSet);
-                return new DigitalObjectView(digitalObject, userDao.getUserById(String.valueOf(digitalObject.getrUserId())));
+                return new DigitalObjectView(digitalObject, Manager.getUserById(String.valueOf(digitalObject.getrUserId())));
             }
             return null;
         } finally {
@@ -239,13 +231,12 @@ public class DigitalObjectDao {
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            UserDao userDao = new UserDao();
 
             final ResultSet resultSet = statement.executeQuery("select * from digitalobject where ruserid = '" + userId + "' order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
 
             while (resultSet.next()) {
                 DigitalObject digitalObject = new DigitalObject(resultSet);
-                digitalObjects.add(new DigitalObjectView(digitalObject, userDao.getUserById(String.valueOf(digitalObject.getrUserId()))));
+                digitalObjects.add(new DigitalObjectView(digitalObject, Manager.getUserById(String.valueOf(digitalObject.getrUserId()))));
             }
             return digitalObjects;
         } finally {
