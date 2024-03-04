@@ -140,6 +140,8 @@ public class AltoEditorInitializer {
         app.get(Const.PATH_DIGITAL_OBJECT_ALTO, DigitalObjectResource::getAlto);
         app.post(Const.PATH_DIGITAL_OBJECT_ALTO, DigitalObjectResource::updateAlto);
         app.post(Const.PATH_DIGITAL_OBJECT_PERO_GENERATE, DigitalObjectResource::generatePero);
+        app.post(Const.PATH_DIGITAL_OBJECT_STATE_ACCEPTED, DigitalObjectResource::stateAccepted);
+        app.post(Const.PATH_DIGITAL_OBJECT_STATE_REJECTED, DigitalObjectResource::stateRejected);
     }
 
     private static void initDb() {

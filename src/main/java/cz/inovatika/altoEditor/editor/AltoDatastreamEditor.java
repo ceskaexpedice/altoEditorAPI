@@ -108,7 +108,7 @@ public final class AltoDatastreamEditor {
                         null);
             }
         } catch (Exception ex) {
-            throw new DigitalObjectException(dObj.getPid(), ALTO_ID, ex);
+            throw new DigitalObjectException(dObj.getPid(), ALTO_ID + ": " + ex.getMessage(), ex);
         }
         XmlStreamEditor editor = dObj.getEditor(altoProfile());
         editor.write(alto.getBytes(StandardCharsets.UTF_8), editor.getLastModified(versionId), msg, versionId);
@@ -121,18 +121,28 @@ public final class AltoDatastreamEditor {
      * @throws IOException failure
      */
     static boolean isAlto(URI alto) throws IOException, SAXException {
-        return validSchema(getSchemas(), new StreamSource(alto.toASCIIString()));
-        //getSchema().newValidator().validate(new StreamSource(alto.toASCIIString()));
+        SAXException exception = new SAXException();
+        List<Schema> schemas = getSchemas();
+        for (Schema schema : schemas) {
+            StreamSource altoSource = new StreamSource(alto.toASCIIString());
+            try {
+                schema.newValidator().validate(altoSource);
+                return true;
+            } catch (SAXException ex) {
+                exception = ex;
+            }
+        }
+        if (!exception.getMessage().isEmpty()) {
+            throw exception;
+        }
+        return false;
     }
 
     static boolean isAlto(String alto) throws SAXException, IOException {
-        return validSchema(getSchemas(), new StreamSource(new StringReader(alto)));
-    }
-
-    private static boolean validSchema(List<Schema> schemas, StreamSource altoSource) throws IOException, SAXException {
         SAXException exception = new SAXException();
-
+        List<Schema> schemas = getSchemas();
         for (Schema schema : schemas) {
+            StreamSource altoSource = new StreamSource(new StringReader(alto));
             try {
                 schema.newValidator().validate(altoSource);
                 return true;

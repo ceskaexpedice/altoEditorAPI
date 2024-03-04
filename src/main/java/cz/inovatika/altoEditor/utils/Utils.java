@@ -137,6 +137,19 @@ public class Utils {
         return object.getJSONObject(key);
     }
 
+    public static Integer getIntegerNodeValue(JsonNode node, String key) throws RequestException {
+        if (node.get(key) != null) {
+            JsonNode keyNode = node.get(key);
+            if (keyNode.isInt()) {
+                return keyNode.intValue();
+            } else {
+                throw new RequestException(key, String.format("Value of param \"%s\" is not Integer.", key));
+            }
+        } else {
+            throw new RequestException(key, String.format("Missing value of param \"%s\".", key));
+        }
+    }
+
     public static String getStringNodeValue(JsonNode node, String key) throws AltoEditorException {
         if (node.get(key) != null) {
             JsonNode keyNode = node.get(key);

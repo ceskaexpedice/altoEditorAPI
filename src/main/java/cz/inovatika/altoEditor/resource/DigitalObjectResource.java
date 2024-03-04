@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static cz.inovatika.altoEditor.editor.AltoDatastreamEditor.nextVersion;
+import static cz.inovatika.altoEditor.utils.Utils.getIntegerNodeValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptStringNodeValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptStringRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.getStringNodeValue;
@@ -183,7 +184,7 @@ public class DigitalObjectResource {
                     return;
                 }
             } else {
-                throw new DigitalObjectNotFoundException(pid, String.format("This pid \"%s\" not found in repository."));
+                throw new DigitalObjectNotFoundException(pid, String.format("This pid \"%s\" not found in repository.", pid));
             }
         } catch (Throwable ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -237,6 +238,52 @@ public class DigitalObjectResource {
                 setStringResult(context, response);
             }
 
+        } catch (Throwable ex) {
+            setResult(context, AltoEditorResponse.asError(ex));
+        }
+    }
+
+    public static void stateAccepted(Context context) {
+        try {
+            JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
+            String login = getStringNodeValue(node, "login");
+            Integer objectId = getIntegerNodeValue(node, "id");
+
+            // hledani objektu konkretniho uzivatele
+            DigitalObjectDao doDao = new DigitalObjectDao();
+            DigitalObjectView digitalObject = doDao.getDigitalObjectById(objectId);
+
+            if (digitalObject != null) {
+                LOGGER.debug("Digital Object find in repositories using objectId");
+                doDao.updateDigitalObjectWithState(objectId, Const.DIGITAL_OBJECT_STATE_ACCEPTED);
+                digitalObject = doDao.getDigitalObjectById(objectId);
+                setResult(context, new AltoEditorResponse(digitalObject));
+            } else {
+                throw new DigitalObjectNotFoundException(String.valueOf(objectId), String.format("This objectId \"%s\" not found in repository.", objectId));
+            }
+        } catch (Throwable ex) {
+            setResult(context, AltoEditorResponse.asError(ex));
+        }
+    }
+
+    public static void stateRejected(Context context) {
+        try {
+            JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
+            String login = getStringNodeValue(node, "login");
+            Integer objectId = getIntegerNodeValue(node, "id");
+
+            // hledani objektu konkretniho uzivatele
+            DigitalObjectDao doDao = new DigitalObjectDao();
+            DigitalObjectView digitalObject = doDao.getDigitalObjectById(objectId);
+
+            if (digitalObject != null) {
+                LOGGER.debug("Digital Object find in repositories using objectId");
+                doDao.updateDigitalObjectWithState(objectId, Const.DIGITAL_OBJECT_STATE_REJECTED);
+                digitalObject = doDao.getDigitalObjectById(objectId);
+                setResult(context, new AltoEditorResponse(digitalObject));
+            } else {
+                throw new DigitalObjectNotFoundException(String.valueOf(objectId), String.format("This objectId \"%s\" not found in repository.", objectId));
+            }
         } catch (Throwable ex) {
             setResult(context, AltoEditorResponse.asError(ex));
         }

@@ -32,7 +32,7 @@ public class DigitalObjectDao {
 
             UserDao userDao = new UserDao();
 
-            final ResultSet resultSet = statement.executeQuery("select * from digitalobject order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
+            final ResultSet resultSet = statement.executeQuery("select * from digitalobject where not state in ('NEW', 'GENERATED') order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
             while (resultSet.next()) {
                 DigitalObject digitalObject = new DigitalObject(resultSet);
                 digitalObjects.add(new DigitalObjectView(digitalObject, userDao.getUserById(String.valueOf(digitalObject.getrUserId()))));
@@ -152,7 +152,7 @@ public class DigitalObjectDao {
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            statement.executeUpdate("update digitalobject set state = '" + state + "' where id = '" + objectId + "'");
+            statement.executeUpdate("update digitalobject set datum = NOW(), state = '" + state + "' where id = '" + objectId + "'");
 
         } finally {
             Utils.closeSilently(statement);
