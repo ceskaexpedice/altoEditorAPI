@@ -1,7 +1,5 @@
 package cz.inovatika.altoEditor.db.models;
 
-import cz.inovatika.altoEditor.db.dao.Dao;
-import cz.inovatika.altoEditor.db.dao.VersionDao;
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;

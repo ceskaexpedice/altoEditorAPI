@@ -5,7 +5,6 @@ import io.javalin.http.Context;
 import com.fasterxml.jackson.databind.JsonNode;
 import cz.inovatika.altoEditor.db.Manager;
 import cz.inovatika.altoEditor.db.dao.Dao;
-import cz.inovatika.altoEditor.db.dao.VersionDao;
 import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.db.models.User;
 import cz.inovatika.altoEditor.db.models.Version;
@@ -63,8 +62,7 @@ public class DbResource {
 
     public static void getVersions(Context context) {
         try {
-            VersionDao versionDao = new VersionDao();
-            List<Version> versionList = versionDao.getAllVersions();
+            List<Version> versionList = Manager.getAllVersions();
             setResult(context, new AltoEditorResponse(versionList));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -73,8 +71,7 @@ public class DbResource {
 
     public static void getVersion(Context context) {
         try {
-            VersionDao versionDao = new VersionDao();
-            Version version = versionDao.getActualVersion();
+            Version version = Manager.getActualVersion();
             setResult(context, new AltoEditorResponse(version));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));

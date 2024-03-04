@@ -3,8 +3,10 @@ package cz.inovatika.altoEditor.db;
 import cz.inovatika.altoEditor.db.dao.BatchDao;
 import cz.inovatika.altoEditor.db.dao.DigitalObjectDao;
 import cz.inovatika.altoEditor.db.dao.UserDao;
+import cz.inovatika.altoEditor.db.dao.VersionDao;
 import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.db.models.User;
+import cz.inovatika.altoEditor.db.models.Version;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.altoEditor.utils.Utils;
@@ -157,6 +159,14 @@ public class Manager {
 
     public static void updateUser(String userId, String login) throws SQLException {
         UserDao.updateUser(userId, login);
+    }
+
+    public static List<Version> getAllVersions() throws SQLException {
+        return VersionDao.getAllVersions();
+    }
+
+    public static Version getActualVersion() throws SQLException {
+        return VersionDao.getActualVersion();
     }
 
 }

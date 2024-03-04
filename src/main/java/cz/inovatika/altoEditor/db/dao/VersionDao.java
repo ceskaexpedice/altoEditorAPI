@@ -16,7 +16,7 @@ public class VersionDao {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(VersionDao.class.getName());
 
-    public List<Version> getAllVersions() throws SQLException {
+    public static List<Version> getAllVersions() throws SQLException {
         Connection connection = null;
         Statement statement = null;
         List<Version> versions = new ArrayList<>();
@@ -36,7 +36,7 @@ public class VersionDao {
         }
     }
 
-    public Version getActualVersion() throws SQLException {
+    public static Version getActualVersion() throws SQLException {
         Connection connection = null;
         Statement statement = null;
         try {
