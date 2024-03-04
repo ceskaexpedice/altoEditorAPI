@@ -32,6 +32,8 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
@@ -109,6 +111,7 @@ public final class AltoDatastreamEditor {
                         null);
             }
         } catch (Exception ex) {
+            Logger.getLogger(AltoDatastreamEditor.class.getName()).log(Level.FINE, alto);
             throw new DigitalObjectException(dObj.getPid(), ALTO_ID + ": " + ex.getMessage(), ex);
         }
         XmlStreamEditor editor = dObj.getEditor(altoProfile());
