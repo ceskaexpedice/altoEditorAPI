@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import static cz.inovatika.altoEditor.db.dao.Dao.getNewId;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderBy;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderSort;
+import static cz.inovatika.altoEditor.db.dao.Dao.getOrderSortInverse;
 import static cz.inovatika.altoEditor.utils.Utils.getNextDate;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -117,7 +118,7 @@ public class BatchDao {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
 
-            final ResultSet resultSet = statement.executeQuery("select * from batch order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
+            final ResultSet resultSet = statement.executeQuery("select * from batch order by " + getOrderBy(orderBy) + " " + getOrderSortInverse(orderSort));
             while (resultSet.next()) {
                 Batch batch = new Batch(resultSet);
                 batches.add(batch);

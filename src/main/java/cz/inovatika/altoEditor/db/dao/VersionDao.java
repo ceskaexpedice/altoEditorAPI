@@ -42,7 +42,7 @@ public class VersionDao {
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery("select * from version order by datum, id desc limit 1");
+            final ResultSet resultSet = statement.executeQuery("select * from version order by id desc limit 1");
             while (resultSet.next()) {
                 return new Version(resultSet);
             }

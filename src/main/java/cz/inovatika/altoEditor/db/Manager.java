@@ -7,11 +7,14 @@ import cz.inovatika.altoEditor.db.dao.VersionDao;
 import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.db.models.User;
 import cz.inovatika.altoEditor.db.models.Version;
+import cz.inovatika.altoEditor.exception.AltoEditorException;
+import cz.inovatika.altoEditor.kramerius.K7ObjectInfo;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.altoEditor.utils.Utils;
 import cz.inovatika.utils.db.DataSource;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.Connection;
@@ -113,7 +116,7 @@ public class Manager {
         DigitalObjectDao.updateDigitalObjectWithState(objectId, state);
     }
 
-    public static void createDigitalObject(String login, String pid, String version, String instanceId) throws SQLException {
+    public static void createDigitalObject(String login, String pid, String version, String instanceId) throws SQLException, AltoEditorException, IOException {
         createDigitalObject(login, pid, null, null, null, version, instanceId);
     }
 

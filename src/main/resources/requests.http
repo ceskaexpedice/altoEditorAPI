@@ -86,7 +86,7 @@ GET {{url}}/db/batch?pid={{uuidStrana}}
 GET {{url}}/object/image?login=lukasSyk&pid={{uuid}}&instance=k7
 
 ### get Alto
-GET {{url}}/object/alto?pid={{uuid}}&instance=k7&login=inovatika
+GET {{url}}/object/alto?pid={{uuid2}}&instance=k7&login=inovatika
 
 ### update Alto
 POST {{url}}/object/alto

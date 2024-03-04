@@ -16,7 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderBy;
+import static cz.inovatika.altoEditor.db.dao.Dao.getOrderByVersion;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderSort;
+import static cz.inovatika.altoEditor.db.dao.Dao.getOrderSortInverse;
 
 public class DigitalObjectDao {
 
@@ -30,7 +32,7 @@ public class DigitalObjectDao {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
 
-            final ResultSet resultSet = statement.executeQuery("select * from digitalobject where not state in ('NEW', 'GENERATED') order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
+            final ResultSet resultSet = statement.executeQuery("select * from digitalobject where not state in ('GENERATED') order by " + getOrderBy(orderBy) + " " + getOrderSortInverse(orderSort));
             while (resultSet.next()) {
                 DigitalObject digitalObject = new DigitalObject(resultSet);
                 digitalObjects.add(new DigitalObjectView(digitalObject, Manager.getUserById(String.valueOf(digitalObject.getrUserId()))));
@@ -103,7 +105,7 @@ public class DigitalObjectDao {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
 
-            final ResultSet resultSet = statement.executeQuery("select * from digitalobject where pid = '" + pid + "' order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
+            final ResultSet resultSet = statement.executeQuery("select * from digitalobject where pid = '" + pid + "' order by " + getOrderByVersion(orderBy) + " " + getOrderSortInverse(orderSort));
 
             while (resultSet.next()) {
                 DigitalObject digitalObject = new DigitalObject(resultSet);
