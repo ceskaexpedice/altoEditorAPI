@@ -120,6 +120,14 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 
 {"id":{{digitalObjectId}},"login":"inovatika"}
 
+### upload version to Kramerius
+POST {{url}}/object/uploadKramerius
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+{"id":{{digitalObjectId}},"login":"inovatika"}
+
 
 
 

@@ -75,6 +75,7 @@ public class KrameriusOptions {
         Config.getKrameriusInstanceKrameriusImportFoxmlFolder(instance.getId());
         Config.getKrameriusInstanceUrlLogin(instance.getId());
         Config.getKrameriusInstanceUrlDownloadFoxml(instance.getId());
+        Config.getKrameriusInstanceUrlUploadStream(instance.getId());
         Config.getKrameriusInstanceUrlImage(instance.getId());
         Config.getKrameriusInstanceClientId(instance.getId());
         Config.getKrameriusInstanceClientSecret(instance.getId());

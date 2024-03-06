@@ -11,6 +11,7 @@ import cz.inovatika.altoEditor.exception.DigitalObjectException;
 import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
 import cz.inovatika.altoEditor.kramerius.K7Downloader;
 import cz.inovatika.altoEditor.kramerius.K7ImageViewer;
+import cz.inovatika.altoEditor.kramerius.K7Uploader;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.process.FileGeneratorProcess;
 import cz.inovatika.altoEditor.process.ProcessDispatcher;
@@ -307,5 +308,35 @@ public class DigitalObjectResource {
     private static void throwNewError(String message) throws IOException {
         LOGGER.error(message);
         throw new IOException(message);
+    }
+
+    public static void uploadKramerius(@NotNull Context context) {
+        try {
+            JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
+            String login = getStringNodeValue(node, "login");
+            Integer objectId = getIntegerNodeValue(node, "id");
+
+            DigitalObjectView digitalObject = Manager.getDigitalObjectById(objectId);
+
+            if (digitalObject != null && digitalObject.getPid() != null) {
+
+                K7Uploader uploader = new K7Uploader();
+                uploader.uploadAltoOcr(digitalObject.getPid(), digitalObject.getVersionXml(), digitalObject.getInstance());
+
+                Manager.updateDigitalObjectWithState(objectId, Const.DIGITAL_OBJECT_STATE_UPLOADED);
+                digitalObject = Manager.getDigitalObjectById(objectId);
+
+                // response po uspesnem zapsani do Krameria
+                AltoEditorStringRecordResponse response = new AltoEditorStringRecordResponse();
+                response.setPid(digitalObject.getPid());
+                response.setContent("Nahráno do Krameria");
+                setStringResult(context, response);
+            } else {
+                LOGGER.warn("Digital Object not find in respositories using objectId: " + objectId);
+                throw new DigitalObjectNotFoundException(String.valueOf(objectId), "Digital Object not find in respositories using objectId: " + objectId);
+            }
+        } catch (Exception ex) {
+            setResult(context, AltoEditorResponse.asError(ex));
+        }
     }
 }

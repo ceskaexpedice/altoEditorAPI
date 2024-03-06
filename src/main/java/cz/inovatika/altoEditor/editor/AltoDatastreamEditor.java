@@ -182,17 +182,22 @@ public final class AltoDatastreamEditor {
     }
 
     public AltoEditorStringRecordResponse readRecord(@NotNull String versionId) throws AltoEditorException {
+        String alto = readRecordAsString(versionId);
+
+        AltoEditorStringRecordResponse response = new AltoEditorStringRecordResponse();
+        response.setData(alto);
+        response.setTimestamp(editor.getLastModified(versionId));
+        return response;
+    }
+
+    public String readRecordAsString(String versionId) throws AltoEditorException {
         InputStream altoStream = editor.readStream(versionId);
         if (altoStream == null) {
             throw new AltoEditorException("Alto datastream with version " + versionId + " not found in storage");
         }
         String alto = new BufferedReader(
                 new InputStreamReader(altoStream, StandardCharsets.UTF_8)).lines().collect(Collectors.joining("\n"));
-
-        AltoEditorStringRecordResponse response = new AltoEditorStringRecordResponse();
-        response.setData(alto);
-        response.setTimestamp(editor.getLastModified(versionId));
-        return response;
+        return alto;
     }
 
     public static String nextVersion(String version) {

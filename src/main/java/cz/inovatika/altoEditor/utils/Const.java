@@ -1,5 +1,8 @@
 package cz.inovatika.altoEditor.utils;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static cz.inovatika.altoEditor.utils.Utils.getPath;
 
 public class Const {
@@ -65,4 +68,12 @@ public class Const {
     public static final String PATH_DIGITAL_OBJECT_PERO_GENERATE = getPath(PATH_DIGITAL_OBJECT, "pero");
     public static final String PATH_DIGITAL_OBJECT_STATE_ACCEPTED = getPath(PATH_DIGITAL_OBJECT, "stateAccepted");
     public static final String PATH_DIGITAL_OBJECT_STATE_REJECTED = getPath(PATH_DIGITAL_OBJECT, "stateRejected");
+    public static final String PATH_DIGITAL_OBJECT_UPLOAD_KRAMERIUS = getPath(PATH_DIGITAL_OBJECT, "uploadKramerius");
+
+    public static Map<String, String> MIMETYPE_MAP = new HashMap<>();
+
+    static {
+        MIMETYPE_MAP.put("ALTO", "application/xml");
+        MIMETYPE_MAP.put("OCR", "text/plain");
+    }
 }

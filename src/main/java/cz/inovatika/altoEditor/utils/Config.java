@@ -33,6 +33,7 @@ public class Config {
     private static final String SUFFIX_KRAMERIUS_INSTANCE_URL_PARAMETRIZED_IMPORT_QUERY = "urlParametrizedImportQuery";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_URL_STATE_QUERY = "urlStateQuery";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_URL_DOWNLOAD_FOXML = "urlDownloadFoxml";
+    private static final String SUFFIX_KRAMERIUS_INSTANCE_URL_UPLOAD_STREAM = "urlUploadStream";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_URL_MODEL_INFO = "urlModelInfo";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_URL_IMAGE = "urlImage";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_USERNAME = "username";
@@ -171,6 +172,10 @@ public class Config {
 
     public static final String getKrameriusInstanceUrlDownloadFoxml(String instance) {
         return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_DOWNLOAD_FOXML);
+    }
+
+    public static final String getKrameriusInstanceUrlUploadStream(String instance) {
+        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_UPLOAD_STREAM);
     }
 
     public static final String getKrameriusInstanceUrlModelInfo(String instance) {
