@@ -4,6 +4,7 @@ import cz.inovatika.altoEditor.db.Manager;
 import cz.inovatika.altoEditor.db.models.DigitalObject;
 import cz.inovatika.altoEditor.db.models.User;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
+import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.altoEditor.utils.Utils;
 import cz.inovatika.utils.db.DataSource;
 import java.sql.Connection;
@@ -128,7 +129,7 @@ public class DigitalObjectDao {
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            statement.executeUpdate("update digitalobject set version = '" + versionId + "', datum = NOW() where id = '" + objectId + "'");
+            statement.executeUpdate("update digitalobject set version = '" + versionId + "', datum = NOW(), state = '" + Const.DIGITAL_OBJECT_STATE_EDITED + "' where id = '" + objectId + "'");
 
         } finally {
             Utils.closeSilently(statement);
