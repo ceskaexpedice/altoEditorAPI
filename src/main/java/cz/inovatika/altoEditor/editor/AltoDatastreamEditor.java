@@ -186,6 +186,7 @@ public final class AltoDatastreamEditor {
 
         AltoEditorStringRecordResponse response = new AltoEditorStringRecordResponse();
         response.setData(alto);
+        response.setVersion(versionId);
         response.setTimestamp(editor.getLastModified(versionId));
         return response;
     }

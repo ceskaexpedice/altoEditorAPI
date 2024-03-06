@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import org.apache.http.HttpResponse;
+import org.elasticsearch.common.recycler.Recycler;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,50 +83,65 @@ public class DigitalObjectResource {
             String pid = getStringRequestValue(context, "pid");
             String versionXml = getOptStringRequestValue(context, "versionXml");
 
-            // hledani objektu konkretniho uzivatele
-            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
+            // posloupnost hledani pro dany pid
+            // 1. podle verze
+            // 2. podle uzivatele
+            // 3. defaulni verze od PERA
+            // 4. defaulni verze z Krameria
+            // 5. stazeni nove verze z Krameria
 
-            if (!digitalObjects.isEmpty()) {
-                LOGGER.debug("Version find in repositories using login and pid");
-                if (versionXml == null || versionXml.isEmpty()) {
+            // 1. podle verze
+            if (versionXml != null && !versionXml.isEmpty()) {
+                List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(null, pid);
+                for (DigitalObjectView digitalObject : digitalObjects) {
+                    LOGGER.debug("Version find in repositories using version and pid.");
+                    if (versionXml.equals(digitalObject.getVersionXml())) {
+                        AltoEditorStringRecordResponse response = getAltoStream(digitalObject.getPid(), digitalObject.getVersionXml());
+                        setStringResult(context, response);
+                        return;
+                    }
+                }
+            }
+
+            // 2. podle uzivatele
+            if (login != null && !login.isEmpty()) {
+                List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
+                if (!digitalObjects.isEmpty()) {
+                    LOGGER.debug("Version find in repositories using login and pid.");
                     AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
                     setStringResult(context, response);
                     return;
                 }
-                for (DigitalObjectView digitalObject : digitalObjects) {
-                    if (versionXml.equals(digitalObject.getVersionXml())) {
-                        AltoEditorStringRecordResponse response = getAltoStream(digitalObject.getPid(), digitalObject.getVersionXml());
-                        setStringResult(context, response);
-                        return;
-                    }
-                }
             }
 
-            // hledani objektu jineho uzivatele - zobrazeni defaultni verze
-            digitalObjects = Manager.getDigitalObjects(null, pid);
-
-            if (!digitalObjects.isEmpty()) {
-                LOGGER.debug("Object found in repositories using pid - return default version");
-                if (versionXml == null || versionXml.isEmpty()) {
-                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), AltoDatastreamEditor.ALTO_ID + ".0");
+            // 3. defaultni verze od Pera
+            if (login != null && !login.isEmpty()) {
+                List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_PERO, pid);
+                if (!digitalObjects.isEmpty()) {
+                    LOGGER.debug("Version find in repositories using login as PERO and pid.");
+                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
                     setStringResult(context, response);
                     return;
                 }
-                for (DigitalObjectView digitalObject : digitalObjects) {
-                    if (versionXml.equals(digitalObject.getVersionXml())) {
-                        AltoEditorStringRecordResponse response = getAltoStream(digitalObject.getPid(), digitalObject.getVersionXml());
-                        setStringResult(context, response);
-                        return;
-                    }
+            }
+
+            // 4. defaultni verze z Krameria
+            if (login != null && !login.isEmpty()) {
+                List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_ALTOEDITOR, pid);
+                if (!digitalObjects.isEmpty()) {
+                    LOGGER.debug("Version find in repositories using login as AltoEditor and pid.");
+                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
+                    setStringResult(context, response);
+                    return;
                 }
             }
 
-            // stazeni noveho objektu z krameria
+            // 5. stazeni nove verze z krameria
             String instanceId = getStringRequestValue(context, "instance");
 
             K7Downloader downloader = new K7Downloader();
             downloader.downloadFoxml(pid, instanceId, login);
-            Manager.createDigitalObject("AltoEditor", pid, AltoDatastreamEditor.ALTO_ID + ".0", instanceId);
+            Manager.createDigitalObject(Const.USER_ALTOEDITOR, pid, AltoDatastreamEditor.ALTO_ID + ".0", instanceId);
             AltoEditorStringRecordResponse response = getAltoStream(pid, AltoDatastreamEditor.ALTO_ID + ".0");
             setStringResult(context, response);
 
@@ -196,7 +212,7 @@ public class DigitalObjectResource {
             String priority = getOptStringNodeValue(node, "priority");
 
             // hledani objektu konkretniho uzivatele
-            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects("PERO", pid);
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_PERO, pid);
 
             if (priority == null) {
                 priority = Const.BATCH_PRIORITY_MEDIUM;
@@ -302,6 +318,7 @@ public class DigitalObjectResource {
         AltoDatastreamEditor altoEditor = AltoDatastreamEditor.alto(object);
         AltoEditorStringRecordResponse response = altoEditor.readRecord(versionId);
         response.setPid(pid);
+        response.setVersion(versionId);
         return response;
     }
 

@@ -95,7 +95,7 @@ public class FileGeneratorProcess implements Runnable {
                     akubraObject.flush();
                     deleteFolder(folder);
                     if (batch.getObjectId() == null || batch.getObjectId() == 0) {
-                        Manager.createDigitalObject("PERO", batch.getPid(), AltoDatastreamEditor.ALTO_ID + ".1", batch.getInstance(), Const.DIGITAL_OBJECT_STATE_GENERATED);
+                        Manager.createDigitalObject(Const.USER_PERO, batch.getPid(), AltoDatastreamEditor.ALTO_ID + ".1", batch.getInstance(), Const.DIGITAL_OBJECT_STATE_GENERATED);
                     } else {
                         Manager.updateDigitalObjectWithState(batch.getObjectId(), Const.DIGITAL_OBJECT_STATE_GENERATED);
                     }

@@ -21,6 +21,9 @@ public class AltoEditorStringRecordResponse {
     @XmlElement(name = "timestamp")
     private long timestamp;
 
+    @XmlElement(name = "version")
+    private String version;
+
     @XmlElement(name = "content")
     private String content;
 
@@ -94,5 +97,11 @@ public class AltoEditorStringRecordResponse {
         this.status = status;
     }
 
+    public String getVersion() {
+        return version;
+    }
 
+    public void setVersion(String version) {
+        this.version = version;
+    }
 }

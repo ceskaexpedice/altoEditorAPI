@@ -13,6 +13,9 @@ public class Const {
     public static final String DEFAULT_RESOURCE_CONFIG = "cz/inovatika/altoEditor/server/application.conf";
     public static final String DEFAULT_RESOURCE_SQL = "cz/inovatika/altoEditor/db/dbInit.sql";
 
+    public static final String USER_ALTOEDITOR = "AltoEditor";
+    public static final String USER_PERO = "PERO";
+
     public static final String RESPONSE_CONTENT_TYPE = "text/html; charset=utf-8";
 
     public static final String DIGITAL_OBJECT_STATE_NEW = "NEW";
