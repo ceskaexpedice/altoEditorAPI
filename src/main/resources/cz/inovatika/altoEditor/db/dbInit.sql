@@ -21,6 +21,6 @@ INSERT INTO version (id, datum, version) VALUES (NEXTVAL('version_id_seq'), NOW(
 
 -- verze db 3
 ALTER TABLE digitalobject ADD COLUMN label VARCHAR(1024);
-ALTER TABLE digitalobject ADD COLUMN parentPid VARCHAR(255);
+ALTER TABLE digitalobject ADD COLUMN parentPath VARCHAR(255);
 ALTER TABLE digitalobject ADD COLUMN parentLabel VARCHAR(255);
 INSERT INTO version (id, datum, version) VALUES (NEXTVAL('version_id_seq'), NOW(), '3');

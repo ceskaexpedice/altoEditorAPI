@@ -16,8 +16,6 @@ public class Const {
     public static final String USER_ALTOEDITOR = "AltoEditor";
     public static final String USER_PERO = "PERO";
 
-    public static final String RESPONSE_CONTENT_TYPE = "text/html; charset=utf-8";
-
     public static final String DIGITAL_OBJECT_STATE_NEW = "NEW";
     public static final String DIGITAL_OBJECT_STATE_EDITED = "EDITED";
     public static final String DIGITAL_OBJECT_STATE_ACCEPTED = "ACCEPTED";
@@ -66,6 +64,7 @@ public class Const {
     public static final String PATH_DB_BATCH = getPath(PATH_DB, "batch");
 
     public static final String PATH_DIGITAL_OBJECT = getPath(PATH_APP, "object");
+    public static final String PATH_DIGITAL_OBJECT_INFORMATION = getPath(PATH_DIGITAL_OBJECT, "objectInformation");
     public static final String PATH_DIGITAL_OBJECT_IMAGE = getPath(PATH_DIGITAL_OBJECT, "image");
     public static final String PATH_DIGITAL_OBJECT_ALTO = getPath(PATH_DIGITAL_OBJECT, "alto");
     public static final String PATH_DIGITAL_OBJECT_PERO_GENERATE = getPath(PATH_DIGITAL_OBJECT, "pero");
@@ -73,10 +72,17 @@ public class Const {
     public static final String PATH_DIGITAL_OBJECT_STATE_REJECTED = getPath(PATH_DIGITAL_OBJECT, "stateRejected");
     public static final String PATH_DIGITAL_OBJECT_UPLOAD_KRAMERIUS = getPath(PATH_DIGITAL_OBJECT, "uploadKramerius");
 
+    public static final String DATASTREAM_TYPE_ALTO = "ALTO";
+    public static final String DATASTREAM_TYPE_OCR = "OCR";
+
+    public static final String CONTENT_TYPE_XML = "application/xml";
+    public static final String CONTENT_TYPE_TEXT = "text/plain";
+
     public static Map<String, String> MIMETYPE_MAP = new HashMap<>();
 
+
     static {
-        MIMETYPE_MAP.put("ALTO", "application/xml");
-        MIMETYPE_MAP.put("OCR", "text/plain");
+        MIMETYPE_MAP.put(DATASTREAM_TYPE_ALTO, CONTENT_TYPE_XML);
+        MIMETYPE_MAP.put(DATASTREAM_TYPE_OCR, CONTENT_TYPE_TEXT);
     }
 }

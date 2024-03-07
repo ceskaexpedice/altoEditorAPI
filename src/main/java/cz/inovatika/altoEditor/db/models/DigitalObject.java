@@ -18,7 +18,7 @@ public class DigitalObject {
     private String instance = null;
     private String pid = null;
     private String label = null;
-    private String parentPid = null;
+    private String parentPath = null;
     private String parentLabel = null;
     private String version = null;
     private Timestamp datum = null;
@@ -56,8 +56,8 @@ public class DigitalObject {
         return label;
     }
 
-    public String getParentPid() {
-        return parentPid;
+    public String getParentPath() {
+        return parentPath;
     }
 
     public String getParentLabel() {

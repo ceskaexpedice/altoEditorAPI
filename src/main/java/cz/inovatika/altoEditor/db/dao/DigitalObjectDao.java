@@ -45,31 +45,6 @@ public class DigitalObjectDao {
         }
     }
 
-    public static List<DigitalObjectView> getDigitalObjects(String login, String pid, String orderBy, String orderSort) throws SQLException {
-        if (login != null && !login.isEmpty() && pid != null && !pid.isEmpty()) {
-            User user = Manager.getUserByLogin(login);
-            if (user == null || user.getId() == null) {
-//                throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
-                Manager.createUser(login);
-                user = Manager.getUserByLogin(login);
-                if (user == null || user.getId() == null) {
-                    throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
-                }
-            }
-            return getDigitalObjectsByUserIdAndPid(user.getId(), pid, orderBy, orderSort);
-        } else if (login != null && !login.isEmpty()) {
-            User user = Manager.getUserByLogin(login);
-            if (user == null || user.getId() == null) {
-                throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
-            }
-            return getDigitalObjectsByUserId(user.getId(), orderBy, orderSort);
-        } else if (pid != null && !pid.isEmpty()) {
-            return getDigitalObjectsByPid(pid, orderBy, orderSort);
-        } else {
-            return null;
-        }
-    }
-
     public static List<DigitalObjectView> getDigitalObjectsWithMaxVersionByPid(String pid) throws SQLException {
         if (pid == null) {
             return null;
@@ -154,7 +129,7 @@ public class DigitalObjectDao {
         }
     }
 
-    public static void createDigitalObject(String login, String pid, String label, String parentPid, String parentLabel, String versionXml, String instanceId, String state) throws SQLException {
+    public static void createDigitalObject(String login, String pid, String label, String parentPath, String parentLabel, String versionXml, String instanceId, String state) throws SQLException {
         if (login == null || pid == null || versionXml == null) {
             return;
         }
@@ -169,8 +144,8 @@ public class DigitalObjectDao {
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            statement.executeUpdate("insert into digitalobject (id, ruserid, pid, label, parentPid, parentLabel, version, datum, state, instance) values " +
-                    "(NEXTVAL('digitalobject_id_seq'), '" + user.getId() + "', '" + pid +"', '"+ label +"', '"+ parentPid +"', '"+ parentLabel +"', '" + versionId + "', now(), '" + state + "', '" + instanceId + "')");
+            statement.executeUpdate("insert into digitalobject (id, ruserid, pid, label, parentPath, parentLabel, version, datum, state, instance) values " +
+                    "(NEXTVAL('digitalobject_id_seq'), '" + user.getId() + "', '" + pid +"', '"+ label +"', '"+ parentPath +"', '"+ parentLabel +"', '" + versionId + "', now(), '" + state + "', '" + instanceId + "')");
         } finally {
             Utils.closeSilently(statement);
             Utils.closeSilently(connection);

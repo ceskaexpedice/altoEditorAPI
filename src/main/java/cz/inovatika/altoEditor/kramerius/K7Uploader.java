@@ -52,8 +52,8 @@ public class K7Uploader {
             throw new AltoEditorException(instanceId, "Kramerius token is null");
         }
 
-        uploadStream(instance, token, pid, "ALTO", alto);
-        uploadStream(instance, token, pid, "OCR", ocr);
+        uploadStream(instance, token, pid, Const.DATASTREAM_TYPE_ALTO, alto);
+        uploadStream(instance, token, pid, Const.DATASTREAM_TYPE_OCR, ocr);
     }
 
     private void uploadStream(KrameriusOptions.KrameriusInstance instance, String token, String pid, String stream, String content) throws IOException {

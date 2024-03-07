@@ -74,7 +74,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 GET {{url}}/db/objects
 
 ### get digital Object
-GET {{url}}/db/object?pid={{uuid}}
+GET {{url}}/db/object?pid={{uuid3}}
 
 ### get all batches
 GET {{url}}/db/batches
@@ -86,7 +86,7 @@ GET {{url}}/db/batch?pid={{uuidStrana}}
 GET {{url}}/object/image?login=lukasSyk&pid={{uuid}}&instance=k7
 
 ### get Alto
-GET {{url}}/object/alto?pid={{uuid2}}&instance=k7&login=inovatika
+GET {{url}}/object/alto?pid={{uuid3}}&instance=k7&login=inovatika
 
 ### update Alto
 POST {{url}}/object/alto
@@ -127,6 +127,12 @@ User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
 
 {"id":{{digitalObjectId}},"login":"inovatika"}
+
+### get object information
+GET {{url}}/object/objectInformation?login=inovatika&pid={{uuid3}}&instance=k7
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
+Accept-Encoding: br,deflate,gzip,x-gzip
 
 
 

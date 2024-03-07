@@ -268,7 +268,7 @@ public class K7Downloader {
 
 
         K7ObjectInfo k7ObjectInfo = new K7ObjectInfo();
-        String model = k7ObjectInfo.objectInfo(pid, instanceId, Const.USER_PERO);
+        String model = k7ObjectInfo.getModel(pid, instanceId);
         if (model == null) {
             throw new IOException("Unknown model for pid = " + pid);
         }
@@ -282,7 +282,7 @@ public class K7Downloader {
                 closeQuietly(imageContent, pid);
             }
         } else {
-            List<String> childrenPids = k7ObjectInfo.getChildrenPids(pid, instanceId, Const.USER_PERO);
+            List<String> childrenPids = k7ObjectInfo.getChildrenPids(pid, instanceId);
             for (String childrenPid : childrenPids) {
                 File imageFile = getFile(parentFile, childrenPid, "IMAGE");
                 InputStream imageContent = null;

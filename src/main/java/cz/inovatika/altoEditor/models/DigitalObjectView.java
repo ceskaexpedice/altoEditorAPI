@@ -12,9 +12,11 @@ public class DigitalObjectView {
     public String instance = null;
     public String pid = null;
     public String versionXml = null;
-//    public String versionId = null;
     public Timestamp datum = null;
     public String state = null;
+    private String label = null;
+    private String parentPath = null;
+    private String parentLabel = null;
 
 
     public DigitalObjectView(DigitalObject digitalObject, User user) {
@@ -22,9 +24,11 @@ public class DigitalObjectView {
         this.instance = digitalObject.getInstance();
         this.pid = digitalObject.getPid();
         this.versionXml = AltoDatastreamEditor.ALTO_ID + "." + digitalObject.getVersion();
-//        this.versionId = digitalObject.getVersion();
         this.datum = digitalObject.getDatum();
         this.state = digitalObject.getState();
+        this.label = digitalObject.getLabel();
+        this.parentPath = digitalObject.getParentPath();
+        this.parentLabel = digitalObject.getParentLabel();
 
         this.userLogin = user.getLogin();
     }
@@ -59,5 +63,17 @@ public class DigitalObjectView {
 
     public String getState() {
         return state;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public String getParentPath() {
+        return parentPath;
+    }
+
+    public String getParentLabel() {
+        return parentLabel;
     }
 }

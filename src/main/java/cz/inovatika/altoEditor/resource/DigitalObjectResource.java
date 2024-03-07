@@ -11,8 +11,10 @@ import cz.inovatika.altoEditor.exception.DigitalObjectException;
 import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
 import cz.inovatika.altoEditor.kramerius.K7Downloader;
 import cz.inovatika.altoEditor.kramerius.K7ImageViewer;
+import cz.inovatika.altoEditor.kramerius.K7ObjectInfo;
 import cz.inovatika.altoEditor.kramerius.K7Uploader;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
+import cz.inovatika.altoEditor.models.ObjectInformation;
 import cz.inovatika.altoEditor.process.FileGeneratorProcess;
 import cz.inovatika.altoEditor.process.ProcessDispatcher;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
@@ -44,6 +46,21 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class DigitalObjectResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DigitalObjectResource.class.getName());
+
+    public static void getObjectInformation(@NotNull Context context) {
+        try {
+            String login = getOptStringRequestValue(context, "login");
+            String pid = getOptStringRequestValue(context, "pid");
+            String instanceId = getOptStringRequestValue(context, "instance");
+
+            K7ObjectInfo objectInfo = new K7ObjectInfo();
+            ObjectInformation objectInformation = objectInfo.getInfo(pid, instanceId);
+
+            setResult(context, new AltoEditorResponse(objectInformation));
+        } catch (Exception ex) {
+            setResult(context, AltoEditorResponse.asError(ex));
+        }
+    }
 
     public static void getImage(Context context) {
         try {
@@ -320,11 +337,6 @@ public class DigitalObjectResource {
         response.setPid(pid);
         response.setVersion(versionId);
         return response;
-    }
-
-    private static void throwNewError(String message) throws IOException {
-        LOGGER.error(message);
-        throw new IOException(message);
     }
 
     public static void uploadKramerius(@NotNull Context context) {
