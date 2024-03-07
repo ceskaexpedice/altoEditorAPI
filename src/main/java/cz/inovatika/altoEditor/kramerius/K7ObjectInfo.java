@@ -18,12 +18,14 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static cz.inovatika.altoEditor.kramerius.KrameriusOptions.findKrameriusInstance;
+import static cz.inovatika.altoEditor.utils.OcrUtils.transformJsonValue;
 import static cz.inovatika.altoEditor.utils.Utils.getJSONArray;
 import static cz.inovatika.altoEditor.utils.Utils.getJSONObject;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
@@ -33,7 +35,7 @@ public class K7ObjectInfo {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(K7ObjectInfo.class.getName());
 
-    public ObjectInformation getInfo(String pid, String instanceId) throws AltoEditorException, IOException {
+    public ObjectInformation getObjectInformation(String pid, String instanceId) throws AltoEditorException, IOException {
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId);
         if (instance == null) {
             throw new DigitalObjectNotFoundException(instanceId, String.format("This instance \"%s\" is not configured.", instanceId));
@@ -70,7 +72,7 @@ public class K7ObjectInfo {
             if (entity != null) {
                 String result = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
                 if (result != null && !result.isEmpty()) {
-                    return getObjectInformation(pid, result);
+                    return getObjectInformationFromResponse(pid, result);
                 } else {
                     LOGGER.warn("GET Object information but result is null or empty");
                     throw new IOException("GET Object information but result is null or empty");
@@ -102,57 +104,37 @@ public class K7ObjectInfo {
         }
     }
 
-    private ObjectInformation getObjectInformation(String pid, String objectInformation) {
+    private ObjectInformation getObjectInformationFromResponse(String pid, String objectInformation) {
         String label = null;
         String parentLabel = null;
         String parentPid = null;
+        try {
 
-        JSONObject objectInformationJSON = XML.toJSONObject(objectInformation);
-        JSONObject responseJSON = objectInformationJSON.getJSONObject("response");
-        JSONObject resultJSON = responseJSON.getJSONObject("result");
-        JSONObject docJSON = resultJSON.getJSONObject("doc");
+            JSONObject objectInformationJSON = XML.toJSONObject(objectInformation);
+            JSONObject responseJSON = objectInformationJSON.getJSONObject("response");
+            JSONObject resultJSON = responseJSON.getJSONObject("result");
+            JSONObject docJSON = resultJSON.getJSONObject("doc");
 
-//        JSONArray arrArray = docJSON.getJSONArray("arr");
-        JSONArray strArray = docJSON.getJSONArray("str");
+            JSONArray strArray = docJSON.getJSONArray("str");
 
-//        for (int i = 0; i < arrArray.length(); i++) {
-//            JSONObject arrJSON = arrArray.getJSONObject(i);
-//            String name = arrJSON.getString("name");
-//            if ("title.search".equals(name)) {
-//                label = arrJSON.getString("str");
-//            }
-//            if ("own_parent.title".equals(name)) {
-//                parentLabel = arrJSON.getString("str");
-//            }
-//            if ("own_pid_path".equals(name)) {
-//                parentPid = arrJSON.getString("str");
-//            }
-//        }
-
-        for (int i = 0; i < strArray.length(); i++) {
-            JSONObject strJSON = strArray.getJSONObject(i);
-            String name = strJSON.getString("name");
-            if ("title.search".equals(name)) {
-                label = transformValue(strJSON.get("content"));
+            for (int i = 0; i < strArray.length(); i++) {
+                JSONObject strJSON = strArray.getJSONObject(i);
+                String name = strJSON.getString("name");
+                if ("title.search".equals(name)) {
+                    label = transformJsonValue(strJSON.get("content"));
+                }
+                if ("own_parent.title".equals(name)) {
+                    parentLabel = transformJsonValue(strJSON.getString("content"));
+                }
+                if ("own_pid_path".equals(name)) {
+                    parentPid = transformJsonValue(strJSON.getString("content"));
+                }
             }
-            if ("own_parent.title".equals(name)) {
-                parentLabel = transformValue(strJSON.getString("content"));
-            }
-            if ("own_pid_path".equals(name)) {
-                parentPid = transformValue(strJSON.getString("content"));
-            }
+        } catch (JSONException ex) {
+            LOGGER.warn(ex.getMessage());
+            ex.printStackTrace();
         }
         return new ObjectInformation(pid, label, parentPid, parentLabel);
-    }
-
-    private String transformValue(Object value) {
-        if (value instanceof String) {
-            return (String) value;
-        } else if (value instanceof Integer) {
-            return String.valueOf(value);
-        } else {
-            return value.toString();
-        }
     }
 
     public String getModel(String pid, String instanceId) throws AltoEditorException, IOException {

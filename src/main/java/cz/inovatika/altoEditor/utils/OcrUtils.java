@@ -1,6 +1,7 @@
 package cz.inovatika.altoEditor.utils;
 
 import java.io.StringWriter;
+import java.math.BigDecimal;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -96,7 +97,19 @@ public class OcrUtils {
     }
 
     private static String processStringJSON(JSONObject stringJson) {
-        String value = stringJson.getString("CONTENT");
+        String value = transformJsonValue(stringJson.get("CONTENT"));
         return (value != null && !value.isEmpty() && !value.isBlank()) ? value : null;
+    }
+
+    public static String transformJsonValue(Object value) {
+        if (value instanceof String) {
+            return (String) value;
+        } else if (value instanceof Integer) {
+            return String.valueOf(value);
+        } else if (value instanceof BigDecimal) {
+            return String.valueOf(value);
+        } else {
+            return value.toString();
+        }
     }
 }

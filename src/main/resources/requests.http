@@ -88,6 +88,9 @@ GET {{url}}/object/image?login=lukasSyk&pid={{uuid}}&instance=k7
 ### get Alto
 GET {{url}}/object/alto?pid={{uuid3}}&instance=k7&login=inovatika
 
+### get Ocr
+GET {{url}}/object/ocr?pid={{uuid3}}&instance=k7&login=inovatika
+
 ### update Alto
 POST {{url}}/object/alto
 Connection: Keep-Alive

@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -36,12 +38,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.xml.XMLConstants;
-import javax.xml.transform.Source;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.xml.serialize.OutputFormat;
+import org.apache.xml.serialize.XMLSerializer;
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
@@ -50,6 +58,8 @@ import org.xml.sax.SAXException;
  * @author Lukas Sykora
  */
 public final class AltoDatastreamEditor {
+
+    private static final Logger LOGGER = Logger.getLogger(AltoDatastreamEditor.class.getName());
 
     public static final String ALTO_ID = "ALTO";
     public static final String ALTO_LABEL = "ALTO for this object";
@@ -103,6 +113,7 @@ public final class AltoDatastreamEditor {
 
     public static void updateAlto(DigitalObject dObj, String alto, String msg, String versionId) throws AltoEditorException {
         alto = fixAlto(alto);
+        alto = indentXml(dObj.getPid(), alto);
         try {
             if (!isAlto(alto)) {
                 throw new DigitalObjectException(dObj.getPid(),
@@ -119,7 +130,26 @@ public final class AltoDatastreamEditor {
         dObj.flush();
     }
 
-    // TODO na klientovi - opravit misto posilani elementu root posilat hlavicku alta
+    private static String indentXml(String pid, String altoContent) throws AltoEditorException {
+        try {
+            DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document doc = db.parse(new InputSource(new StringReader(altoContent)));
+            OutputFormat format = new OutputFormat(doc);
+            format.setIndenting(true);
+            format.setIndent(2);
+            format.setOmitXMLDeclaration(true);
+            format.setLineWidth(Integer.MAX_VALUE);
+            Writer outxml = new StringWriter();
+            XMLSerializer serializer = new XMLSerializer(outxml, format);
+            serializer.serialize(doc);
+            return outxml.toString();
+        } catch (ParserConfigurationException | IOException  | SAXException ex) {
+            ex.printStackTrace();
+            LOGGER.severe("PID: " + pid + " - " + ex.getMessage());
+            throw new AltoEditorException(pid, ex);
+        }
+    }
+
     private static String fixAlto(String alto) {
         if (alto.startsWith("<root>")) {
             alto = alto.replace("<root>", "<?xml version=\"1.0\" encoding=\"utf-8\"?><alto xmlns=\"http://www.loc.gov/standards/alto/ns-v2#\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.loc.gov/standards/alto/ns-v2# http://www.loc.gov/standards/alto/v2/alto-2-0.xsd\">");

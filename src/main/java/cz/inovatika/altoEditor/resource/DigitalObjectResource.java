@@ -9,6 +9,7 @@ import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import cz.inovatika.altoEditor.exception.AltoEditorException;
 import cz.inovatika.altoEditor.exception.DigitalObjectException;
 import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
+import cz.inovatika.altoEditor.exception.RequestException;
 import cz.inovatika.altoEditor.kramerius.K7Downloader;
 import cz.inovatika.altoEditor.kramerius.K7ImageViewer;
 import cz.inovatika.altoEditor.kramerius.K7ObjectInfo;
@@ -23,6 +24,7 @@ import cz.inovatika.altoEditor.server.AltoEditorInitializer;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage.AkubraObject;
 import cz.inovatika.altoEditor.utils.Const;
+import cz.inovatika.altoEditor.utils.OcrUtils;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -54,7 +56,7 @@ public class DigitalObjectResource {
             String instanceId = getOptStringRequestValue(context, "instance");
 
             K7ObjectInfo objectInfo = new K7ObjectInfo();
-            ObjectInformation objectInformation = objectInfo.getInfo(pid, instanceId);
+            ObjectInformation objectInformation = objectInfo.getObjectInformation(pid, instanceId);
 
             setResult(context, new AltoEditorResponse(objectInformation));
         } catch (Exception ex) {
@@ -94,77 +96,92 @@ public class DigitalObjectResource {
         }
     }
 
-    public static void getAlto(Context context) {
+    public static void getAlto(@NotNull Context context) {
         try {
-            String login = getOptStringRequestValue(context, "login");
-            String pid = getStringRequestValue(context, "pid");
-            String versionXml = getOptStringRequestValue(context, "versionXml");
-
-            // posloupnost hledani pro dany pid
-            // 1. podle verze
-            // 2. podle uzivatele
-            // 3. defaulni verze od PERA
-            // 4. defaulni verze z Krameria
-            // 5. stazeni nove verze z Krameria
-
-            // 1. podle verze
-            if (versionXml != null && !versionXml.isEmpty()) {
-                List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(null, pid);
-                for (DigitalObjectView digitalObject : digitalObjects) {
-                    LOGGER.debug("Version find in repositories using version and pid.");
-                    if (versionXml.equals(digitalObject.getVersionXml())) {
-                        AltoEditorStringRecordResponse response = getAltoStream(digitalObject.getPid(), digitalObject.getVersionXml());
-                        setStringResult(context, response);
-                        return;
-                    }
-                }
-            }
-
-            // 2. podle uzivatele
-            if (login != null && !login.isEmpty()) {
-                List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
-                if (!digitalObjects.isEmpty()) {
-                    LOGGER.debug("Version find in repositories using login and pid.");
-                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
-                    setStringResult(context, response);
-                    return;
-                }
-            }
-
-            // 3. defaultni verze od Pera
-            if (login != null && !login.isEmpty()) {
-                List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_PERO, pid);
-                if (!digitalObjects.isEmpty()) {
-                    LOGGER.debug("Version find in repositories using login as PERO and pid.");
-                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
-                    setStringResult(context, response);
-                    return;
-                }
-            }
-
-            // 4. defaultni verze z Krameria
-            if (login != null && !login.isEmpty()) {
-                List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_ALTOEDITOR, pid);
-                if (!digitalObjects.isEmpty()) {
-                    LOGGER.debug("Version find in repositories using login as AltoEditor and pid.");
-                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
-                    setStringResult(context, response);
-                    return;
-                }
-            }
-
-            // 5. stazeni nove verze z krameria
-            String instanceId = getStringRequestValue(context, "instance");
-
-            K7Downloader downloader = new K7Downloader();
-            downloader.downloadFoxml(pid, instanceId, login);
-            Manager.createDigitalObject(Const.USER_ALTOEDITOR, pid, AltoDatastreamEditor.ALTO_ID + ".0", instanceId);
-            AltoEditorStringRecordResponse response = getAltoStream(pid, AltoDatastreamEditor.ALTO_ID + ".0");
+            AltoEditorStringRecordResponse response = getAltoResponse(context);
             setStringResult(context, response);
-
         } catch (Throwable ex) {
             setResult(context, AltoEditorResponse.asError(ex));
         }
+    }
+
+    public static void getOcr(@NotNull Context context) {
+        try {
+            AltoEditorStringRecordResponse response = getAltoResponse(context);
+            if (response != null && response.getData() != null) {
+                String altoStream = (String) response.getData();
+                String ocr = OcrUtils.createOcrFromAlto(altoStream);
+                response.setData(ocr);
+            } else {
+                if (response == null) {
+                    response = new AltoEditorStringRecordResponse();
+                }
+                response.setData(null);
+            }
+            setStringResult(context, response);
+        } catch (Throwable ex) {
+            setResult(context, AltoEditorResponse.asError(ex));
+        }
+
+    }
+
+    public static AltoEditorStringRecordResponse getAltoResponse(Context context) throws AltoEditorException, SQLException, IOException {
+        String login = getOptStringRequestValue(context, "login");
+        String pid = getStringRequestValue(context, "pid");
+        String versionXml = getOptStringRequestValue(context, "versionXml");
+
+        // posloupnost hledani pro dany pid
+        // 1. podle verze
+        // 2. podle uzivatele
+        // 3. defaulni verze od PERA
+        // 4. defaulni verze z Krameria
+        // 5. stazeni nove verze z Krameria
+
+        // 1. podle verze
+        if (versionXml != null && !versionXml.isEmpty()) {
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(null, pid);
+            for (DigitalObjectView digitalObject : digitalObjects) {
+                LOGGER.debug("Version find in repositories using version and pid.");
+                if (versionXml.equals(digitalObject.getVersionXml())) {
+                    return getAltoStream(digitalObject.getPid(), digitalObject.getVersionXml());
+                }
+            }
+        }
+
+        // 2. podle uzivatele
+        if (login != null && !login.isEmpty()) {
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
+            if (!digitalObjects.isEmpty()) {
+                LOGGER.debug("Version find in repositories using login and pid.");
+                return getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
+            }
+        }
+
+        // 3. defaultni verze od Pera
+        if (login != null && !login.isEmpty()) {
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_PERO, pid);
+            if (!digitalObjects.isEmpty()) {
+                LOGGER.debug("Version find in repositories using login as PERO and pid.");
+                return getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
+            }
+        }
+
+        // 4. defaultni verze z Krameria
+        if (login != null && !login.isEmpty()) {
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_ALTOEDITOR, pid);
+            if (!digitalObjects.isEmpty()) {
+                LOGGER.debug("Version find in repositories using login as AltoEditor and pid.");
+                return getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
+            }
+        }
+
+        // 5. stazeni nove verze z krameria
+        String instanceId = getStringRequestValue(context, "instance");
+
+        K7Downloader downloader = new K7Downloader();
+        downloader.downloadFoxml(pid, instanceId, login);
+        Manager.createDigitalObject(Const.USER_ALTOEDITOR, pid, AltoDatastreamEditor.ALTO_ID + ".0", instanceId);
+        return getAltoStream(pid, AltoDatastreamEditor.ALTO_ID + ".0");
     }
 
     public static void updateAlto(Context context) {

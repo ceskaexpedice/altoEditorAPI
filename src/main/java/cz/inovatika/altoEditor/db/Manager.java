@@ -158,9 +158,8 @@ public class Manager {
                 }
             }
 
-            // TODO dowload info from Kramerius
             K7ObjectInfo objectInfo = new K7ObjectInfo();
-            ObjectInformation information = objectInfo.getInfo(pid, instanceId);
+            ObjectInformation information = objectInfo.getObjectInformation(pid, instanceId);
             DigitalObjectDao.createDigitalObject(login, pid, information.getLabel(), information.getParentPath(), information.getParentLabel(), versionXml, instanceId, state);
             return;
         }
