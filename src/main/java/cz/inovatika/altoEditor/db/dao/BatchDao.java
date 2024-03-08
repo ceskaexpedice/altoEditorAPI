@@ -181,7 +181,7 @@ public class BatchDao {
             queryBuilder.append(" AND ").append("UPPER(type) = '" + type.toUpperCase().trim() + "'");
         }
         if (!isBlank(instanceId)) {
-            queryBuilder.append(" AND ").append("UPPER(instanceId) = '" + instanceId.toUpperCase().trim() + "'");
+            queryBuilder.append(" AND ").append("UPPER(instance) = '" + instanceId.toUpperCase().trim() + "'");
         }
         if (!isBlank(estimateItemNumber)) {
             queryBuilder.append(" AND ").append("estimateItemNumber = '" + estimateItemNumber.toUpperCase().trim() + "'");

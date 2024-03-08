@@ -220,6 +220,19 @@ public class DbResource {
 
     public static void getAllDigitalObjects(Context context) {
         try {
+
+            String id = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_ID);
+            String rUserId = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_RUSERID);
+            String instance = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
+            String pid = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
+            String versionXml = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_VERSION_XML);
+            String datum = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_DATUM);
+            String state = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_STATE);
+            String label = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_LABEL);
+            String parentLabel = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_LABEL);
+            String parentPath = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_PATH);
+            String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
+
             String orderBy = getOptStringRequestValue(context, Const.PARAM_ORDER_BY);
             if (orderBy != null) {
                 if (!(Const.PARAM_DIGITAL_OBJECT_ID.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_RUSERID.equals(orderBy)
@@ -237,17 +250,27 @@ public class DbResource {
                     throw new RequestException(Const.PARAM_ORDER_SORT, String.format("Unsupported param \"%s\".", orderSort));
                 }
             }
-            List<DigitalObjectView> digitalObjects = Manager.getAllDigitalObjects(orderBy, orderSort);
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(id, rUserId, instance, pid, versionXml,
+                    datum, state, label, parentLabel, parentPath, login, orderBy, orderSort);
             setResult(context, new AltoEditorResponse(digitalObjects));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
         }
     }
 
-    public static void getDigitalObjects(Context context) {
+    public static void getUsersDigitalObjects(Context context) {
         try {
-            String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
+            String id = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_ID);
+            String rUserId = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_RUSERID);
+            String instance = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
             String pid = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
+            String versionXml = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_VERSION_XML);
+            String datum = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_DATUM);
+            String state = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_STATE);
+            String label = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_LABEL);
+            String parentLabel = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_LABEL);
+            String parentPath = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_PATH);
+            String login = getStringRequestValue(context, Const.PARAM_USER_LOGIN);
 
             String orderBy = getOptStringRequestValue(context, Const.PARAM_ORDER_BY);
             if (orderBy != null) {
@@ -266,7 +289,8 @@ public class DbResource {
                     throw new RequestException(Const.PARAM_ORDER_SORT, String.format("Unsupported param \"%s\".", orderSort));
                 }
             }
-            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid, orderBy, orderSort);
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(id, rUserId, instance, pid, versionXml,
+                    datum, state, label, parentLabel, parentPath, login, orderBy, orderSort);
             setResult(context, new AltoEditorResponse(digitalObjects));
 
         } catch (Exception ex) {

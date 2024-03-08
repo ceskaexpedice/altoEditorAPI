@@ -131,7 +131,7 @@ public class AltoEditorInitializer {
         app.post(Const.PATH_DB_USER, DbResource::createUser);
         app.put(Const.PATH_DB_USER, DbResource::updateUser);
         app.get(Const.PATH_DB_DIGITAL_OBJECTS, DbResource::getAllDigitalObjects);
-        app.get(Const.PATH_DB_DIGITAL_OBJECT, DbResource::getDigitalObjects);
+        app.get(Const.PATH_DB_DIGITAL_OBJECT, DbResource::getUsersDigitalObjects);
         app.post(Const.PATH_DB_DIGITAL_OBJECT, DbResource::createDigitalObject);
         app.put(Const.PATH_DB_DIGITAL_OBJECT, DbResource::updateDigitalObject);
         app.get(Const.PATH_DB_BATCHES, DbResource::getBatches);

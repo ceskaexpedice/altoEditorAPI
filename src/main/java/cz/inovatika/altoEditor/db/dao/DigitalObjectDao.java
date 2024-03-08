@@ -1,6 +1,7 @@
 package cz.inovatika.altoEditor.db.dao;
 
 import cz.inovatika.altoEditor.db.Manager;
+import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.db.models.DigitalObject;
 import cz.inovatika.altoEditor.db.models.User;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
@@ -21,6 +22,7 @@ import static cz.inovatika.altoEditor.db.dao.Dao.getOrderBy;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderByVersion;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderSort;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderSortInverse;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class DigitalObjectDao {
 
@@ -257,4 +259,64 @@ public class DigitalObjectDao {
             Utils.closeSilently(connection);
         }
     }
+
+    public static List<DigitalObjectView> getDigitalObjects(String id, String rUserId, String instance, String pid, String version, String datum, String state, String label, String parentLabel, String parentPath, String orderBy, String orderSort) throws SQLException {
+        Connection connection = null;
+        Statement statement = null;
+        List<DigitalObjectView> digitalObjects = new ArrayList<>();
+        try {
+            connection = DataSource.getConnection();
+            statement = connection.createStatement();
+            final ResultSet resultSet = statement.executeQuery("select * from digitalobject " + getQuery(id, rUserId, instance, pid, version, datum, state, label, parentLabel, parentPath) + " order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort) + getDefaultOrderBy(orderBy));
+            while (resultSet.next()) {
+                DigitalObject digitalObject = new DigitalObject(resultSet);
+                digitalObjects.add(new DigitalObjectView(digitalObject, Manager.getUserById(String.valueOf(digitalObject.getrUserId()))));
+            }
+            return digitalObjects;
+        } finally {
+            Utils.closeSilently(statement);
+            Utils.closeSilently(connection);
+        }
+    }
+
+    private static String getQuery(String id, String rUserId, String instance, String pid, String version, String datum, String state, String label, String parentLabel, String parentPath) {
+        StringBuilder queryBuilder = new StringBuilder();
+        if (isBlank(id) && isBlank(rUserId) && isBlank(instance) && isBlank(pid) && isBlank(version) && isBlank(datum) && isBlank(state) && isBlank(label) && isBlank(parentLabel) && isBlank(parentPath)) {
+            return "";
+        }
+        queryBuilder.append("where");
+        if (!isBlank(id)) {
+            queryBuilder.append(" AND ").append("id = '" + id + "'");
+        }
+        if (!isBlank(rUserId)) {
+            queryBuilder.append(" AND ").append("rUserId = '" + rUserId.trim() + "'");
+        }
+        if (!isBlank(pid)) {
+            queryBuilder.append(" AND ").append("UPPER(pid) = '" + pid.toUpperCase().trim() + "'");
+        }
+        if (!isBlank(datum)) {
+            queryBuilder.append(" AND ").append("datum = '" + datum.trim() + "'");
+        }
+        if (!isBlank(state)) {
+            queryBuilder.append(" AND ").append("UPPER(state) = '" + state.toUpperCase().trim() + "'");
+        }
+        if (!isBlank(instance)) {
+            queryBuilder.append(" AND ").append("UPPER(instance) = '" + instance.toUpperCase().trim() + "'");
+        }
+        if (!isBlank(version)) {
+            queryBuilder.append(" AND ").append("version = '" + version.trim() + "'");
+        }
+        if (!isBlank(label)) {
+            queryBuilder.append(" AND ").append("UPPER(label) = '" + label.toUpperCase().trim() + "'");
+        }
+        if (!isBlank(parentLabel)) {
+            queryBuilder.append(" AND ").append("UPPER(parentLabel) = '" + parentLabel.toUpperCase().trim() + "'");
+        }
+        if (!isBlank(parentPath)) {
+            queryBuilder.append(" AND ").append("UPPER(parentPath) = '" + parentPath.toUpperCase().trim() + "'");
+        }
+        String query = queryBuilder.toString();
+        return query.replace("where AND ", "where ");
+    }
+
 }

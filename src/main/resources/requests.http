@@ -71,13 +71,13 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 {"userId":"17","login":"lukaSyk"}
 
 ### get digitalObjects
-GET {{url}}/db/objects
+GET {{url}}/db/objects?orderBy=datum&orderSort=asc&instance=k7
 
 ### get digital Object
 GET {{url}}/db/object?pid={{uuid3}}
 
-### get all batches
-GET {{url}}/db/batches
+### get all batches with type
+GET {{url}}/db/batches?type=SINGLE
 
 ### get batches
 GET {{url}}/db/batch?pid={{uuidStrana}}

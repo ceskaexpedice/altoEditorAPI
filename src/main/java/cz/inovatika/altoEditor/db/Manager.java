@@ -100,6 +100,21 @@ public class Manager {
         return DigitalObjectDao.getDigitalObjectsByPid(pid, orderBy, orderSort);
     }
 
+    public static List<DigitalObjectView> getDigitalObjects(String id, String rUserId, String instance, String pid, String versionXml, String datum, String state, String label, String parentLabel, String parentPath, String login, String orderBy, String orderSort) throws SQLException {
+        if (login != null && !login.isEmpty()) {
+            User user = Manager.getUserByLogin(login);
+            if (user == null || user.getId() == null) {
+                throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
+            } else {
+                rUserId = String.valueOf(user.getId());
+            }
+        }
+        if (versionXml != null && !versionXml.isEmpty()) {
+            versionXml = versionXml.replace(AltoDatastreamEditor.ALTO_ID + ".", "");
+        }
+        return DigitalObjectDao.getDigitalObjects(id, rUserId, instance, pid, versionXml, datum, state, label, parentLabel, parentPath, orderBy, orderSort);
+    }
+
     public static List<DigitalObjectView> getDigitalObjects(String login, String pid, String orderBy, String orderSort) throws SQLException {
         if (login != null && !login.isEmpty() && pid != null && !pid.isEmpty()) {
             User user = Manager.getUserByLogin(login);
@@ -130,10 +145,6 @@ public class Manager {
     }
 
     public static void updateDigitalObjectWithState(Integer objectId, String state) throws SQLException {
-        DigitalObjectDao.updateDigitalObjectWithState(objectId, state);
-    }
-
-    public static void updateDigitalObjectWithStateUploaded(Integer objectId, String state) throws SQLException {
         DigitalObjectDao.updateDigitalObjectWithState(objectId, state);
     }
 
