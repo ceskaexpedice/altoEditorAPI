@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import org.apache.http.HttpResponse;
-import org.elasticsearch.common.recycler.Recycler;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,9 +50,9 @@ public class DigitalObjectResource {
 
     public static void getObjectInformation(@NotNull Context context) {
         try {
-            String login = getOptStringRequestValue(context, "login");
-            String pid = getOptStringRequestValue(context, "pid");
-            String instanceId = getOptStringRequestValue(context, "instance");
+            String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
+            String pid = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
+            String instanceId = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
 
             K7ObjectInfo objectInfo = new K7ObjectInfo();
             ObjectInformation objectInformation = objectInfo.getObjectInformation(pid, instanceId);
@@ -66,8 +65,8 @@ public class DigitalObjectResource {
 
     public static void getImage(Context context) {
         try {
-            String login = getOptStringRequestValue(context, "login");
-            String pid = getStringRequestValue(context, "pid");
+            String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
+            String pid = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
 
             List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(null, pid);
 
@@ -80,7 +79,7 @@ public class DigitalObjectResource {
             }
 
             if (instanceId == null) {
-                instanceId = getStringRequestValue(context, "instance");
+                instanceId = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
             }
 
             K7ImageViewer imageViewer = new K7ImageViewer();
@@ -126,9 +125,9 @@ public class DigitalObjectResource {
     }
 
     public static AltoEditorStringRecordResponse getAltoResponse(Context context) throws AltoEditorException, SQLException, IOException {
-        String login = getOptStringRequestValue(context, "login");
-        String pid = getStringRequestValue(context, "pid");
-        String versionXml = getOptStringRequestValue(context, "versionXml");
+        String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
+        String pid = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
+        String versionXml = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_VERSION_XML);
 
         // posloupnost hledani pro dany pid
         // 1. podle verze
@@ -176,7 +175,7 @@ public class DigitalObjectResource {
         }
 
         // 5. stazeni nove verze z krameria
-        String instanceId = getStringRequestValue(context, "instance");
+        String instanceId = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
 
         K7Downloader downloader = new K7Downloader();
         downloader.downloadFoxml(pid, instanceId, login);
@@ -187,9 +186,9 @@ public class DigitalObjectResource {
     public static void updateAlto(Context context) {
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, "login");
-            String pid = getStringNodeValue(node, "pid");
-            String data = getStringNodeValue(node, "data");
+            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
+            String pid = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_PID);
+            String data = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_DATA);
 
 
             // hledani objektu konkretniho uzivatele
@@ -201,6 +200,9 @@ public class DigitalObjectResource {
                     throw new DigitalObjectException(pid, "More than one object for user");
                 } else {
                     DigitalObjectView digitalObject = digitalObjects.get(0);
+                    if (digitalObject.getLock()) {
+                        throw new DigitalObjectException(pid, String.format("Digital object %s is locked", digitalObject.getPid()));
+                    }
                     AkubraStorage storage = AkubraStorage.getInstance();
                     AkubraObject akubraObject = storage.find(pid);
                     AltoDatastreamEditor.updateAlto(akubraObject, data, "ALTO updated by user " + login, digitalObject.getVersionXml());
@@ -219,6 +221,9 @@ public class DigitalObjectResource {
                     throw new DigitalObjectException(pid, "More than one object with max version");
                 } else {
                     DigitalObjectView digitalObject = digitalObjects.get(0);
+                    if (digitalObject.getLock()) {
+                        throw new DigitalObjectException(pid, String.format("Digital object %s is locked", digitalObject.getPid()));
+                    }
                     String versionId = nextVersion(digitalObject.getVersionXml());
                     LOGGER.debug("Object found in repositories using pid - using default version");
 
@@ -242,8 +247,8 @@ public class DigitalObjectResource {
     public static void generatePero(Context context) {
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String pid = getStringNodeValue(node, "pid");
-            String priority = getOptStringNodeValue(node, "priority");
+            String pid = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_PID);
+            String priority = getOptStringNodeValue(node, Const.PARAM_BATCH_PRIORITY);
 
             // hledani objektu konkretniho uzivatele
             List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_PERO, pid);
@@ -253,6 +258,9 @@ public class DigitalObjectResource {
             }
 
             if (!digitalObjects.isEmpty()) {
+                if (digitalObjects.get(0).getLock()) {
+                    throw new DigitalObjectException(pid, String.format("Digital object %s is locked", digitalObjects.get(0).getPid()));
+                }
                 String versionXml = AltoDatastreamEditor.ALTO_ID + ".1";
                 LOGGER.debug("Version find in repositories using login and pid");
                 if (versionXml == null || versionXml.isEmpty()) {
@@ -268,13 +276,16 @@ public class DigitalObjectResource {
                     }
                 }
             } else {
-                DigitalObjectView dObj = getDigitalObject(pid);
+                DigitalObjectView digitalObject = getDigitalObject(pid);
+                if (digitalObject.getLock()) {
+                    throw new DigitalObjectException(pid, String.format("Digital object %s is locked", digitalObject.getPid()));
+                }
                 String instanceId = "";
-                if (dObj != null) {
-                    instanceId = dObj.getInstance();
+                if (digitalObject != null) {
+                    instanceId = digitalObject.getInstance();
                 }
                 if (isBlank(instanceId)) {
-                    instanceId = getStringNodeValue(node, "instance");
+                    instanceId = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
                 }
                 Batch batch = Manager.addNewBatch(pid, priority, instanceId, 0);
                 FileGeneratorProcess process = FileGeneratorProcess.prepare(batch);
@@ -293,14 +304,17 @@ public class DigitalObjectResource {
     public static void stateAccepted(Context context) {
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, "login");
-            Integer objectId = getIntegerNodeValue(node, "id");
+            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
+            Integer objectId = getIntegerNodeValue(node, Const.PARAM_DIGITAL_OBJECT_ID);
 
             // hledani objektu konkretniho uzivatele
             DigitalObjectView digitalObject = Manager.getDigitalObjectById(objectId);
 
             if (digitalObject != null) {
                 LOGGER.debug("Digital Object find in repositories using objectId");
+                if (digitalObject.getLock()) {
+                    throw new DigitalObjectException(digitalObject.getPid(), String.format("Digital object %s is locked", digitalObject.getPid()));
+                }
                 Manager.updateDigitalObjectWithState(objectId, Const.DIGITAL_OBJECT_STATE_ACCEPTED);
                 digitalObject = Manager.getDigitalObjectById(objectId);
                 setResult(context, new AltoEditorResponse(digitalObject));
@@ -315,14 +329,17 @@ public class DigitalObjectResource {
     public static void stateRejected(Context context) {
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, "login");
-            Integer objectId = getIntegerNodeValue(node, "id");
+            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
+            Integer objectId = getIntegerNodeValue(node, Const.PARAM_DIGITAL_OBJECT_ID);
 
             // hledani objektu konkretniho uzivatele
             DigitalObjectView digitalObject = Manager.getDigitalObjectById(objectId);
 
             if (digitalObject != null) {
                 LOGGER.debug("Digital Object find in repositories using objectId");
+                if (digitalObject.getLock()) {
+                    throw new DigitalObjectException(digitalObject.getPid(), String.format("Digital object %s is locked", digitalObject.getPid()));
+                }
                 Manager.updateDigitalObjectWithState(objectId, Const.DIGITAL_OBJECT_STATE_REJECTED);
                 digitalObject = Manager.getDigitalObjectById(objectId);
                 setResult(context, new AltoEditorResponse(digitalObject));
@@ -359,8 +376,8 @@ public class DigitalObjectResource {
     public static void uploadKramerius(@NotNull Context context) {
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, "login");
-            Integer objectId = getIntegerNodeValue(node, "id");
+            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
+            Integer objectId = getIntegerNodeValue(node, Const.PARAM_DIGITAL_OBJECT_ID);
 
             DigitalObjectView digitalObject = Manager.getDigitalObjectById(objectId);
 
@@ -369,7 +386,7 @@ public class DigitalObjectResource {
                 K7Uploader uploader = new K7Uploader();
                 uploader.uploadAltoOcr(digitalObject.getPid(), digitalObject.getVersionXml(), digitalObject.getInstance());
 
-                Manager.updateDigitalObjectWithState(objectId, Const.DIGITAL_OBJECT_STATE_UPLOADED);
+                Manager.updateDigitalObjectWithStateUploaded(digitalObject);
                 digitalObject = Manager.getDigitalObjectById(objectId);
 
                 // response po uspesnem zapsani do Krameria
@@ -381,6 +398,36 @@ public class DigitalObjectResource {
                 LOGGER.warn("Digital Object not find in respositories using objectId: " + objectId);
                 throw new DigitalObjectNotFoundException(String.valueOf(objectId), "Digital Object not find in respositories using objectId: " + objectId);
             }
+        } catch (Exception ex) {
+            setResult(context, AltoEditorResponse.asError(ex));
+        }
+    }
+
+    public static void lockDigitalObject(@NotNull Context context) {
+        try {
+            JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
+            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
+            String pid = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_PID);
+
+            Manager.lockDigitalObject(pid);
+
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjectsByPid(pid, Const.PARAM_DIGITAL_OBJECT_ID, "asc");
+            setResult(context, new AltoEditorResponse(digitalObjects));
+        } catch (Exception ex) {
+            setResult(context, AltoEditorResponse.asError(ex));
+        }
+    }
+
+    public static void unlockDigitalObject(@NotNull Context context) {
+        try {
+            JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
+            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
+            String pid = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_PID);
+
+            Manager.unlockDigitalObject(pid);
+
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjectsByPid(pid, Const.PARAM_DIGITAL_OBJECT_ID, "asc");
+            setResult(context, new AltoEditorResponse(digitalObjects));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
         }

@@ -12,12 +12,14 @@ import cz.inovatika.altoEditor.exception.RequestException;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
 import cz.inovatika.altoEditor.server.AltoEditorInitializer;
+import cz.inovatika.altoEditor.utils.Const;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,7 +102,7 @@ public class DbResource {
     public static void createUser(Context context) {
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, "login");
+            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
 
             User user = Manager.getUserByLogin(login);
             if (user != null) {
@@ -118,8 +120,8 @@ public class DbResource {
     public static void updateUser(Context context) {
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, "login");
-            String userId = getStringNodeValue(node, "userId");
+            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
+            String userId = getStringNodeValue(node, Const.PARAM_USER_USERID);
 
             User user = Manager.getUserById(userId);
             if (user == null) {
@@ -136,16 +138,19 @@ public class DbResource {
 
     public static void getAllBatches(Context context) {
         try {
-            String orderBy = getOptStringRequestValue(context, "orderBy");
+            String orderBy = getOptStringRequestValue(context, Const.PARAM_ORDER_BY);
             if (orderBy != null) {
-                if (!("id".equals(orderBy) || "folder".equals(orderBy) || "create".equals(orderBy) || "datum".equals(orderBy) || "state".equals(orderBy) || "estimateitemnumber".equals(orderBy) || "log".equals(orderBy) || "priority".equals(orderBy))) {
-                    throw new RequestException("orderBy", String.format("Unsupported param \"%s\".", orderBy));
+                if (!(Const.PARAM_BATCH_ID.equals(orderBy) || Const.PARAM_BATCH_PID.equals(orderBy) || Const.PARAM_BATCH_CREATE_DATE.equals(orderBy)
+                        || Const.PARAM_BATCH_UPDATE_DATE.equals(orderBy) || Const.PARAM_BATCH_STATE.equals(orderBy) || Const.PARAM_BATCH_SUBSTATE.equals(orderBy)
+                        || Const.PARAM_BATCH_PRIORITY.equals(orderBy) || Const.PARAM_BATCH_TYPE.equals(orderBy) || Const.PARAM_BATCH_INSTANCE.equals(orderBy)
+                        || Const.PARAM_BATCH_ESTIMATE_ITEM_NUMBER.equals(orderBy) || Const.PARAM_BATCH_LOG.equals(orderBy))) {
+                    throw new RequestException(Const.PARAM_ORDER_BY, String.format("Unsupported param \"%s\".", orderBy));
                 }
             }
-            String orderSort = getOptStringRequestValue(context, "orderSort");
+            String orderSort = getOptStringRequestValue(context, Const.PARAM_ORDER_SORT);
             if (orderSort != null) {
                 if (!("asc".equals(orderSort) || "desc".equals(orderSort))) {
-                    throw new RequestException("orderSort", String.format("Unsupported param \"%s\".", orderSort));
+                    throw new RequestException(Const.PARAM_ORDER_SORT, String.format("Unsupported param \"%s\".", orderSort));
                 }
             }
             List<Batch> batches = Manager.getAllBatches(orderBy, orderSort);
@@ -158,34 +163,37 @@ public class DbResource {
     public static void getBatches(Context context) {
         try {
 //            String login = getOptStringRequestValue(context, "login");
-            String id = getOptStringRequestValue(context, "id");
-            String pid = getOptStringRequestValue(context, "pid");
-            String createDate = getOptStringRequestValue(context, "createDate");
-            String updateDate = getOptStringRequestValue(context, "updateDate");
-            String state = getOptStringRequestValue(context, "state");
-            String substate = getOptStringRequestValue(context, "substate");
-            String priority = getOptStringRequestValue(context, "priority");
-            String type = getOptStringRequestValue(context, "type");
-            String instanceId = getOptStringRequestValue(context, "instance");
-            String estimateItemNumber = getOptStringRequestValue(context, "estimateItemNumber");
-            String log = getOptStringRequestValue(context, "log");
+            String id = getOptStringRequestValue(context, Const.PARAM_BATCH_ID);
+            String pid = getOptStringRequestValue(context, Const.PARAM_BATCH_PID);
+            String createDate = getOptStringRequestValue(context, Const.PARAM_BATCH_CREATE_DATE);
+            String updateDate = getOptStringRequestValue(context, Const.PARAM_BATCH_UPDATE_DATE);
+            String state = getOptStringRequestValue(context, Const.PARAM_BATCH_STATE);
+            String substate = getOptStringRequestValue(context, Const.PARAM_BATCH_SUBSTATE);
+            String priority = getOptStringRequestValue(context, Const.PARAM_BATCH_PRIORITY);
+            String type = getOptStringRequestValue(context, Const.PARAM_BATCH_TYPE);
+            String instanceId = getOptStringRequestValue(context, Const.PARAM_BATCH_INSTANCE);
+            String estimateItemNumber = getOptStringRequestValue(context, Const.PARAM_BATCH_ESTIMATE_ITEM_NUMBER);
+            String log = getOptStringRequestValue(context, Const.PARAM_BATCH_LOG);
 
-            String orderBy = getOptStringRequestValue(context, "orderBy");
+            String orderBy = getOptStringRequestValue(context, Const.PARAM_ORDER_BY);
             if (orderBy != null) {
-                if (!("id".equals(orderBy) || "folder".equals(orderBy) || "create".equals(orderBy) || "datum".equals(orderBy) || "state".equals(orderBy) || "estimateitemnumber".equals(orderBy) || "log".equals(orderBy) || "priority".equals(orderBy))) {
-                    throw new RequestException("orderBy", String.format("Unsupported param \"%s\".", orderBy));
+                if (!(Const.PARAM_BATCH_ID.equals(orderBy) || Const.PARAM_BATCH_PID.equals(orderBy) || Const.PARAM_BATCH_CREATE_DATE.equals(orderBy)
+                        || Const.PARAM_BATCH_UPDATE_DATE.equals(orderBy) || Const.PARAM_BATCH_STATE.equals(orderBy) || Const.PARAM_BATCH_SUBSTATE.equals(orderBy)
+                        || Const.PARAM_BATCH_PRIORITY.equals(orderBy) || Const.PARAM_BATCH_TYPE.equals(orderBy) || Const.PARAM_BATCH_INSTANCE.equals(orderBy)
+                        || Const.PARAM_BATCH_ESTIMATE_ITEM_NUMBER.equals(orderBy) || Const.PARAM_BATCH_LOG.equals(orderBy))) {
+                    throw new RequestException(Const.PARAM_ORDER_BY, String.format("Unsupported param \"%s\".", orderBy));
                 }
             }
-            String orderSort = getOptStringRequestValue(context, "orderSort");
+            String orderSort = getOptStringRequestValue(context, Const.PARAM_ORDER_SORT);
             if (orderSort != null) {
                 if (!("asc".equals(orderSort) || "desc".equals(orderSort))) {
-                    throw new RequestException("orderSort", String.format("Unsupported param \"%s\".", orderSort));
+                    throw new RequestException(Const.PARAM_ORDER_SORT, String.format("Unsupported param \"%s\".", orderSort));
                 }
             }
 
             if (createDate != null || updateDate != null) {
-                checkDateFormat("createDate", createDate);
-                checkDateFormat("updateDate", updateDate);
+                checkDateFormat(Const.PARAM_BATCH_CREATE_DATE, createDate);
+                checkDateFormat(Const.PARAM_BATCH_UPDATE_DATE, updateDate);
             }
 
             List<Batch> batches = Manager.getBatches(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log, orderBy, orderSort);
@@ -212,16 +220,21 @@ public class DbResource {
 
     public static void getAllDigitalObjects(Context context) {
         try {
-            String orderBy = getOptStringRequestValue(context, "orderBy");
+            String orderBy = getOptStringRequestValue(context, Const.PARAM_ORDER_BY);
             if (orderBy != null) {
-                if (!("id".equals(orderBy) || "rUserId".equals(orderBy) || "instance".equals(orderBy) || "pid".equals(orderBy) || "version".equals(orderBy) || "datum".equals(orderBy) || "state".equals(orderBy))) {
-                    throw new RequestException("orderBy", String.format("Unsupported param \"%s\".", orderBy));
+                if (!(Const.PARAM_DIGITAL_OBJECT_ID.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_RUSERID.equals(orderBy)
+                        || Const.PARAM_DIGITAL_OBJECT_INSTANCE.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_PID.equals(orderBy)
+                        || Const.PARAM_DIGITAL_OBJECT_VERSION_XML.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_DATUM.equals(orderBy)
+                        || Const.PARAM_DIGITAL_OBJECT_STATE.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_LABEL.equals(orderBy)
+                        || Const.PARAM_DIGITAL_OBJECT_PARENT_LABEL.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_PARENT_PATH.equals(orderBy)
+                        || Const.PARAM_DIGITAL_OBJECT_USER_LOGIN.equals(orderBy))) {
+                    throw new RequestException(Const.PARAM_ORDER_BY, String.format("Unsupported param \"%s\".", orderBy));
                 }
             }
-            String orderSort = getOptStringRequestValue(context, "orderSort");
+            String orderSort = getOptStringRequestValue(context, Const.PARAM_ORDER_SORT);
             if (orderSort != null) {
                 if (!("asc".equals(orderSort) || "desc".equals(orderSort))) {
-                    throw new RequestException("orderSort", String.format("Unsupported param \"%s\".", orderSort));
+                    throw new RequestException(Const.PARAM_ORDER_SORT, String.format("Unsupported param \"%s\".", orderSort));
                 }
             }
             List<DigitalObjectView> digitalObjects = Manager.getAllDigitalObjects(orderBy, orderSort);
@@ -233,19 +246,24 @@ public class DbResource {
 
     public static void getDigitalObjects(Context context) {
         try {
-            String login = getOptStringRequestValue(context, "login");
-            String pid = getOptStringRequestValue(context, "pid");
+            String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
+            String pid = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
 
-            String orderBy = getOptStringRequestValue(context, "orderBy");
+            String orderBy = getOptStringRequestValue(context, Const.PARAM_ORDER_BY);
             if (orderBy != null) {
-                if (!("id".equals(orderBy) || "rUserId".equals(orderBy) || "instance".equals(orderBy) || "pid".equals(orderBy) || "version".equals(orderBy) || "datum".equals(orderBy) || "state".equals(orderBy))) {
-                    throw new RequestException("orderBy", String.format("Unsupported param \"%s\".", orderBy));
+                if (!(Const.PARAM_DIGITAL_OBJECT_ID.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_RUSERID.equals(orderBy)
+                        || Const.PARAM_DIGITAL_OBJECT_INSTANCE.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_PID.equals(orderBy)
+                        || Const.PARAM_DIGITAL_OBJECT_VERSION_XML.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_DATUM.equals(orderBy)
+                        || Const.PARAM_DIGITAL_OBJECT_STATE.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_LABEL.equals(orderBy)
+                        || Const.PARAM_DIGITAL_OBJECT_PARENT_LABEL.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_PARENT_PATH.equals(orderBy)
+                        || Const.PARAM_DIGITAL_OBJECT_USER_LOGIN.equals(orderBy))) {
+                    throw new RequestException(Const.PARAM_ORDER_BY, String.format("Unsupported param \"%s\".", orderBy));
                 }
             }
-            String orderSort = getOptStringRequestValue(context, "orderSort");
+            String orderSort = getOptStringRequestValue(context, Const.PARAM_ORDER_SORT);
             if (orderSort != null) {
                 if (!("asc".equals(orderSort) || "desc".equals(orderSort))) {
-                    throw new RequestException("orderSort", String.format("Unsupported param \"%s\".", orderSort));
+                    throw new RequestException(Const.PARAM_ORDER_SORT, String.format("Unsupported param \"%s\".", orderSort));
                 }
             }
             List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid, orderBy, orderSort);
@@ -259,10 +277,10 @@ public class DbResource {
     public static void createDigitalObject(Context context) {
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, "login");
-            String pid = getStringNodeValue(node, "pid");
-            String version = getStringNodeValue(node, "version");
-            String instance = getStringNodeValue(node, "instance");
+            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
+            String pid = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_PID);
+            String version = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_VERSION_XML);
+            String instance = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
 
             List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
             if (digitalObjects != null && !digitalObjects.isEmpty()) {
@@ -287,13 +305,13 @@ public class DbResource {
     public static void updateDigitalObject(Context context) {
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, "login");
-            String pid = getStringNodeValue(node, "pid");
-            String version = getStringNodeValue(node, "version");
+            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
+            String pid = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_PID);
+            String version = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_VERSION_XML);
 
             List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
             if (digitalObjects == null && digitalObjects.isEmpty()) {
-                throw new IOException(String.format("Digital object login \"%s\" and \"%s\" doees not exists.", login, pid));
+                throw new IOException(String.format("Digital object login \"%s\" and \"%s\" does not exists.", login, pid));
             } else if (digitalObjects.size() > 1) {
                 throw new IOException(String.format("There are more than 1 record with login \"%s\" and \"%s\" doees not exists.", login, pid));
             } else {

@@ -134,7 +134,7 @@ public class AltoEditorInitializer {
         app.get(Const.PATH_DB_DIGITAL_OBJECT, DbResource::getDigitalObjects);
         app.post(Const.PATH_DB_DIGITAL_OBJECT, DbResource::createDigitalObject);
         app.put(Const.PATH_DB_DIGITAL_OBJECT, DbResource::updateDigitalObject);
-        app.get(Const.PATH_DB_BATCHES, DbResource::getAllBatches);
+        app.get(Const.PATH_DB_BATCHES, DbResource::getBatches);
         app.get(Const.PATH_DB_BATCH, DbResource::getBatches);
         app.get(Const.PATH_DIGITAL_OBJECT_INFORMATION, DigitalObjectResource::getObjectInformation);
         app.get(Const.PATH_DIGITAL_OBJECT_IMAGE, DigitalObjectResource::getImage);
@@ -145,6 +145,8 @@ public class AltoEditorInitializer {
         app.post(Const.PATH_DIGITAL_OBJECT_STATE_ACCEPTED, DigitalObjectResource::stateAccepted);
         app.post(Const.PATH_DIGITAL_OBJECT_STATE_REJECTED, DigitalObjectResource::stateRejected);
         app.post(Const.PATH_DIGITAL_OBJECT_UPLOAD_KRAMERIUS, DigitalObjectResource::uploadKramerius);
+        app.post(Const.PATH_DIGITAL_OBJECT_LOCK, DigitalObjectResource::lockDigitalObject);
+        app.post(Const.PATH_DIGITAL_OBJECT_UNLOCK, DigitalObjectResource::unlockDigitalObject);
     }
 
     private static void initDb() {

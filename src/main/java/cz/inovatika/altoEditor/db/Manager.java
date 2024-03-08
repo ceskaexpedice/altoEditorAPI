@@ -133,6 +133,23 @@ public class Manager {
         DigitalObjectDao.updateDigitalObjectWithState(objectId, state);
     }
 
+    public static void updateDigitalObjectWithStateUploaded(Integer objectId, String state) throws SQLException {
+        DigitalObjectDao.updateDigitalObjectWithState(objectId, state);
+    }
+
+    public static void updateDigitalObjectWithStateUploaded(DigitalObjectView digitalObject) throws SQLException {
+        DigitalObjectDao.updateDigitalObjectWithState(digitalObject.getId(), Const.DIGITAL_OBJECT_STATE_UPLOADED);
+        DigitalObjectDao.lockDigitalObject(digitalObject.getPid());
+    }
+
+    public static void lockDigitalObject(String pid) throws SQLException {
+        DigitalObjectDao.lockDigitalObject(pid);
+    }
+
+    public static void unlockDigitalObject(String pid) throws SQLException {
+        DigitalObjectDao.unlockDigitalObject(pid);
+    }
+
     public static void createDigitalObject(String login, String pid, String version, String instanceId) throws SQLException, AltoEditorException, IOException {
         createDigitalObject(login, pid, null, null, null, version, instanceId);
     }

@@ -17,6 +17,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static cz.inovatika.altoEditor.db.dao.Dao.getDefaultOrderBy;
 import static cz.inovatika.altoEditor.db.dao.Dao.getNewId;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderBy;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderSort;
@@ -118,7 +119,7 @@ public class BatchDao {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
 
-            final ResultSet resultSet = statement.executeQuery("select * from batch order by " + getOrderBy(orderBy) + " " + getOrderSortInverse(orderSort));
+            final ResultSet resultSet = statement.executeQuery("select * from batch order by " + getOrderBy(orderBy) + " " + getOrderSortInverse(orderSort) + getDefaultOrderBy(orderBy));
             while (resultSet.next()) {
                 Batch batch = new Batch(resultSet);
                 batches.add(batch);
@@ -137,7 +138,7 @@ public class BatchDao {
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery("select * from batch " + getQuery(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log) + " order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
+            final ResultSet resultSet = statement.executeQuery("select * from batch " + getQuery(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log) + " order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort) + getDefaultOrderBy(orderBy));
             while (resultSet.next()) {
                 Batch batch = new Batch(resultSet);
                 batches.add(batch);

@@ -16,6 +16,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static cz.inovatika.altoEditor.db.dao.Dao.getDefaultOrderBy;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderBy;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderByVersion;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderSort;
@@ -33,7 +34,7 @@ public class DigitalObjectDao {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
 
-            final ResultSet resultSet = statement.executeQuery("select * from digitalobject where not state in ('GENERATED') order by " + getOrderBy(orderBy) + " " + getOrderSortInverse(orderSort));
+            final ResultSet resultSet = statement.executeQuery("select * from digitalobject where not state in ('" + Const.DIGITAL_OBJECT_STATE_GENERATED + "') order by " + getOrderBy(orderBy) + " " + getOrderSortInverse(orderSort) + getDefaultOrderBy(orderBy));
             while (resultSet.next()) {
                 DigitalObject digitalObject = new DigitalObject(resultSet);
                 digitalObjects.add(new DigitalObjectView(digitalObject, Manager.getUserById(String.valueOf(digitalObject.getrUserId()))));
@@ -129,6 +130,40 @@ public class DigitalObjectDao {
         }
     }
 
+    public static void lockDigitalObject(String pid) throws SQLException {
+        if (pid == null) {
+            return;
+        }
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = DataSource.getConnection();
+            statement = connection.createStatement();
+            statement.executeUpdate("update digitalobject set datum = NOW(), lock = 'true' where pid = '" + pid + "'");
+
+        } finally {
+            Utils.closeSilently(statement);
+            Utils.closeSilently(connection);
+        }
+    }
+
+    public static void unlockDigitalObject(String pid) throws SQLException {
+        if (pid == null) {
+            return;
+        }
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = DataSource.getConnection();
+            statement = connection.createStatement();
+            statement.executeUpdate("update digitalobject set datum = NOW(), lock = 'false' where pid = '" + pid + "'");
+
+        } finally {
+            Utils.closeSilently(statement);
+            Utils.closeSilently(connection);
+        }
+    }
+
     public static void createDigitalObject(String login, String pid, String label, String parentPath, String parentLabel, String versionXml, String instanceId, String state) throws SQLException {
         if (login == null || pid == null || versionXml == null) {
             return;
@@ -163,7 +198,7 @@ public class DigitalObjectDao {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
 
-            final ResultSet resultSet = statement.executeQuery("select * from digitalobject where ruserid = '" + userId + "' and pid = '" + pid + "' order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
+            final ResultSet resultSet = statement.executeQuery("select * from digitalobject where ruserid = '" + userId + "' and pid = '" + pid + "' order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort) + getDefaultOrderBy(orderBy));
 
             while (resultSet.next()) {
                 DigitalObject digitalObject = new DigitalObject(resultSet);
@@ -210,7 +245,7 @@ public class DigitalObjectDao {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
 
-            final ResultSet resultSet = statement.executeQuery("select * from digitalobject where ruserid = '" + userId + "' order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort));
+            final ResultSet resultSet = statement.executeQuery("select * from digitalobject where ruserid = '" + userId + "' order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort) + getDefaultOrderBy(orderBy));
 
             while (resultSet.next()) {
                 DigitalObject digitalObject = new DigitalObject(resultSet);

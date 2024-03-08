@@ -23,6 +23,7 @@ public class DigitalObject {
     private String version = null;
     private Timestamp datum = null;
     private String state = null;
+    private Boolean lock = null;
 
     public Integer getId() {
         return id;
@@ -62,6 +63,10 @@ public class DigitalObject {
 
     public String getParentLabel() {
         return parentLabel;
+    }
+
+    public Boolean getLock() {
+        return lock == null ? false : lock;
     }
 
     public DigitalObject(ResultSet rs) {

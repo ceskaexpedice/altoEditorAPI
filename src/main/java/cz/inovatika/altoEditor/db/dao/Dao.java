@@ -78,6 +78,10 @@ public class Dao {
         return orderBy != null ? orderBy : "version";
     }
 
+    protected static String getDefaultOrderBy(String orderBy) {
+        return orderBy != null ? ", id" : "";
+    }
+
     protected static String getOrderSort(String orderSort) {
         return orderSort != null ? orderSort : "asc";
     }

@@ -17,6 +17,7 @@ public class DigitalObjectView {
     private String label = null;
     private String parentPath = null;
     private String parentLabel = null;
+    private Boolean lock = null;
 
 
     public DigitalObjectView(DigitalObject digitalObject, User user) {
@@ -29,6 +30,7 @@ public class DigitalObjectView {
         this.label = digitalObject.getLabel();
         this.parentPath = digitalObject.getParentPath();
         this.parentLabel = digitalObject.getParentLabel();
+        this.lock = digitalObject.getLock();
 
         this.userLogin = user.getLogin();
     }
@@ -75,5 +77,9 @@ public class DigitalObjectView {
 
     public String getParentLabel() {
         return parentLabel;
+    }
+
+    public Boolean getLock() {
+        return lock;
     }
 }

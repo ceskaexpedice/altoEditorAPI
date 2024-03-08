@@ -1,5 +1,6 @@
 package cz.inovatika.altoEditor.utils;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -72,6 +73,46 @@ public class Const {
     public static final String PATH_DIGITAL_OBJECT_STATE_ACCEPTED = getPath(PATH_DIGITAL_OBJECT, "stateAccepted");
     public static final String PATH_DIGITAL_OBJECT_STATE_REJECTED = getPath(PATH_DIGITAL_OBJECT, "stateRejected");
     public static final String PATH_DIGITAL_OBJECT_UPLOAD_KRAMERIUS = getPath(PATH_DIGITAL_OBJECT, "uploadKramerius");
+    public static final String PATH_DIGITAL_OBJECT_LOCK = getPath(PATH_DIGITAL_OBJECT, "lock");
+    public static final String PATH_DIGITAL_OBJECT_UNLOCK = getPath(PATH_DIGITAL_OBJECT, "unlock");
+
+    public static final String PARAM_BATCH_ID = "id";
+    public static final String PARAM_BATCH_PID = "pid";
+    public static final String PARAM_BATCH_CREATE_DATE = "createDate";
+    public static final String PARAM_BATCH_UPDATE_DATE = "updateDate";
+    public static final String PARAM_BATCH_STATE = "state";
+    public static final String PARAM_BATCH_SUBSTATE = "substate";
+    public static final String PARAM_BATCH_PRIORITY = "priority";
+    public static final String PARAM_BATCH_TYPE = "type";
+    public static final String PARAM_BATCH_INSTANCE = "instance";
+    public static final String PARAM_BATCH_OBJECT_ID = "objectId";
+    public static final String PARAM_BATCH_ESTIMATE_ITEM_NUMBER = "estimateItemNumber";
+    public static final String PARAM_BATCH_LOG = "log";
+
+    public static final String PARAM_DIGITAL_OBJECT_ID = "id";
+    public static final String PARAM_DIGITAL_OBJECT_RUSERID = "rUserId";
+    public static final String PARAM_DIGITAL_OBJECT_USER_LOGIN = "userLogin";
+    public static final String PARAM_DIGITAL_OBJECT_INSTANCE = "instance";
+    public static final String PARAM_DIGITAL_OBJECT_PID = "pid";
+    public static final String PARAM_DIGITAL_OBJECT_VERSION_XML = "versionXml";
+    public static final String PARAM_DIGITAL_OBJECT_DATUM = "datum";
+    public static final String PARAM_DIGITAL_OBJECT_STATE = "state";
+    public static final String PARAM_DIGITAL_OBJECT_LABEL = "label";
+    public static final String PARAM_DIGITAL_OBJECT_PARENT_PATH = "parentPath";
+    public static final String PARAM_DIGITAL_OBJECT_PARENT_LABEL = "parentLabel";
+    public static final String PARAM_DIGITAL_OBJECT_DATA = "data";
+
+    public static final String PARAM_VERSION_ID = "id";
+    public static final String PARAM_VERSION_APLICATION = "application";
+    public static final String PARAM_VERSION_VERSION = "version";
+    public static final String PARAM_VERSION_DATUM = "datum";
+
+    public static final String PARAM_USER_ID = "id";
+    public static final String PARAM_USER_LOGIN = "login";
+    public static final String PARAM_USER_USERID = "userId";
+
+    public static final String PARAM_ORDER_BY = "orderBy";
+    public static final String PARAM_ORDER_SORT = "orderSort";
 
     public static final String DATASTREAM_TYPE_ALTO = "ALTO";
     public static final String DATASTREAM_TYPE_OCR = "OCR";
