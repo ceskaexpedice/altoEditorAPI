@@ -68,6 +68,7 @@ public class Const {
     public static final String PATH_DIGITAL_OBJECT_INFORMATION = getPath(PATH_DIGITAL_OBJECT, "objectInformation");
     public static final String PATH_DIGITAL_OBJECT_IMAGE = getPath(PATH_DIGITAL_OBJECT, "image");
     public static final String PATH_DIGITAL_OBJECT_ALTO = getPath(PATH_DIGITAL_OBJECT, "alto");
+    public static final String PATH_DIGITAL_OBJECT_ALTO_ORIGINAL = getPath(PATH_DIGITAL_OBJECT, "altoOriginal");
     public static final String PATH_DIGITAL_OBJECT_OCR = getPath(PATH_DIGITAL_OBJECT, "ocr");
     public static final String PATH_DIGITAL_OBJECT_PERO_GENERATE = getPath(PATH_DIGITAL_OBJECT, "pero");
     public static final String PATH_DIGITAL_OBJECT_STATE_ACCEPTED = getPath(PATH_DIGITAL_OBJECT, "stateAccepted");

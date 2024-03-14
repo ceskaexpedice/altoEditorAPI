@@ -139,6 +139,7 @@ public class AltoEditorInitializer {
         app.get(Const.PATH_DIGITAL_OBJECT_INFORMATION, DigitalObjectResource::getObjectInformation);
         app.get(Const.PATH_DIGITAL_OBJECT_IMAGE, DigitalObjectResource::getImage);
         app.get(Const.PATH_DIGITAL_OBJECT_ALTO, DigitalObjectResource::getAlto);
+        app.get(Const.PATH_DIGITAL_OBJECT_ALTO_ORIGINAL, DigitalObjectResource::getAltoOriginal);
         app.get(Const.PATH_DIGITAL_OBJECT_OCR, DigitalObjectResource::getOcr);
         app.post(Const.PATH_DIGITAL_OBJECT_ALTO, DigitalObjectResource::updateAlto);
         app.post(Const.PATH_DIGITAL_OBJECT_PERO_GENERATE, DigitalObjectResource::generatePero);

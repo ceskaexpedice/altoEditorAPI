@@ -104,6 +104,44 @@ public class DigitalObjectResource {
         }
     }
 
+    public static void getAltoOriginal(@NotNull Context context) {
+        try {
+            String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
+            String pid = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
+
+            // posloupnost hledani pro dany pid
+            // 1. defaultni verze od PERA
+            // 2. defaultni verze z Krameria
+
+            // 1. defaultni verze od PERA
+            if (login != null && !login.isEmpty()) {
+                List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_PERO, pid);
+                if (!digitalObjects.isEmpty()) {
+                    LOGGER.debug("Version find in repositories using login as PERO and pid.");
+                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
+                    setStringResult(context, response);
+                    return;
+                }
+            }
+
+            // 2. defaultni verze z Krameria
+            if (login != null && !login.isEmpty()) {
+                List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_ALTOEDITOR, pid);
+                if (!digitalObjects.isEmpty()) {
+                    LOGGER.debug("Version find in repositories using login as AltoEditor and pid.");
+                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
+                    setStringResult(context, response);
+                    return;
+                }
+            }
+
+            setResult(context, AltoEditorResponse.asError("Object not found in Storage", new DigitalObjectNotFoundException(pid, "Object not found in Storage")));
+        } catch (Throwable ex) {
+            setResult(context, AltoEditorResponse.asError(ex));
+        }
+
+    }
+
     public static void getOcr(@NotNull Context context) {
         try {
             AltoEditorStringRecordResponse response = getAltoResponse(context);
