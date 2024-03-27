@@ -74,13 +74,13 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 GET {{url}}/db/objects?orderBy=datum&orderSort=asc&instance=k7
 
 ### get digital Object
-GET {{url}}/db/object?pid={{uuid3}}
+GET {{url}}/db/objects?limit=1&offset=5
 
 ### get all batches with type
 GET {{url}}/db/batches?type=SINGLE
 
 ### get batches
-GET {{url}}/db/batch?pid={{uuidStrana}}
+GET {{url}}/db/batch?limit=1&offset=4
 
 ### get Image
 GET {{url}}/object/image?login=lukasSyk&pid={{uuid}}&instance=k7
@@ -105,7 +105,7 @@ Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
 
-{"pid":"{{uuid}}","priority":"LOW", "instance":"k7"}
+{"pid":"uuid:65cb5124-6af4-4b50-acd0-0cbf0867f968","priority":"MEDIUM", "instance":"k7"}
 
 ### set version as accepted
 POST {{url}}/object/stateAccepted

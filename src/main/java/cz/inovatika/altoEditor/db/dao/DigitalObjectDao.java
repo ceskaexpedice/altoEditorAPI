@@ -12,16 +12,20 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static cz.inovatika.altoEditor.db.dao.Dao.getDefaultOrderBy;
+import static cz.inovatika.altoEditor.db.dao.Dao.getLimit;
+import static cz.inovatika.altoEditor.db.dao.Dao.getOffset;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderBy;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderByVersion;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderSort;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderSortInverse;
+import static cz.inovatika.altoEditor.utils.Utils.getNextDate;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class DigitalObjectDao {
@@ -260,14 +264,14 @@ public class DigitalObjectDao {
         }
     }
 
-    public static List<DigitalObjectView> getDigitalObjects(String id, String rUserId, String instance, String pid, String version, String datum, String state, String label, String parentLabel, String parentPath, String orderBy, String orderSort) throws SQLException {
+    public static List<DigitalObjectView> getDigitalObjects(String id, String rUserId, String instance, String pid, String version, String datum, String state, String label, String parentLabel, String parentPath, String orderBy, String orderSort, Integer limit, Integer offset) throws SQLException, ParseException {
         Connection connection = null;
         Statement statement = null;
         List<DigitalObjectView> digitalObjects = new ArrayList<>();
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery("select * from digitalobject " + getQuery(id, rUserId, instance, pid, version, datum, state, label, parentLabel, parentPath) + " order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort) + getDefaultOrderBy(orderBy));
+            final ResultSet resultSet = statement.executeQuery("select * from digitalobject " + getQuery(id, rUserId, instance, pid, version, datum, state, label, parentLabel, parentPath) + " order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort) + getDefaultOrderBy(orderBy) + " limit " + getLimit(limit) + " offset " + getOffset(offset));
             while (resultSet.next()) {
                 DigitalObject digitalObject = new DigitalObject(resultSet);
                 digitalObjects.add(new DigitalObjectView(digitalObject, Manager.getUserById(String.valueOf(digitalObject.getrUserId()))));
@@ -279,7 +283,25 @@ public class DigitalObjectDao {
         }
     }
 
-    private static String getQuery(String id, String rUserId, String instance, String pid, String version, String datum, String state, String label, String parentLabel, String parentPath) {
+    public static Integer getDigitalObjectsCount(String id, String rUserId, String instance, String pid, String version, String datum, String state, String label, String parentLabel, String parentPath) throws SQLException, ParseException {
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = DataSource.getConnection();
+            statement = connection.createStatement();
+            final ResultSet resultSet = statement.executeQuery("select count(*) as pocet from digitalobject " + getQuery(id, rUserId, instance, pid, version, datum, state, label, parentLabel, parentPath));
+            while (resultSet.next()) {
+                Integer value = resultSet.getInt("pocet");
+                return value;
+            }
+        } finally {
+            Utils.closeSilently(statement);
+            Utils.closeSilently(connection);
+        }
+        return 0;
+    }
+
+    private static String getQuery(String id, String rUserId, String instance, String pid, String version, String datum, String state, String label, String parentLabel, String parentPath) throws ParseException {
         StringBuilder queryBuilder = new StringBuilder();
         if (isBlank(id) && isBlank(rUserId) && isBlank(instance) && isBlank(pid) && isBlank(version) && isBlank(datum) && isBlank(state) && isBlank(label) && isBlank(parentLabel) && isBlank(parentPath)) {
             return "";
@@ -295,7 +317,7 @@ public class DigitalObjectDao {
             queryBuilder.append(" AND ").append("UPPER(pid) = '" + pid.toUpperCase().trim() + "'");
         }
         if (!isBlank(datum)) {
-            queryBuilder.append(" AND ").append("datum = '" + datum.trim() + "'");
+            queryBuilder.append(" AND ").append("datum >= '" + datum.trim() + "' AND datum < '" + getNextDate(datum) + "'");
         }
         if (!isBlank(state)) {
             queryBuilder.append(" AND ").append("UPPER(state) = '" + state.toUpperCase().trim() + "'");

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import static cz.inovatika.altoEditor.utils.Const.DEFAULT_RESOURCE_SQL;
 import static cz.inovatika.altoEditor.utils.Utils.getBooleanNodeValue;
+import static cz.inovatika.altoEditor.utils.Utils.getOptIntegerRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptStringRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.getStringNodeValue;
 import static cz.inovatika.altoEditor.utils.Utils.getStringRequestValue;
@@ -191,13 +192,23 @@ public class DbResource {
                 }
             }
 
+            Integer limit = getOptIntegerRequestValue(context, Const.PARAM_LIMIT);
+            if (limit == null || limit < 0) {
+                limit = Const.DEFAULT_SQL_LIMIT_SIZE;
+            }
+            Integer offset = getOptIntegerRequestValue(context, Const.PARAM_OFFSET);
+            if (offset == null || offset < 0) {
+                offset = 0;
+            }
+
             if (createDate != null || updateDate != null) {
                 checkDateFormat(Const.PARAM_BATCH_CREATE_DATE, createDate);
                 checkDateFormat(Const.PARAM_BATCH_UPDATE_DATE, updateDate);
             }
 
-            List<Batch> batches = Manager.getBatches(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log, orderBy, orderSort);
-            setResult(context, new AltoEditorResponse(batches));
+            int totalCount = Manager.getBatchesCount(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log);
+            List<Batch> batches = Manager.getBatches(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log, orderBy, orderSort, limit, offset);
+            setResult(context, new AltoEditorResponse(batches, offset, totalCount));
 
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -250,9 +261,18 @@ public class DbResource {
                     throw new RequestException(Const.PARAM_ORDER_SORT, String.format("Unsupported param \"%s\".", orderSort));
                 }
             }
+            Integer limit = getOptIntegerRequestValue(context, Const.PARAM_LIMIT);
+            if (limit == null || limit < 0) {
+                limit = Const.DEFAULT_SQL_LIMIT_SIZE;
+            }
+            Integer offset = getOptIntegerRequestValue(context, Const.PARAM_OFFSET);
+            if (offset == null || offset < 0) {
+                offset = 0;
+            }
+            int totalCount = Manager.getDigitalObjectsCount(id, rUserId, instance, pid, versionXml, datum, state, label, parentLabel, parentPath, login);
             List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(id, rUserId, instance, pid, versionXml,
-                    datum, state, label, parentLabel, parentPath, login, orderBy, orderSort);
-            setResult(context, new AltoEditorResponse(digitalObjects));
+                    datum, state, label, parentLabel, parentPath, login, orderBy, orderSort, limit, offset);
+            setResult(context, new AltoEditorResponse(digitalObjects, offset, totalCount));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
         }
@@ -289,9 +309,18 @@ public class DbResource {
                     throw new RequestException(Const.PARAM_ORDER_SORT, String.format("Unsupported param \"%s\".", orderSort));
                 }
             }
+            Integer limit = getOptIntegerRequestValue(context, Const.PARAM_LIMIT);
+            if (limit == null || limit < 0) {
+                limit = Const.DEFAULT_SQL_LIMIT_SIZE;
+            }
+            Integer offset = getOptIntegerRequestValue(context, Const.PARAM_OFFSET);
+            if (offset == null || offset < 0) {
+                offset = 0;
+            }
+            int totalCount = Manager.getDigitalObjectsCount(id, rUserId, instance, pid, versionXml, datum, state, label, parentLabel, parentPath, login);
             List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(id, rUserId, instance, pid, versionXml,
-                    datum, state, label, parentLabel, parentPath, login, orderBy, orderSort);
-            setResult(context, new AltoEditorResponse(digitalObjects));
+                    datum, state, label, parentLabel, parentPath, login, orderBy, orderSort, limit, offset);
+            setResult(context, new AltoEditorResponse(digitalObjects, offset, totalCount));
 
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));

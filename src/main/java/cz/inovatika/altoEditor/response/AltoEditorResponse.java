@@ -114,6 +114,28 @@ public class AltoEditorResponse {
         }
     }
 
+    public AltoEditorResponse(Object singleItem, Integer startRow, Integer totalRows) {
+        this.status = STATUS_SUCCESS;
+        if (singleItem instanceof List) {
+            this.startRow = startRow;
+            List<Object> items = (List) singleItem;
+            this.endRow = Math.max(startRow, startRow + items.size() -1);
+            this.totalRows = totalRows;
+            this.data = items;
+        } else {
+            this.startRow = 0;
+            if (singleItem == null) {
+                this.endRow = 0;
+                this.totalRows = 0;
+                this.data = null;
+            } else {
+                this.endRow = 0;
+                this.totalRows = 1;
+                this.data = singleItem;
+            }
+        }
+    }
+
     public AltoEditorResponse(int status, Integer startRow, Integer endRow, Integer totalRows, List<Object> data) {
         this.status = status;
         this.startRow = startRow;

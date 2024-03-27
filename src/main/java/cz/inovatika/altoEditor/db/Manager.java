@@ -72,8 +72,12 @@ public class Manager {
         return BatchDao.getAllBatches(orderBy, orderSort);
     }
 
-    public static List<Batch> getBatches(String id, String pid, String createDate, String updateDate, String state, String substate, String priority, String type, String instanceId, String estimateItemNumber, String log, String orderBy, String orderSort) throws SQLException, ParseException {
-        return BatchDao.getBatches(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log, orderBy, orderSort);
+    public static List<Batch> getBatches(String id, String pid, String createDate, String updateDate, String state, String substate, String priority, String type, String instanceId, String estimateItemNumber, String log, String orderBy, String orderSort, Integer limit, Integer offset) throws SQLException, ParseException {
+        return BatchDao.getBatches(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log, orderBy, orderSort, limit, offset);
+    }
+
+    public static Integer getBatchesCount(String id, String pid, String createDate, String updateDate, String state, String substate, String priority, String type, String instanceId, String estimateItemNumber, String log) throws SQLException, ParseException {
+        return BatchDao.getBatchesCount(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log);
     }
 
     public static List<Batch> findWaitingBatches() throws SQLException {
@@ -100,7 +104,7 @@ public class Manager {
         return DigitalObjectDao.getDigitalObjectsByPid(pid, orderBy, orderSort);
     }
 
-    public static List<DigitalObjectView> getDigitalObjects(String id, String rUserId, String instance, String pid, String versionXml, String datum, String state, String label, String parentLabel, String parentPath, String login, String orderBy, String orderSort) throws SQLException {
+    public static List<DigitalObjectView> getDigitalObjects(String id, String rUserId, String instance, String pid, String versionXml, String datum, String state, String label, String parentLabel, String parentPath, String login, String orderBy, String orderSort, Integer limit, Integer offset) throws SQLException, ParseException {
         if (login != null && !login.isEmpty()) {
             User user = Manager.getUserByLogin(login);
             if (user == null || user.getId() == null) {
@@ -112,7 +116,22 @@ public class Manager {
         if (versionXml != null && !versionXml.isEmpty()) {
             versionXml = versionXml.replace(AltoDatastreamEditor.ALTO_ID + ".", "");
         }
-        return DigitalObjectDao.getDigitalObjects(id, rUserId, instance, pid, versionXml, datum, state, label, parentLabel, parentPath, orderBy, orderSort);
+        return DigitalObjectDao.getDigitalObjects(id, rUserId, instance, pid, versionXml, datum, state, label, parentLabel, parentPath, orderBy, orderSort, limit, offset);
+    }
+
+    public static Integer getDigitalObjectsCount(String id, String rUserId, String instance, String pid, String versionXml, String datum, String state, String label, String parentLabel, String parentPath, String login) throws SQLException, ParseException {
+        if (login != null && !login.isEmpty()) {
+            User user = Manager.getUserByLogin(login);
+            if (user == null || user.getId() == null) {
+                throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
+            } else {
+                rUserId = String.valueOf(user.getId());
+            }
+        }
+        if (versionXml != null && !versionXml.isEmpty()) {
+            versionXml = versionXml.replace(AltoDatastreamEditor.ALTO_ID + ".", "");
+        }
+        return DigitalObjectDao.getDigitalObjectsCount(id, rUserId, instance, pid, versionXml, datum, state, label, parentLabel, parentPath);
     }
 
     public static List<DigitalObjectView> getDigitalObjects(String login, String pid, String orderBy, String orderSort) throws SQLException {

@@ -18,7 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static cz.inovatika.altoEditor.db.dao.Dao.getDefaultOrderBy;
+import static cz.inovatika.altoEditor.db.dao.Dao.getLimit;
 import static cz.inovatika.altoEditor.db.dao.Dao.getNewId;
+import static cz.inovatika.altoEditor.db.dao.Dao.getOffset;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderBy;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderSort;
 import static cz.inovatika.altoEditor.db.dao.Dao.getOrderSortInverse;
@@ -131,14 +133,14 @@ public class BatchDao {
         }
     }
 
-    public static List<Batch> getBatches(String id, String pid, String createDate, String updateDate, String state, String substate, String priority, String type, String instanceId, String estimateItemNumber, String log, String orderBy, String orderSort) throws SQLException, ParseException {
+    public static List<Batch> getBatches(String id, String pid, String createDate, String updateDate, String state, String substate, String priority, String type, String instanceId, String estimateItemNumber, String log, String orderBy, String orderSort, Integer limit, Integer offset) throws SQLException, ParseException {
         Connection connection = null;
         Statement statement = null;
         List<Batch> batches = new ArrayList<>();
         try {
             connection = DataSource.getConnection();
             statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery("select * from batch " + getQuery(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log) + " order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort) + getDefaultOrderBy(orderBy));
+            final ResultSet resultSet = statement.executeQuery("select * from batch " + getQuery(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log) + " order by " + getOrderBy(orderBy) + " " + getOrderSort(orderSort) + getDefaultOrderBy(orderBy) + " limit " + getLimit(limit) + " offset " + getOffset(offset));
             while (resultSet.next()) {
                 Batch batch = new Batch(resultSet);
                 batches.add(batch);
@@ -148,6 +150,24 @@ public class BatchDao {
             Utils.closeSilently(statement);
             Utils.closeSilently(connection);
         }
+    }
+
+    public static Integer getBatchesCount(String id, String pid, String createDate, String updateDate, String state, String substate, String priority, String type, String instanceId, String estimateItemNumber, String log) throws SQLException, ParseException {
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = DataSource.getConnection();
+            statement = connection.createStatement();
+            final ResultSet resultSet = statement.executeQuery("select count(*) as pocet from batch " + getQuery(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log));
+            while (resultSet.next()) {
+                Integer value = resultSet.getInt("pocet");
+                return value;
+            }
+        } finally {
+            Utils.closeSilently(statement);
+            Utils.closeSilently(connection);
+        }
+        return 0;
     }
 
     private static String getQuery(String id, String pid, String createDate, String updateDate, String state, String substate, String priority, String type, String instanceId, String estimateItemNumber, String log) throws ParseException {

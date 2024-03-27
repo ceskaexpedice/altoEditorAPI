@@ -2,6 +2,7 @@ package cz.inovatika.altoEditor.utils;
 
 import io.javalin.http.Context;
 
+import com.drew.lang.StringUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -28,6 +29,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.codehaus.jackson.node.ArrayNode;
 import org.json.JSONArray;
@@ -209,6 +211,22 @@ public class Utils {
         } else {
             throw new RequestException(key, "Context is null");
         }
+    }
+
+    public static Integer getOptIntegerRequestValue(Context context, String key) throws RequestException {
+        if (context != null) {
+            if (context.req() != null) {
+                String value = context.req().getParameter(key);
+                if (StringUtils.isNumeric(value)) {
+                    return Integer.valueOf(value);
+                }
+            } else {
+                throw new RequestException(key, "Request in Context is null");
+            }
+        } else {
+            throw new RequestException(key, "Context is null");
+        }
+        return null;
     }
 
     public static InputStream readFile(String resource) throws IOException {
