@@ -1,8 +1,6 @@
 package cz.inovatika.altoEditor.kramerius;
 
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.StateType;
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import cz.inovatika.altoEditor.exception.AltoEditorException;
 import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
@@ -10,14 +8,9 @@ import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
 import cz.inovatika.altoEditor.storage.local.LocalStorage;
 import cz.inovatika.altoEditor.storage.local.LocalStorage.LocalObject;
 import cz.inovatika.altoEditor.utils.Config;
-import cz.inovatika.altoEditor.utils.Const;
-import cz.inovatika.altoEditor.utils.FoxmlUtils;
-import cz.inovatika.altoEditor.utils.Utils;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.apache.http.HttpEntity;
@@ -27,9 +20,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static cz.inovatika.altoEditor.kramerius.KrameriusOptions.findKrameriusInstance;
 import static cz.inovatika.altoEditor.utils.FileUtils.createFolder;
@@ -43,7 +36,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 
 public class K7Downloader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(K7Downloader.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(K7Downloader.class.getName());
 
     public void downloadFoxml(String pid, String instanceId, String login) throws AltoEditorException, IOException {
         AkubraStorage storage = AkubraStorage.getInstance();

@@ -2,7 +2,6 @@ package cz.inovatika.altoEditor.utils;
 
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import cz.inovatika.altoEditor.exception.AltoEditorException;
-import cz.inovatika.altoEditor.kramerius.K7Downloader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,16 +9,15 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
-import org.apache.xmlbeans.impl.common.IOUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static cz.inovatika.altoEditor.utils.FoxmlUtils.closeQuietly;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class FileUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileUtils.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(FileUtils.class.getName());
 
     public static String getPidAsFile(String value) {
         if (value.startsWith("uuid:")) {

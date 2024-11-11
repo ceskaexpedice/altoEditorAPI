@@ -2,17 +2,18 @@ package cz.inovatika.altoEditor.response;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class AltoEditorResponse {
 
-    private static final Logger LOGGER = Logger.getLogger(AltoEditorResponse.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(AltoEditorResponse.class.getName());
 
     public static final int STATUS_FAILURE = -1;
     public static final int STATUS_LOGIN_INCORRECT = -5;

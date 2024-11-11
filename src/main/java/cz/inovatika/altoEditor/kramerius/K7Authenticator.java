@@ -4,7 +4,6 @@ import cz.inovatika.altoEditor.utils.Config;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -15,6 +14,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,7 +24,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 
 public class K7Authenticator {
 
-    private static final Logger LOGGER = Logger.getLogger(K7Authenticator.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(K7Authenticator.class.getName());
 
     private KrameriusOptions.KrameriusInstance instance;
 
@@ -61,10 +62,10 @@ public class K7Authenticator {
                     JSONObject jsonObject = new JSONObject(result);
                     String token = jsonObject.optString("access_token");
                     if (token != null || !token.isEmpty()) {
-                        LOGGER.fine("Connected to Kramerius and get token " + token);
+                        LOGGER.debug("Connected to Kramerius and get token " + token);
                         return token;
                     } else {
-                        LOGGER.severe("Connected to Kramerius but access_token is null");
+                        LOGGER.error("Connected to Kramerius but access_token is null");
                     }
                 } else if (result.startsWith("[")){
                     JSONArray jsonArray = new JSONArray(result);
@@ -72,24 +73,24 @@ public class K7Authenticator {
                         JSONObject jsonObject = jsonArray.getJSONObject(0);
                         String token = jsonObject.optString("access_token");
                         if (token != null || !token.isEmpty()) {
-                            LOGGER.fine("Connected to Kramerius and get token " + token);
+                            LOGGER.debug("Connected to Kramerius and get token " + token);
                             return token;
                         } else {
-                            LOGGER.severe("Connected to Kramerius but access_token is null");
+                            LOGGER.error("Connected to Kramerius but access_token is null");
                         }
                     }
                 } else {
-                    LOGGER.severe("Connected to Kramerius but can not found access_token");
+                    LOGGER.error("Connected to Kramerius but can not found access_token");
                     throw new IOException("Connected to Kramerius but can not found access_token");
                 }
             } else {
-                LOGGER.severe("Connected to Kramerius but entity is null");
+                LOGGER.error("Connected to Kramerius but entity is null");
                 throw new IOException("Connected to Kramerius but entity is null");
             }
-            LOGGER.severe("Connected to Kramerius but access_token is null");
+            LOGGER.error("Connected to Kramerius but access_token is null");
             throw new IOException("Connected to Kramerius but access_token is null");
         } else {
-            LOGGER.severe("Connecing to Kramerius ended with code " + response.getStatusLine().getStatusCode());
+            LOGGER.error("Connecing to Kramerius ended with code " + response.getStatusLine().getStatusCode());
             throw new IOException("Connecing to Kramerius ended with code " + response.getStatusLine().getStatusCode());
         }
     }

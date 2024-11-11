@@ -9,12 +9,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class VersionDao {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger(VersionDao.class.getName());
+    protected static final Logger LOGGER = LogManager.getLogger(VersionDao.class.getName());
 
     public static List<Version> getAllVersions() throws SQLException {
         Connection connection = null;

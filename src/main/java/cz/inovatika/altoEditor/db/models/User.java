@@ -5,12 +5,12 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Types;
 import java.util.HashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class User {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger(User.class.getName());
+    protected static final Logger LOGGER = LogManager.getLogger(User.class.getName());
 
     private Integer id = null;
     private String login = null;

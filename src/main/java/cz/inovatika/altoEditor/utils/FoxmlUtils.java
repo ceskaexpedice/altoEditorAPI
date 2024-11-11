@@ -11,7 +11,6 @@ import com.yourmediashelf.fedora.generated.foxml.StateType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,12 +27,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.XMLConstants;
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -48,11 +44,12 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import org.w3c.dom.Element;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class FoxmlUtils {
 
-    private static final Logger LOGGER = Logger.getLogger(FoxmlUtils.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(FoxmlUtils.class.getName());
     private static JAXBContext defaultJaxbContext;
     private static ThreadLocal<Marshaller> defaultMarshaller = new ThreadLocal<Marshaller>();
     private static ThreadLocal<Unmarshaller> defaultUnmarshaller = new ThreadLocal<Unmarshaller>();
@@ -385,7 +382,7 @@ public class FoxmlUtils {
             try {
                 c.close();
             } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, description, ex);
+                LOGGER.error(description, ex);
             }
         }
     }

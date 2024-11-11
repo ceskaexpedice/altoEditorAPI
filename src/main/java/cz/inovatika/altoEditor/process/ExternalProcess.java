@@ -4,14 +4,14 @@ package cz.inovatika.altoEditor.process;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 /**
  * The helper to run external processes.
  */
 public class ExternalProcess implements Runnable {
 
-    private static final Logger LOG = Logger.getLogger(ExternalProcess.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(ExternalProcess.class.getName());
     public static final long DEFAULT_TIMEOUT = 2 * 60 * 1000;
     public static final int DEFAULT_RETRY_ATTEMPTS = 0;
 
@@ -30,7 +30,7 @@ public class ExternalProcess implements Runnable {
                 if (isOk()) {
                     return ;
                 }
-                LOG.log(Level.WARNING, "{0}. failure, \n{1}, \nCmd: {2}",
+                LOGGER.warn("{0}. failure, \n{1}, \nCmd: {2}",
                         new Object[]{i + 1, getFullOutput(), cmdLine});
             }
         } catch (IOException ex) {
@@ -50,13 +50,13 @@ public class ExternalProcess implements Runnable {
         for (String arg : cmdLine) {
             debug.append(arg).append(" ");
         }
-        LOG.fine("run: " + debug);
+        LOGGER.debug("run: " + debug);
         asyncProcess = new AsyncProcess(cmdLine);
         asyncProcess.start();
         long timeout = getTimeout();
         asyncProcess.join(timeout);
         asyncProcess.kill();
-        LOG.fine(getFullOutput());
+        LOGGER.debug(getFullOutput());
         return asyncProcess.getExitCode();
     }
 

@@ -2,7 +2,6 @@ package cz.inovatika.altoEditor.utils;
 
 import java.io.InputStream;
 import java.util.HashMap;
-
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSInput;
@@ -10,7 +9,7 @@ import org.w3c.dom.ls.LSResourceResolver;
 
 public class XmlLSResolver implements LSResourceResolver {
 
-    static final  HashMap<String, String> URL_MAP = new HashMap<String, String>();
+    static final HashMap<String, String> URL_MAP = new HashMap<String, String>();
     private static XmlLSResolver INSTANCE;
 
     private final DOMImplementationLS dls;
@@ -49,5 +48,4 @@ public class XmlLSResolver implements LSResourceResolver {
         input.setSystemId(systemId);
         return input;
     }
-
 }

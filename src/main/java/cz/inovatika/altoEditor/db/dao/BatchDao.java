@@ -4,9 +4,6 @@ import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.altoEditor.utils.Utils;
 import cz.inovatika.utils.db.DataSource;
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,8 +11,8 @@ import java.sql.Statement;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static cz.inovatika.altoEditor.db.dao.Dao.getDefaultOrderBy;
 import static cz.inovatika.altoEditor.db.dao.Dao.getLimit;
@@ -29,7 +26,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class BatchDao {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger(BatchDao.class.getName());
+    protected static final Logger LOGGER = LogManager.getLogger(BatchDao.class.getName());
 
     public static Batch getBatchById(Integer batchId) throws SQLException {
         if (batchId == null) {

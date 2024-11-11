@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2023 Lukas Sykora
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
 package cz.inovatika.altoEditor.process;
 
 import cz.inovatika.altoEditor.utils.Const;
@@ -30,8 +14,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Dispatcher controls scheduling of {@link FileGeneratorProcess}.
@@ -42,7 +26,7 @@ import java.util.logging.Logger;
  */
 public final class ProcessDispatcher {
 
-    private static final Logger LOGGER = Logger.getLogger(ProcessDispatcher.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(ProcessDispatcher.class.getName());
     private static ProcessDispatcher INSTANCE = new ProcessDispatcher();
 
     private ExecutorService pool;
@@ -90,7 +74,7 @@ public final class ProcessDispatcher {
                 pool.shutdownNow(); // Cancel currently executing tasks
                 // Wait a while for tasks to respond to being cancelled
                 if (!pool.awaitTermination(timeout, unit)) {
-                    LOGGER.severe("ImportDispatcher thread pool did not terminate");
+                    LOGGER.error("ImportDispatcher thread pool did not terminate");
                 }
             }
         } catch (InterruptedException ie) {
@@ -188,7 +172,7 @@ public final class ProcessDispatcher {
 
         @Override
         public void uncaughtException(Thread t, Throwable e) {
-            LOGGER.log(Level.SEVERE, t.getName(), e);
+            LOGGER.error(t.getName(), e);
         }
 
     }

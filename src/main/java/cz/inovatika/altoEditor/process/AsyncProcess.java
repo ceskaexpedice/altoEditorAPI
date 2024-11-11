@@ -1,19 +1,19 @@
 package cz.inovatika.altoEditor.process;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Runs an external process in own thread to handle possible process freeze.
  */
 public class AsyncProcess extends Thread {
 
-    private static final Logger LOG = Logger.getLogger(AsyncProcess.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(AsyncProcess.class.getName());
     private final List<String> cmdLine;
     private AtomicReference<Process> refProcess = new AtomicReference<Process>();
     private AtomicBoolean done = new AtomicBoolean();
@@ -39,9 +39,9 @@ public class AsyncProcess extends Thread {
             outputConsumer = new OutputConsumer(process.getInputStream());
             outputConsumer.start();
             exitCode = process.waitFor();
-            LOG.fine("Done " + cmdLine);
+            LOGGER.debug("Done " + cmdLine);
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, cmdLine.toString(), ex);
+            LOGGER.error(cmdLine.toString(), ex);
         } finally {
             done.set(true);
         }
@@ -60,8 +60,8 @@ public class AsyncProcess extends Thread {
     }
 
     public void kill() {
-        Level level = isDone() ? Level.FINE : Level.WARNING;
-        LOG.log(level, "Kill isDone: " + isDone() + ", " + cmdLine);
+        Level level = isDone() ? Level.DEBUG : Level.WARN;
+        LOGGER.log(level, "Kill isDone: " + isDone() + ", " + cmdLine);
         Process process = refProcess.getAndSet(null);
         if (process != null) {
             process.destroy();
@@ -72,9 +72,8 @@ public class AsyncProcess extends Thread {
             try {
                 outputConsumer.join();
             } catch (InterruptedException ex) {
-                LOG.log(Level.SEVERE, null, ex);
+                LOGGER.error(ex);
             }
         }
     }
-
 }

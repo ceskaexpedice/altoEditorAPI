@@ -36,10 +36,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.xml.crypto.Data;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
@@ -53,6 +50,8 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathFactory;
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.fcrepo.server.errors.LowlevelStorageException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -64,7 +63,7 @@ import static cz.inovatika.altoEditor.utils.FoxmlUtils.getDatastream;
 
 public class AkubraStorage {
 
-    private static final Logger LOGGER = Logger.getLogger(AkubraStorage.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(AkubraStorage.class.getName());
     private XPathFactory xPathFactory;
     private static AkubraStorage INSTANCE;
     private AkubraManager manager;
@@ -112,7 +111,7 @@ public class AkubraStorage {
             InputStream inputStream = new FileInputStream(foxml);
             this.manager.addOrReplaceObject(pid, inputStream);
 
-            LOGGER.log(Level.FINE, "Object with PID {0} added to repository.", pid);
+            LOGGER.debug("Object with PID {0} added to repository.", pid);
         } catch (LowlevelStorageException | IOException | DigitalObjectExistException e) {
             throw new StorageException(pid, "Error during adding new object", e);
         }
@@ -147,7 +146,7 @@ public class AkubraStorage {
             InputStream inputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
             this.manager.addOrReplaceObject(object.getPid(), inputStream);
 
-            LOGGER.log(Level.FINE, "Object with PID {0} added to repository.", object.getPid());
+            LOGGER.debug("Object with PID {0} added to repository.", object.getPid());
         } catch (TransformerException | URISyntaxException | LowlevelStorageException | IOException e) {
             throw new StorageException(object.getPid(), "Error during adding new object", e);
         }
@@ -740,7 +739,7 @@ public class AkubraStorage {
                                 if (datastreamVersionType.getXmlContent() != null && datastreamVersionType.getXmlContent().getAny() != null && !datastreamVersionType.getXmlContent().getAny().isEmpty()) {
                                     Element node = datastreamVersionType.getXmlContent().getAny().get(0);
                                     if (node != null) {
-                                        LOGGER.fine("Created note from xmlContent");
+                                        LOGGER.debug("Created note from xmlContent");
                                         Source xmlSource = new DOMSource(node);
                                         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                                         Result outputTarget = new StreamResult(outputStream);

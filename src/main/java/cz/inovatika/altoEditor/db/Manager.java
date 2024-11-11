@@ -20,11 +20,12 @@ import java.io.StringWriter;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.List;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Manager {
 
-    private static final Logger LOGGER = Logger.getLogger(Manager.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(Manager.class.getName());
 
     public static Batch addNewBatch(String pid, String priority, String instanceId, Integer dObjId) throws SQLException {
         int batchId = BatchDao.createNewBatch(pid, priority, instanceId, dObjId);

@@ -2,10 +2,8 @@ package cz.inovatika.altoEditor.utils;
 
 import io.javalin.http.Context;
 
-import com.drew.lang.StringUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import cz.inovatika.altoEditor.exception.AltoEditorException;
 import cz.inovatika.altoEditor.exception.RequestException;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
@@ -28,20 +26,18 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
-import org.codehaus.jackson.node.ArrayNode;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static cz.inovatika.altoEditor.utils.Const.APP_HOME;
 
 public class Utils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Utils.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(Utils.class.getName());
 
     public static File getDefaultHome() {
         File userHome = new File(System.getProperty("user.home"));

@@ -6,12 +6,12 @@ import java.sql.ResultSetMetaData;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.HashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Version {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger(Version.class.getName());
+    protected static final Logger LOGGER = LogManager.getLogger(Version.class.getName());
 
     private Integer id = null;
     private Timestamp datum = null;

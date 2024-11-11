@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2014 Jan Pokorsky
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
 package cz.inovatika.altoEditor.editor;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
@@ -34,8 +18,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -44,7 +26,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.xml.serialize.OutputFormat;
 import org.apache.xml.serialize.XMLSerializer;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +42,7 @@ import org.xml.sax.SAXException;
  */
 public final class AltoDatastreamEditor {
 
-    private static final Logger LOGGER = Logger.getLogger(AltoDatastreamEditor.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(AltoDatastreamEditor.class.getName());
 
     public static final String ALTO_ID = "ALTO";
     public static final String ALTO_LABEL = "ALTO for this object";
@@ -122,7 +105,7 @@ public final class AltoDatastreamEditor {
                         null);
             }
         } catch (Exception ex) {
-            Logger.getLogger(AltoDatastreamEditor.class.getName()).log(Level.FINE, alto);
+            LOGGER.debug(alto);
             throw new DigitalObjectException(dObj.getPid(), ALTO_ID + ": " + ex.getMessage(), ex);
         }
         XmlStreamEditor editor = dObj.getEditor(altoProfile());
@@ -145,7 +128,7 @@ public final class AltoDatastreamEditor {
             return outxml.toString();
         } catch (ParserConfigurationException | IOException  | SAXException ex) {
             ex.printStackTrace();
-            LOGGER.severe("PID: " + pid + " - " + ex.getMessage());
+            LOGGER.error("PID: " + pid + " - " + ex.getMessage());
             throw new AltoEditorException(pid, ex);
         }
     }

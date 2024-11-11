@@ -1,7 +1,5 @@
 package cz.inovatika.altoEditor.server;
 
-import io.javalin.Javalin;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.inovatika.altoEditor.process.FileGeneratorProcess;
 import cz.inovatika.altoEditor.process.ProcessDispatcher;
@@ -13,6 +11,7 @@ import cz.inovatika.altoEditor.utils.Config;
 import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.utils.configuration.Configurator;
 import cz.inovatika.utils.db.DataSource;
+import io.javalin.Javalin;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -20,9 +19,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static cz.inovatika.altoEditor.utils.Const.CONFIG_FILE_NAME;
 import static cz.inovatika.altoEditor.utils.Const.DEFAULT_RESOURCE_CONFIG;
@@ -32,7 +30,7 @@ import static cz.inovatika.altoEditor.utils.Utils.readFile;
 
 public class AltoEditorInitializer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AltoEditorInitializer.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(AltoEditorInitializer.class.getName());
     public static final ObjectMapper mapper = new ObjectMapper();
 
     public void start() {

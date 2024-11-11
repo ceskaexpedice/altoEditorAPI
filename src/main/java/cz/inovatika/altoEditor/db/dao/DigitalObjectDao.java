@@ -1,7 +1,6 @@
 package cz.inovatika.altoEditor.db.dao;
 
 import cz.inovatika.altoEditor.db.Manager;
-import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.db.models.DigitalObject;
 import cz.inovatika.altoEditor.db.models.User;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
@@ -15,8 +14,8 @@ import java.sql.Statement;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static cz.inovatika.altoEditor.db.dao.Dao.getDefaultOrderBy;
 import static cz.inovatika.altoEditor.db.dao.Dao.getLimit;
@@ -30,7 +29,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class DigitalObjectDao {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger(DigitalObjectDao.class.getName());
+    protected static final Logger LOGGER = LogManager.getLogger(DigitalObjectDao.class.getName());
 
     public static List<DigitalObjectView> getAllDigitalObjects(String orderBy, String orderSort) throws SQLException {
         Connection connection = null;

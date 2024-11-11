@@ -16,9 +16,9 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static cz.inovatika.altoEditor.kramerius.KrameriusOptions.findKrameriusInstance;
 import static cz.inovatika.altoEditor.utils.OcrUtils.createOcrFromAlto;
@@ -27,7 +27,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 
 public class K7Uploader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(K7Uploader.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(K7Uploader.class.getName());
 
     public void uploadAltoOcr(String pid, String versionId, String instanceId) throws IOException, AltoEditorException {
         String alto = getAltoFromRepository(pid, versionId);

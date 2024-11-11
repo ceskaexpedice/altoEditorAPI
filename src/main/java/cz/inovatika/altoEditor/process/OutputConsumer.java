@@ -3,15 +3,16 @@ package cz.inovatika.altoEditor.process;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Reads the external process output in separate thread.
  */
 public class OutputConsumer extends Thread {
 
-    private static final Logger LOG = Logger.getLogger(OutputConsumer.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(OutputConsumer.class.getName());
     private final InputStream input;
     private final StringBuilder output;
     private Throwable error;
@@ -34,7 +35,7 @@ public class OutputConsumer extends Thread {
         } catch (Throwable ex) {
             error = ex;
         } finally {
-            LOG.fine("Close.");
+            LOGGER.debug("Close.");
             IOUtils.closeQuietly(reader);
         }
     }

@@ -5,11 +5,12 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class KrameriusOptions {
 
-    private static final Logger LOGGER = Logger.getLogger(KrameriusOptions.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(KrameriusOptions.class.getName());
 
     private List<KrameriusInstance> krameriusInstances;
 

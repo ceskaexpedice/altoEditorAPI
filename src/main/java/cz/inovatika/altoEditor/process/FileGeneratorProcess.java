@@ -9,13 +9,14 @@ import cz.inovatika.altoEditor.utils.Const;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static cz.inovatika.altoEditor.utils.FileUtils.deleteFolder;
 
 public class FileGeneratorProcess implements Runnable {
 
-    private static final Logger LOGGER = Logger.getLogger(FileGeneratorProcess.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(FileGeneratorProcess.class.getName());
 
     private Batch batch = null;
 
@@ -63,7 +64,7 @@ public class FileGeneratorProcess implements Runnable {
         try {
             start();
         } catch (SQLException ex) {
-            LOGGER.severe("Batch " + this.getBatch().getId() + ": " + ex.getMessage());
+            LOGGER.error("Batch " + this.getBatch().getId() + ": " + ex.getMessage());
         }
     }
 

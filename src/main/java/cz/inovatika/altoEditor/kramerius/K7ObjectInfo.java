@@ -9,7 +9,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -17,12 +16,12 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static cz.inovatika.altoEditor.kramerius.KrameriusOptions.findKrameriusInstance;
 import static cz.inovatika.altoEditor.utils.OcrUtils.transformJsonValue;
@@ -33,7 +32,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 
 public class K7ObjectInfo {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(K7ObjectInfo.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(K7ObjectInfo.class.getName());
 
     public ObjectInformation getObjectInformation(String pid, String instanceId) throws AltoEditorException, IOException {
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId);

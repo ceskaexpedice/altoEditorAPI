@@ -2,11 +2,12 @@ package cz.inovatika.altoEditor.process;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class PeroOperator {
 
-    private static final Logger LOGGER = Logger.getLogger(PeroOperator.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(PeroOperator.class.getName());
 
     public PeroOperator() {
     }

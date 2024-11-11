@@ -1,7 +1,5 @@
 package cz.inovatika.altoEditor.resource;
 
-import io.javalin.http.Context;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import cz.inovatika.altoEditor.db.Manager;
 import cz.inovatika.altoEditor.db.dao.Dao;
@@ -13,15 +11,15 @@ import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
 import cz.inovatika.altoEditor.server.AltoEditorInitializer;
 import cz.inovatika.altoEditor.utils.Const;
+import io.javalin.http.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static cz.inovatika.altoEditor.utils.Const.DEFAULT_RESOURCE_SQL;
 import static cz.inovatika.altoEditor.utils.Utils.getBooleanNodeValue;
@@ -35,7 +33,7 @@ import static cz.inovatika.altoEditor.utils.Utils.setResult;
 
 public class DbResource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DbResource.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(DbResource.class.getName());
 
     public static void showSchema(Context context) {
         try {

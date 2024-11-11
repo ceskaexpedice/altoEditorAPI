@@ -18,8 +18,6 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
@@ -29,6 +27,8 @@ import org.akubraproject.BlobStore;
 import org.akubraproject.fs.FSBlobStore;
 import org.akubraproject.map.IdMapper;
 import org.akubraproject.map.IdMappingBlobStore;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.fcrepo.server.errors.LowlevelStorageException;
 import org.fcrepo.server.errors.ObjectAlreadyInLowlevelStorageException;
 import org.fcrepo.server.errors.ObjectNotInLowlevelStorageException;
@@ -41,7 +41,7 @@ import static cz.inovatika.altoEditor.utils.FoxmlUtils.createXmlDate;
 
 public class AkubraManager {
 
-    public static final Logger LOGGER = Logger.getLogger(AkubraManager.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(AkubraManager.class.getName());
     private ILowlevelStorage storage;
 
     private static Unmarshaller unmarshaller = null;
@@ -56,7 +56,7 @@ public class AkubraManager {
             marshaller = jaxbContext.createMarshaller();
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Cannot init JAXB", e);
+            LOGGER.error("Cannot init JAXB", e);
             throw new RuntimeException(e);
         }
     }
@@ -124,7 +124,7 @@ public class AkubraManager {
         try {
             storage.removeObject(pid);
         } catch (LowlevelStorageException e) {
-            LOGGER.warning("Could not remove object from Akubra: " + e);
+            LOGGER.warn("Could not remove object from Akubra: " + e);
         }
     }
 
@@ -148,7 +148,7 @@ public class AkubraManager {
             }
             addOrReplaceObject(pid, new ByteArrayInputStream(stringWriter.toString().getBytes("UTF-8")));
         } catch (Exception e) {
-            LOGGER.warning("Could not replace object in Akubra: " + e);
+            LOGGER.warn("Could not replace object in Akubra: " + e);
         }
     }
 
@@ -159,7 +159,7 @@ public class AkubraManager {
                     try {
                         storage.removeDatastream(datastreamVersionType.getContentLocation().getREF());
                     } catch (LowlevelStorageException e) {
-                        LOGGER.warning("Could not remove managed datastream from Akubra: " + e);
+                        LOGGER.warn("Could not remove managed datastream from Akubra: " + e);
                     }
                 }
             }
@@ -192,7 +192,7 @@ public class AkubraManager {
             }
             addOrReplaceObject(object.getPID(), new ByteArrayInputStream(stringWriter.toString().getBytes("UTF-8")));
         } catch (Exception e) {
-            LOGGER.warning("Could not replace object in Akubra: " + e);
+            LOGGER.warn("Could not replace object in Akubra: " + e);
         }
     }
 
@@ -204,7 +204,7 @@ public class AkubraManager {
             }
             return new ByteArrayInputStream(stringWriter.toString().getBytes("UTF-8"));
         } catch (Exception e) {
-            LOGGER.warning("Could not marshall object: " + e);
+            LOGGER.warn("Could not marshall object: " + e);
             throw new RuntimeException(e);
         }
     }
@@ -237,7 +237,7 @@ public class AkubraManager {
                         contentLocationType.setREF(ref);
                         datastreamVersion.setContentLocation(contentLocationType);
                     } catch (LowlevelStorageException e) {
-                        LOGGER.warning("Could not remove managed datastream from Akubra: " + e);
+                        LOGGER.warn("Could not remove managed datastream from Akubra: " + e);
                     }
                 }
             }

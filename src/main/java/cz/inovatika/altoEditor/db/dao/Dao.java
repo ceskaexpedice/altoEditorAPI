@@ -1,6 +1,5 @@
 package cz.inovatika.altoEditor.db.dao;
 
-import cz.inovatika.altoEditor.db.models.Batch;
 import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.altoEditor.utils.Utils;
 import cz.inovatika.utils.db.DataSource;
@@ -13,22 +12,15 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static cz.inovatika.altoEditor.utils.Utils.readFile;
 
 public class Dao {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger(Dao.class.getName());
+    protected static final Logger LOGGER = LogManager.getLogger(Dao.class.getName());
 
     public boolean createSchema() throws SQLException, IOException {
         boolean success = false;

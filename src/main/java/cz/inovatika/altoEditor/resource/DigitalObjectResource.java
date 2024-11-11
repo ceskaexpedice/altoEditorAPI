@@ -9,7 +9,6 @@ import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import cz.inovatika.altoEditor.exception.AltoEditorException;
 import cz.inovatika.altoEditor.exception.DigitalObjectException;
 import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
-import cz.inovatika.altoEditor.exception.RequestException;
 import cz.inovatika.altoEditor.kramerius.K7Downloader;
 import cz.inovatika.altoEditor.kramerius.K7ImageViewer;
 import cz.inovatika.altoEditor.kramerius.K7ObjectInfo;
@@ -29,9 +28,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import org.apache.http.HttpResponse;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static cz.inovatika.altoEditor.editor.AltoDatastreamEditor.nextVersion;
 import static cz.inovatika.altoEditor.utils.Utils.getIntegerNodeValue;
@@ -46,7 +45,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class DigitalObjectResource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DigitalObjectResource.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(DigitalObjectResource.class.getName());
 
     public static void getObjectInformation(@NotNull Context context) {
         try {

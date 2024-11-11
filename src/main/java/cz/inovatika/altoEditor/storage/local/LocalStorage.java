@@ -47,7 +47,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.transform.Source;
@@ -55,6 +54,8 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -69,7 +70,7 @@ import static cz.inovatika.altoEditor.utils.FoxmlUtils.createXmlDate;
  */
 public final class LocalStorage {
 
-    private static final Logger LOGGER = Logger.getLogger(LocalStorage.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(LocalStorage.class.getName());
 
     public LocalObject load(String pid, File foxml) {
         DigitalObject dobj = FoxmlUtils.unmarshal(new StreamSource(foxml), DigitalObject.class);
