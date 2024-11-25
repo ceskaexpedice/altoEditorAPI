@@ -5,6 +5,7 @@ import cz.inovatika.utils.configuration.Configurator;
 import java.util.Arrays;
 import java.util.List;
 
+import static cz.inovatika.altoEditor.utils.Utils.getDefault;
 import static cz.inovatika.altoEditor.utils.Utils.normalizePath;
 
 public class Config {
@@ -23,6 +24,12 @@ public class Config {
     private static final String PROP_APPLICATION_DATA_STREAM_STORE_PATTERN = "application.dataStreamStore.pattern";
     private static final String PROP_APPLICATION_DATA_STREAM_STORE_PATH = "application.dataStreamStore.path";
     private static final String PROP_APPLICATION_PERO_PATH = "application.pero.path";
+
+    private static final String PROP_KEYCLOAK_URL = "application.keycloak.url";
+    private static final String PROP_KEYCLOAK_USER_INFO_URL = "application.keycloak.userInfo";
+
+    private static final String PROP_PERMISSION_EDITOR = "application.permission.editor";
+    private static final String PROP_PERMISSION_CURATOR = "application.permission.curator";
 
     private static final String PROP_KRAMERIUS_INSTANCES = "krameriusInstances";
     private static final String PREFIX_KRAMERIUS_INSTANCE = "krameriusInstance";
@@ -55,12 +62,8 @@ public class Config {
         return Configurator.get().getConfig().getString(PROP_APPLICATION_VERSION);
     }
 
-    public static final String getAppHome() {
-        return Configurator.get().getConfig().getString(Configurator.HOME);
-    }
-
     public static final String getJdbcDriver() {
-        return Configurator.get().getConfig().getString(PROP_APPLICATION_JDBC_DRIVER);
+        return (String) getDefault(PROP_APPLICATION_JDBC_DRIVER, "org.postgresql.Driver");
     }
 
     public static final String getJdbcUrl() {
@@ -76,33 +79,41 @@ public class Config {
     }
 
     public static final Integer getJdbcPoolSize() {
-        return Configurator.get().getConfig().getInt(PROP_APPLICATION_JDBC_POOLSIZE);
+        return (Integer) getDefault(PROP_APPLICATION_JDBC_POOLSIZE, 10);
     }
 
     public static final Integer getPort() {
-        return Configurator.get().getConfig().getInt(PROP_APPLICATION_PORT);
+        return (Integer) getDefault(PROP_APPLICATION_PORT, 8080);
     }
 
     public static final String getObjectStorePattern() {
-        String pattern = Configurator.get().getConfig().getString(PROP_APPLICATION_OBJECT_STORE_PATTERN);
+        String pattern = (String) getDefault(PROP_APPLICATION_OBJECT_STORE_PATTERN, "xx");
         return pattern.replaceAll("x", "#");
     }
 
     public static final String getObjectStorePath() {
-        return normalizePath(Configurator.get().getConfig().getString(PROP_APPLICATION_OBJECT_STORE_PATH));
+        return normalizePath((String) getDefault(PROP_APPLICATION_OBJECT_STORE_PATH, "./objectStore"));
     }
 
     public static final String getDataStreamStorePattern() {
-        String pattern = Configurator.get().getConfig().getString(PROP_APPLICATION_DATA_STREAM_STORE_PATTERN);
+        String pattern = (String) getDefault(PROP_APPLICATION_DATA_STREAM_STORE_PATTERN, "xx");
         return pattern.replaceAll("x", "#");
     }
 
     public static final String getDataStreamStorePath() {
-        return normalizePath(Configurator.get().getConfig().getString(PROP_APPLICATION_DATA_STREAM_STORE_PATH));
+        return normalizePath((String) getDefault(PROP_APPLICATION_DATA_STREAM_STORE_PATH, "./dataStreamStore"));
     }
 
     public static final String getPeroPath() {
-        return normalizePath(Configurator.get().getConfig().getString(PROP_APPLICATION_PERO_PATH));
+        return normalizePath((String) getDefault(PROP_APPLICATION_PERO_PATH, "./tmpPero"));
+    }
+
+    public static final String getKeycloakUrl() {
+        return Configurator.get().getConfig().getString(PROP_KEYCLOAK_URL);
+    }
+
+    public static final String getKeycloakUserInfo() {
+        return (String) getDefault(PROP_KEYCLOAK_USER_INFO_URL, "/search/api/client/v7.0/user");
     }
 
     public static final List<String> getKrameriusInstances() {
@@ -115,27 +126,7 @@ public class Config {
     }
 
     public static final String getKrameriusInstanceVersion(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_VERSION);
-    }
-
-    public static final String getKrameriusInstanceUrlLogin(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_LOGIN);
-    }
-
-    public static final String getKrameriusInstancePassword(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_PASSWORD);
-    }
-
-    public static final String getKrameriusInstanceClientId(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_CLIENT_ID);
-    }
-
-    public static final String getKrameriusInstanceClientSecret(String instance) {
-       return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_CLIENT_SECRET);
-    }
-
-    public static final String getKrameriusInstanceGrantType(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_GRANT_TYPE);
+        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_VERSION, "7");
     }
 
     public static final String getKrameriusInstanceTitle(String instance) {
@@ -146,10 +137,6 @@ public class Config {
         return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL);
     }
 
-    public static final String getKrameriusInstanceUsername(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_USERNAME);
-    }
-
     public static final String getKrameriusInstanceExportFoxmlFolder(String instance) {
         return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_EXPORT_FOXML_FOLDER);
     }
@@ -158,32 +145,65 @@ public class Config {
         return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_TYPE);
     }
 
+    @Deprecated
     public static final String getKrameriusInstanceUrlParametrizedImportQuery(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_PARAMETRIZED_IMPORT_QUERY);
+        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_PARAMETRIZED_IMPORT_QUERY, "/search/api/admin/v7.0/processes");
     }
 
     public static final String getKrameriusInstanceUrlImage(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_IMAGE);
+        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_IMAGE, "/search/iiif/");
     }
 
+    @Deprecated
     public static final String getKrameriusInstanceUrlStateQuery(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_STATE_QUERY);
+        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_STATE_QUERY, "/search/api/admin/v7.0/processes/by_process_uuid/");
     }
 
     public static final String getKrameriusInstanceUrlDownloadFoxml(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_DOWNLOAD_FOXML);
+        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_DOWNLOAD_FOXML, "/search/api/client/v7.0/items/");
     }
 
     public static final String getKrameriusInstanceUrlUploadStream(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_UPLOAD_STREAM);
+        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_UPLOAD_STREAM, "/search/api/admin/v7.0/items/");
     }
 
     public static final String getKrameriusInstanceUrlModelInfo(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_MODEL_INFO);
+        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_MODEL_INFO, "/search/api/client/v7.0/search");
     }
 
+    @Deprecated
     public static final String getKrameriusInstanceKrameriusImportFoxmlFolder(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_KRAMERIUS_IMPORT_FOXML_FOLDER);
+        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_KRAMERIUS_IMPORT_FOXML_FOLDER, "/import/");
+    }
+
+    @Deprecated
+    public static final String getKrameriusInstanceUrlLogin(String instance) {
+        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_LOGIN, "/auth/realms/kramerius/protocol/openid-connect/token");
+    }
+
+    @Deprecated
+    public static final String getKrameriusInstancePassword(String instance) {
+        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_PASSWORD);
+    }
+
+    @Deprecated
+    public static final String getKrameriusInstanceClientId(String instance) {
+        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_CLIENT_ID);
+    }
+
+    @Deprecated
+    public static final String getKrameriusInstanceClientSecret(String instance) {
+        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_CLIENT_SECRET);
+    }
+
+    @Deprecated
+    public static final String getKrameriusInstanceGrantType(String instance) {
+        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_GRANT_TYPE);
+    }
+
+    @Deprecated
+    public static final String getKrameriusInstanceUsername(String instance) {
+        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_USERNAME);
     }
 
     public static final String getProcessorPeroExec() {
@@ -195,10 +215,18 @@ public class Config {
     }
 
     public static final long getProcessorPeroTimeout() {
-        return Configurator.get().getConfig().getLong(PROP_PROCESSOR_PERO_TIMEOUT);
+        return (long) getDefault(PROP_PROCESSOR_PERO_TIMEOUT, 180000L);
     }
 
     public static final String getProcessorPeroKey() {
         return Configurator.get().getConfig().getString(PROP_PROCESSOR_PERO_KEY);
+    }
+
+    public static final String getPermissionEditor() {
+        return Configurator.get().getConfig().getString(PROP_PERMISSION_EDITOR);
+    }
+
+    public static final String getPermissionCurator() {
+        return Configurator.get().getConfig().getString(PROP_PERMISSION_CURATOR);
     }
 }

@@ -22,6 +22,7 @@ import cz.inovatika.altoEditor.response.AltoEditorStringRecordResponse;
 import cz.inovatika.altoEditor.server.AltoEditorInitializer;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage.AkubraObject;
+import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.altoEditor.utils.OcrUtils;
 import java.io.IOException;
@@ -33,6 +34,10 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import static cz.inovatika.altoEditor.editor.AltoDatastreamEditor.nextVersion;
+import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_FORBIDDEN;
+import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_UNAUTHORIZED;
+import static cz.inovatika.altoEditor.user.UserUtils.getToken;
+import static cz.inovatika.altoEditor.user.UserUtils.getUserProfile;
 import static cz.inovatika.altoEditor.utils.Utils.getIntegerNodeValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptStringNodeValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptStringRequestValue;
@@ -47,14 +52,18 @@ public class DigitalObjectResource {
 
     private static final Logger LOGGER = LogManager.getLogger(DigitalObjectResource.class.getName());
 
-    public static void getObjectInformation(@NotNull Context context) {
+    public static void getObjectInformation(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
-            String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
             String pid = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
             String instanceId = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
 
             K7ObjectInfo objectInfo = new K7ObjectInfo();
-            ObjectInformation objectInformation = objectInfo.getObjectInformation(pid, instanceId);
+            ObjectInformation objectInformation = objectInfo.getObjectInformation(pid, instanceId, userProfile);
 
             setResult(context, new AltoEditorResponse(objectInformation));
         } catch (Exception ex) {
@@ -63,10 +72,13 @@ public class DigitalObjectResource {
     }
 
     public static void getImage(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
-            String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
             String pid = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
-
             List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(null, pid);
 
             String instanceId = null;
@@ -82,7 +94,7 @@ public class DigitalObjectResource {
             }
 
             K7ImageViewer imageViewer = new K7ImageViewer();
-            HttpResponse response = imageViewer.getResponse(pid, instanceId);
+            HttpResponse response = imageViewer.getResponse(pid, instanceId, userProfile);
 
             if (HTTP_OK == response.getStatusLine().getStatusCode()) {
                 setResult(context, response, pid);
@@ -94,9 +106,14 @@ public class DigitalObjectResource {
         }
     }
 
-    public static void getAlto(@NotNull Context context) {
+    public static void getAlto(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
-            AltoEditorStringRecordResponse response = getAltoResponse(context);
+            AltoEditorStringRecordResponse response = getAltoResponse(context, userProfile);
             setStringResult(context, response);
         } catch (Throwable ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -104,8 +121,13 @@ public class DigitalObjectResource {
     }
 
     public static void getAltoOriginal(@NotNull Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
-            String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
+//            String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
             String pid = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
 
             // posloupnost hledani pro dany pid
@@ -113,7 +135,7 @@ public class DigitalObjectResource {
             // 2. defaultni verze z Krameria
 
             // 1. defaultni verze od PERA
-            if (login != null && !login.isEmpty()) {
+            if (userProfile.getUsername() != null && !userProfile.getUsername().isEmpty()) {
                 List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_PERO, pid);
                 if (!digitalObjects.isEmpty()) {
                     LOGGER.debug("Version find in repositories using login as PERO and pid.");
@@ -124,7 +146,7 @@ public class DigitalObjectResource {
             }
 
             // 2. defaultni verze z Krameria
-            if (login != null && !login.isEmpty()) {
+            if (userProfile.getUsername() != null && !userProfile.getUsername().isEmpty()) {
                 List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_ALTOEDITOR, pid);
                 if (!digitalObjects.isEmpty()) {
                     LOGGER.debug("Version find in repositories using login as AltoEditor and pid.");
@@ -142,8 +164,13 @@ public class DigitalObjectResource {
     }
 
     public static void getOcr(@NotNull Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
-            AltoEditorStringRecordResponse response = getAltoResponse(context);
+            AltoEditorStringRecordResponse response = getAltoResponse(context, userProfile);
             if (response != null && response.getData() != null) {
                 String altoStream = (String) response.getData();
                 String ocr = OcrUtils.createOcrFromAlto(altoStream);
@@ -161,8 +188,8 @@ public class DigitalObjectResource {
 
     }
 
-    public static AltoEditorStringRecordResponse getAltoResponse(Context context) throws AltoEditorException, SQLException, IOException {
-        String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
+    public static AltoEditorStringRecordResponse getAltoResponse(Context context, UserProfile userProfile) throws AltoEditorException, SQLException, IOException {
+//        String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
         String pid = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
         String versionXml = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_VERSION_XML);
 
@@ -185,8 +212,8 @@ public class DigitalObjectResource {
         }
 
         // 2. podle uzivatele
-        if (login != null && !login.isEmpty()) {
-            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
+        if (userProfile.getUsername() != null && !userProfile.getUsername().isEmpty()) {
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(userProfile.getUsername(), pid);
             if (!digitalObjects.isEmpty()) {
                 LOGGER.debug("Version find in repositories using login and pid.");
                 return getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersionXml());
@@ -194,7 +221,7 @@ public class DigitalObjectResource {
         }
 
         // 3. defaultni verze od Pera
-        if (login != null && !login.isEmpty()) {
+        if (userProfile.getUsername() != null && !userProfile.getUsername().isEmpty()) {
             List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_PERO, pid);
             if (!digitalObjects.isEmpty()) {
                 LOGGER.debug("Version find in repositories using login as PERO and pid.");
@@ -203,7 +230,7 @@ public class DigitalObjectResource {
         }
 
         // 4. defaultni verze z Krameria
-        if (login != null && !login.isEmpty()) {
+        if (userProfile.getUsername() != null && !userProfile.getUsername().isEmpty()) {
             List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(Const.USER_ALTOEDITOR, pid);
             if (!digitalObjects.isEmpty()) {
                 LOGGER.debug("Version find in repositories using login as AltoEditor and pid.");
@@ -215,21 +242,25 @@ public class DigitalObjectResource {
         String instanceId = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
 
         K7Downloader downloader = new K7Downloader();
-        downloader.downloadFoxml(pid, instanceId, login);
-        Manager.createDigitalObject(Const.USER_ALTOEDITOR, pid, AltoDatastreamEditor.ALTO_ID + ".0", instanceId);
+        downloader.downloadFoxml(pid, instanceId, userProfile);
+        UserProfile tmpUser = new UserProfile(Const.USER_ALTOEDITOR, userProfile.getToken());
+        Manager.createDigitalObject(tmpUser, pid, AltoDatastreamEditor.ALTO_ID + ".0", instanceId);
         return getAltoStream(pid, AltoDatastreamEditor.ALTO_ID + ".0");
     }
 
     public static void updateAlto(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
             String pid = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_PID);
             String data = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_DATA);
 
-
             // hledani objektu konkretniho uzivatele
-            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(userProfile.getUsername(), pid);
 
             if (!digitalObjects.isEmpty()) {
                 LOGGER.debug("Version find in repositories using login and pid");
@@ -242,7 +273,7 @@ public class DigitalObjectResource {
                     }
                     AkubraStorage storage = AkubraStorage.getInstance();
                     AkubraObject akubraObject = storage.find(pid);
-                    AltoDatastreamEditor.updateAlto(akubraObject, data, "ALTO updated by user " + login, digitalObject.getVersionXml());
+                    AltoDatastreamEditor.updateAlto(akubraObject, data, "ALTO updated by user " + userProfile.getUsername(), digitalObject.getVersionXml());
                     Manager.updateDigitalObject(digitalObject.getId(), digitalObject.getVersionXml());
 
                     AltoEditorStringRecordResponse response = getAltoStream(digitalObject.getPid(), digitalObject.getVersionXml());
@@ -266,8 +297,8 @@ public class DigitalObjectResource {
 
                     AkubraStorage storage = AkubraStorage.getInstance();
                     AkubraObject akubraObject = storage.find(pid);
-                    AltoDatastreamEditor.updateAlto(akubraObject, data, "ALTO updated by user " + login, versionId);
-                    Manager.createDigitalObject(login, pid, versionId, digitalObject.getInstance(), Const.DIGITAL_OBJECT_STATE_EDITED);
+                    AltoDatastreamEditor.updateAlto(akubraObject, data, "ALTO updated by user " + userProfile.getUsername(), versionId);
+                    Manager.createDigitalObject(userProfile, pid, versionId, digitalObject.getInstance(), Const.DIGITAL_OBJECT_STATE_EDITED);
 
                     AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), versionId);
                     setStringResult(context, response);
@@ -282,6 +313,11 @@ public class DigitalObjectResource {
     }
 
     public static void generatePero(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
             String pid = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_PID);
@@ -325,7 +361,7 @@ public class DigitalObjectResource {
                     instanceId = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
                 }
                 Batch batch = Manager.addNewBatch(pid, priority, instanceId, 0);
-                FileGeneratorProcess process = FileGeneratorProcess.prepare(batch);
+                FileGeneratorProcess process = FileGeneratorProcess.prepare(batch, userProfile);
                 ProcessDispatcher.getDefault().addPeroProcess(process);
                 AltoEditorStringRecordResponse response = new AltoEditorStringRecordResponse();
                 response.setPid(pid);
@@ -339,9 +375,14 @@ public class DigitalObjectResource {
     }
 
     public static void stateAccepted(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
+//            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
             Integer objectId = getIntegerNodeValue(node, Const.PARAM_DIGITAL_OBJECT_ID);
 
             // hledani objektu konkretniho uzivatele
@@ -364,9 +405,14 @@ public class DigitalObjectResource {
     }
 
     public static void stateRejected(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
+//            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
             Integer objectId = getIntegerNodeValue(node, Const.PARAM_DIGITAL_OBJECT_ID);
 
             // hledani objektu konkretniho uzivatele
@@ -411,9 +457,13 @@ public class DigitalObjectResource {
     }
 
     public static void uploadKramerius(@NotNull Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
             Integer objectId = getIntegerNodeValue(node, Const.PARAM_DIGITAL_OBJECT_ID);
 
             DigitalObjectView digitalObject = Manager.getDigitalObjectById(objectId);
@@ -421,7 +471,7 @@ public class DigitalObjectResource {
             if (digitalObject != null && digitalObject.getPid() != null) {
 
                 K7Uploader uploader = new K7Uploader();
-                uploader.uploadAltoOcr(digitalObject.getPid(), digitalObject.getVersionXml(), digitalObject.getInstance());
+                uploader.uploadAltoOcr(digitalObject.getPid(), digitalObject.getVersionXml(), digitalObject.getInstance(), userProfile);
 
                 Manager.updateDigitalObjectWithStateUploaded(digitalObject);
                 digitalObject = Manager.getDigitalObjectById(objectId);
@@ -441,9 +491,14 @@ public class DigitalObjectResource {
     }
 
     public static void lockDigitalObject(@NotNull Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
+//            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
             String pid = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_PID);
 
             Manager.lockDigitalObject(pid);
@@ -456,9 +511,14 @@ public class DigitalObjectResource {
     }
 
     public static void unlockDigitalObject(@NotNull Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
+//            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
             String pid = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_PID);
 
             Manager.unlockDigitalObject(pid);

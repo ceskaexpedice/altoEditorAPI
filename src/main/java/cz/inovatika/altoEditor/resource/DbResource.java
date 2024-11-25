@@ -10,6 +10,7 @@ import cz.inovatika.altoEditor.exception.RequestException;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
 import cz.inovatika.altoEditor.server.AltoEditorInitializer;
+import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Const;
 import io.javalin.http.Context;
 import java.io.IOException;
@@ -21,6 +22,10 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_FORBIDDEN;
+import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_UNAUTHORIZED;
+import static cz.inovatika.altoEditor.user.UserUtils.getToken;
+import static cz.inovatika.altoEditor.user.UserUtils.getUserProfile;
 import static cz.inovatika.altoEditor.utils.Const.DEFAULT_RESOURCE_SQL;
 import static cz.inovatika.altoEditor.utils.Utils.getBooleanNodeValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptIntegerRequestValue;
@@ -36,6 +41,10 @@ public class DbResource {
     private static final Logger LOGGER = LogManager.getLogger(DbResource.class.getName());
 
     public static void showSchema(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
         try {
             InputStream resource = readFile(DEFAULT_RESOURCE_SQL);
             setContext(context, null);
@@ -46,6 +55,10 @@ public class DbResource {
     }
 
     public static void createSchema(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
             boolean update = getBooleanNodeValue(node, "update");
@@ -62,6 +75,10 @@ public class DbResource {
     }
 
     public static void getVersions(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
         try {
             List<Version> versionList = Manager.getAllVersions();
             setResult(context, new AltoEditorResponse(versionList));
@@ -71,6 +88,10 @@ public class DbResource {
     }
 
     public static void getVersion(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
         try {
             Version version = Manager.getActualVersion();
             setResult(context, new AltoEditorResponse(version));
@@ -80,6 +101,10 @@ public class DbResource {
     }
 
     public static void getAllUsers(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
         try {
             List<User> users = Manager.getAllUsers();
             setResult(context, new AltoEditorResponse(users));
@@ -89,9 +114,13 @@ public class DbResource {
     }
 
     public static void getUser(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
-            String login = getStringRequestValue(context, "login");
-            User user = Manager.getUserByLogin(login);
+            User user = Manager.getUserByLogin(userProfile.getUsername());
             setResult(context, new AltoEditorResponse(user));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -99,16 +128,18 @@ public class DbResource {
     }
 
     public static void createUser(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
-            JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
-
-            User user = Manager.getUserByLogin(login);
+            User user = Manager.getUserByLogin(userProfile.getUsername());
             if (user != null) {
-                throw new IOException(String.format("User login \"%s\" already exists.", login));
+                throw new IOException(String.format("User login \"%s\" already exists.", user.getLogin()));
             } else {
-                Manager.createUser(login);
-                user = Manager.getUserByLogin(login);
+                Manager.createUser(userProfile.getUsername());
+                user = Manager.getUserByLogin(userProfile.getUsername());
                 setResult(context, new AltoEditorResponse(user));
             }
         } catch (Exception ex) {
@@ -117,16 +148,20 @@ public class DbResource {
     }
 
     public static void updateUser(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
             String userId = getStringNodeValue(node, Const.PARAM_USER_USERID);
 
             User user = Manager.getUserById(userId);
             if (user == null) {
                 throw new IOException(String.format("User with id \"%s\" does not exists.", userId));
             } else {
-                Manager.updateUser(userId, login);
+                Manager.updateUser(userId, userProfile.getUsername());
                 user = Manager.getUserById(userId);
                 setResult(context, new AltoEditorResponse(user));
             }
@@ -160,6 +195,11 @@ public class DbResource {
     }
 
     public static void getBatches(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
 //            String login = getOptStringRequestValue(context, "login");
             String id = getOptStringRequestValue(context, Const.PARAM_BATCH_ID);
@@ -228,8 +268,12 @@ public class DbResource {
     }
 
     public static void getAllDigitalObjects(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
-
             String id = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_ID);
             String rUserId = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_RUSERID);
             String instance = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
@@ -277,6 +321,11 @@ public class DbResource {
     }
 
     public static void getUsersDigitalObjects(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
             String id = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_ID);
             String rUserId = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_RUSERID);
@@ -326,24 +375,28 @@ public class DbResource {
     }
 
     public static void createDigitalObject(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
             String pid = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_PID);
             String version = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_VERSION_XML);
             String instance = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
 
-            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(userProfile.getUsername(), pid);
             if (digitalObjects != null && !digitalObjects.isEmpty()) {
-                throw new IOException(String.format("User login \"%s\" already exists.", login));
+                throw new IOException(String.format("User login \"%s\" already exists.", userProfile.getUsername()));
             } else {
 
-                Manager.createDigitalObject(login, pid, version, instance);
-                digitalObjects = Manager.getDigitalObjects(login, pid);
+                Manager.createDigitalObject(userProfile, pid, version, instance);
+                digitalObjects = Manager.getDigitalObjects(userProfile.getUsername(), pid);
                 if (digitalObjects == null && digitalObjects.isEmpty()) {
-                    throw new IOException(String.format("Digital object login \"%s\" and \"%s\" doees not exists.", login, pid));
+                    throw new IOException(String.format("Digital object login \"%s\" and \"%s\" doees not exists.", userProfile.getUsername(), pid));
                 } else if (digitalObjects.size() > 1) {
-                    throw new IOException(String.format("There are more than 1 record with login \"%s\" and \"%s\" doees not exists.", login, pid));
+                    throw new IOException(String.format("There are more than 1 record with login \"%s\" and \"%s\" doees not exists.", userProfile.getUsername(), pid));
                 } else {
                     setResult(context, new AltoEditorResponse(digitalObjects.get(0)));
                 }
@@ -354,17 +407,21 @@ public class DbResource {
     }
 
     public static void updateDigitalObject(Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
             String pid = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_PID);
             String version = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_VERSION_XML);
 
-            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(login, pid);
+            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(userProfile.getUsername(), pid);
             if (digitalObjects == null && digitalObjects.isEmpty()) {
-                throw new IOException(String.format("Digital object login \"%s\" and \"%s\" does not exists.", login, pid));
+                throw new IOException(String.format("Digital object login \"%s\" and \"%s\" does not exists.", userProfile.getUsername(), pid));
             } else if (digitalObjects.size() > 1) {
-                throw new IOException(String.format("There are more than 1 record with login \"%s\" and \"%s\" doees not exists.", login, pid));
+                throw new IOException(String.format("There are more than 1 record with login \"%s\" and \"%s\" doees not exists.", userProfile.getUsername(), pid));
             } else {
                 DigitalObjectView digitalObject = digitalObjects.get(0);
                 Manager.updateDigitalObject(digitalObject.getId(), version);

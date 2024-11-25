@@ -9,6 +9,7 @@ import cz.inovatika.altoEditor.exception.RequestException;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
 import cz.inovatika.altoEditor.response.AltoEditorStringRecordResponse;
 import cz.inovatika.altoEditor.server.AltoEditorInitializer;
+import cz.inovatika.utils.configuration.Configurator;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.poi.ss.formula.functions.T;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -277,6 +279,23 @@ public class Utils {
             }
         }
         return path;
+    }
+
+    public static Object getDefault(String field, Object defaultValue) {
+        if (Configurator.get().getConfig().hasPath(field)) {
+            if (defaultValue instanceof String) {
+                return Configurator.get().getConfig().getString(field);
+            } else if (defaultValue instanceof Integer) {
+                return Configurator.get().getConfig().getInt(field);
+            } else if (defaultValue instanceof Boolean) {
+                return Configurator.get().getConfig().getBoolean(field);
+            } else if (defaultValue instanceof Long) {
+                return Configurator.get().getConfig().getLong(field);
+            } else {
+                return Configurator.get().getConfig().getObject(field);
+            }
+        }
+        return defaultValue;
     }
 
     public static String getNextDate(String currentDate) throws ParseException {

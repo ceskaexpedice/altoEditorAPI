@@ -12,6 +12,7 @@ import cz.inovatika.altoEditor.exception.AltoEditorException;
 import cz.inovatika.altoEditor.kramerius.K7ObjectInfo;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.models.ObjectInformation;
+import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Const;
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +23,7 @@ import java.text.ParseException;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.server.Authentication;
 
 public class Manager {
 
@@ -181,38 +183,37 @@ public class Manager {
         DigitalObjectDao.unlockDigitalObject(pid);
     }
 
-    public static void createDigitalObject(String login, String pid, String version, String instanceId) throws SQLException, AltoEditorException, IOException {
-        createDigitalObject(login, pid, null, null, null, version, instanceId);
+    public static void createDigitalObject(UserProfile userProfile, String pid, String version, String instanceId) throws SQLException, AltoEditorException, IOException {
+        createDigitalObject(userProfile, pid, null, null, null, version, instanceId);
     }
 
-    public static void createDigitalObject(String login, String pid, String label, String parentPid, String parentLabel, String version, String instanceId) throws SQLException, AltoEditorException, IOException {
-        createDigitalObject(login, pid, label, parentPid, parentLabel, version, instanceId, Const.DIGITAL_OBJECT_STATE_NEW);
+    public static void createDigitalObject(UserProfile userProfile, String pid, String label, String parentPid, String parentLabel, String version, String instanceId) throws SQLException, AltoEditorException, IOException {
+        createDigitalObject(userProfile, pid, label, parentPid, parentLabel, version, instanceId, Const.DIGITAL_OBJECT_STATE_NEW);
     }
 
-    public static void createDigitalObject(String login, String pid, String versionXml, String instanceId, String state) throws SQLException, AltoEditorException, IOException {
-        createDigitalObject(login, pid, null, null, null, versionXml, instanceId, state);
+    public static void createDigitalObject(UserProfile userProfile, String pid, String versionXml, String instanceId, String state) throws SQLException, AltoEditorException, IOException {
+        createDigitalObject(userProfile, pid, null, null, null, versionXml, instanceId, state);
     }
 
-    public static void createDigitalObject(String login, String pid, String label, String parentPid, String parentLabel, String versionXml, String instanceId, String state) throws SQLException, AltoEditorException, IOException {
+    public static void createDigitalObject(UserProfile userProfile, String pid, String label, String parentPid, String parentLabel, String versionXml, String instanceId, String state) throws SQLException, AltoEditorException, IOException {
         if (label == null || parentPid == null || parentLabel == null) {
             if (versionXml != null && !(AltoDatastreamEditor.ALTO_ID + ".0").equals(versionXml)) {
                 List<DigitalObjectView> objects = getDigitalObjects(Const.USER_ALTOEDITOR, pid);
                 if (!objects.isEmpty()) {
                     DigitalObjectView object = objects.get(0);
                     if (object.getLabel() != null) {
-                        DigitalObjectDao.createDigitalObject(login, pid, object.getLabel(), object.getParentPath(), object.getParentLabel(), versionXml, instanceId, state);
+                        DigitalObjectDao.createDigitalObject(userProfile.getUsername(), pid, object.getLabel(), object.getParentPath(), object.getParentLabel(), versionXml, instanceId, state);
                         return;
                     }
                 }
             }
 
             K7ObjectInfo objectInfo = new K7ObjectInfo();
-            ObjectInformation information = objectInfo.getObjectInformation(pid, instanceId);
-            DigitalObjectDao.createDigitalObject(login, pid, information.getLabel(), information.getParentPath(), information.getParentLabel(), versionXml, instanceId, state);
+            ObjectInformation information = objectInfo.getObjectInformation(pid, instanceId, userProfile);
+            DigitalObjectDao.createDigitalObject(userProfile.getUsername(), pid, information.getLabel(), information.getParentPath(), information.getParentLabel(), versionXml, instanceId, state);
             return;
         }
-        DigitalObjectDao.createDigitalObject(login, pid, label, parentPid, parentLabel, versionXml, instanceId, state);
-
+        DigitalObjectDao.createDigitalObject(userProfile.getUsername(), pid, label, parentPid, parentLabel, versionXml, instanceId, state);
     }
 
     public static List<DigitalObjectView> getDigitalObjectsByUserIdAndPid(Integer userId, String pid, String orderBy, String orderSort) throws SQLException {

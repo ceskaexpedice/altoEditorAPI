@@ -4,6 +4,7 @@ import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import cz.inovatika.altoEditor.exception.AltoEditorException;
 import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
+import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Config;
 import cz.inovatika.altoEditor.utils.Const;
 import java.io.IOException;
@@ -29,7 +30,7 @@ public class K7Uploader {
 
     private static final Logger LOGGER = LogManager.getLogger(K7Uploader.class.getName());
 
-    public void uploadAltoOcr(String pid, String versionId, String instanceId) throws IOException, AltoEditorException {
+    public void uploadAltoOcr(String pid, String versionId, String instanceId, UserProfile userProfile) throws IOException, AltoEditorException {
         String alto = getAltoFromRepository(pid, versionId);
         if (alto == null || alto.isEmpty()) {
             throw new AltoEditorException(alto, "Alto to upload is null or empty");
@@ -44,16 +45,8 @@ public class K7Uploader {
             throw new DigitalObjectNotFoundException(instanceId, String.format("This instance \"%s\" is not configured.", instanceId));
         }
 
-        K7Authenticator authenticator = new K7Authenticator(instance);
-        String token = authenticator.authenticate();
-
-        if (token == null || token.isEmpty()) {
-            LOGGER.error("Kramerius token is null");
-            throw new AltoEditorException(instanceId, "Kramerius token is null");
-        }
-
-        uploadStream(instance, token, pid, Const.DATASTREAM_TYPE_ALTO, alto);
-        uploadStream(instance, token, pid, Const.DATASTREAM_TYPE_OCR, ocr);
+        uploadStream(instance, userProfile.getToken(), pid, Const.DATASTREAM_TYPE_ALTO, alto);
+        uploadStream(instance, userProfile.getToken(), pid, Const.DATASTREAM_TYPE_OCR, ocr);
     }
 
     private void uploadStream(KrameriusOptions.KrameriusInstance instance, String token, String pid, String stream, String content) throws IOException {

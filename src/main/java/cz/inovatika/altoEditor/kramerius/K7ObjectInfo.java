@@ -3,6 +3,7 @@ package cz.inovatika.altoEditor.kramerius;
 import cz.inovatika.altoEditor.exception.AltoEditorException;
 import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
 import cz.inovatika.altoEditor.models.ObjectInformation;
+import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Config;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -34,18 +35,10 @@ public class K7ObjectInfo {
 
     private static final Logger LOGGER = LogManager.getLogger(K7ObjectInfo.class.getName());
 
-    public ObjectInformation getObjectInformation(String pid, String instanceId) throws AltoEditorException, IOException {
+    public ObjectInformation getObjectInformation(String pid, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId);
         if (instance == null) {
             throw new DigitalObjectNotFoundException(instanceId, String.format("This instance \"%s\" is not configured.", instanceId));
-        }
-
-        K7Authenticator authenticator = new K7Authenticator(instance);
-        String token = authenticator.authenticate();
-
-        if (token == null || token.isEmpty()) {
-            LOGGER.error("Kramerius token is null");
-            throw new AltoEditorException(instanceId, "Kramerius token is null");
         }
 
         String objectInformationUrl = Config.getKrameriusInstanceUrl(instance.getId()) +
@@ -57,9 +50,7 @@ public class K7ObjectInfo {
         HttpGet httpGet = new HttpGet(objectInformationUrl);
 
         httpGet.setHeader(new BasicHeader("Keep-Alive", "timeout=600, max=1000"));
-        if (token != null && !token.isEmpty()) {
-            httpGet.setHeader(new BasicHeader("Authorization", "Bearer " + token));
-        }
+        httpGet.setHeader(new BasicHeader("Authorization", "Bearer " + userProfile.getToken()));
         httpGet.setHeader(new BasicHeader("Connection", "Keep-Alive, Upgrade"));
         httpGet.setHeader(new BasicHeader("Accept-Language", "cs,en;q=0.9,de;q=0.8,cs-CZ;q=0.7,sk;q=0.6"));
 
@@ -136,19 +127,11 @@ public class K7ObjectInfo {
         return new ObjectInformation(pid, label, parentPid, parentLabel);
     }
 
-    public String getModel(String pid, String instanceId) throws AltoEditorException, IOException {
+    public String getModel(String pid, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {
 
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId);
         if (instance == null) {
             throw new DigitalObjectNotFoundException(instanceId, String.format("This instance \"%s\" is not configured.", instanceId));
-        }
-
-        K7Authenticator authenticator = new K7Authenticator(instance);
-        String token = authenticator.authenticate();
-
-        if (token == null || token.isEmpty()) {
-            LOGGER.error("Kramerius token is null");
-            throw new AltoEditorException(instanceId, "Kramerius token is null");
         }
 
         String modelInfoUrl = Config.getKrameriusInstanceUrl(instance.getId()) +
@@ -160,9 +143,7 @@ public class K7ObjectInfo {
         HttpGet httpGet = new HttpGet(modelInfoUrl);
 
         httpGet.setHeader(new BasicHeader("Keep-Alive", "timeout=600, max=1000"));
-        if (token != null && !token.isEmpty()) {
-            httpGet.setHeader(new BasicHeader("Authorization", "Bearer " + token));
-        }
+        httpGet.setHeader(new BasicHeader("Authorization", "Bearer " + userProfile.getToken()));
         httpGet.setHeader(new BasicHeader("Connection", "Keep-Alive, Upgrade"));
         httpGet.setHeader(new BasicHeader("Accept-Language", "cs,en;q=0.9,de;q=0.8,cs-CZ;q=0.7,sk;q=0.6"));
 
@@ -205,18 +186,10 @@ public class K7ObjectInfo {
         }
     }
 
-    public List<String> getChildrenPids(String pid, String instanceId) throws AltoEditorException, IOException {
+    public List<String> getChildrenPids(String pid, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId);
         if (instance == null) {
             throw new DigitalObjectNotFoundException(instanceId, String.format("This instance \"%s\" is not configured.", instanceId));
-        }
-
-        K7Authenticator authenticator = new K7Authenticator(instance);
-        String token = authenticator.authenticate();
-
-        if (token == null || token.isEmpty()) {
-            LOGGER.error("Kramerius token is null");
-            throw new AltoEditorException(instanceId, "Kramerius token is null");
         }
 
         String childrenInfoUrl = Config.getKrameriusInstanceUrl(instance.getId()) +
@@ -228,9 +201,7 @@ public class K7ObjectInfo {
         HttpGet httpGet = new HttpGet(childrenInfoUrl);
 
         httpGet.setHeader(new BasicHeader("Keep-Alive", "timeout=600, max=1000"));
-        if (token != null && !token.isEmpty()) {
-            httpGet.setHeader(new BasicHeader("Authorization", "Bearer " + token));
-        }
+        httpGet.setHeader(new BasicHeader("Authorization", "Bearer " + userProfile.getToken()));
         httpGet.setHeader(new BasicHeader("Connection", "Keep-Alive, Upgrade"));
         httpGet.setHeader(new BasicHeader("Accept-Language", "cs,en;q=0.9,de;q=0.8,cs-CZ;q=0.7,sk;q=0.6"));
 

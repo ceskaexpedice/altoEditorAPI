@@ -9,6 +9,7 @@ import cz.inovatika.altoEditor.resource.InfoResource;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
 import cz.inovatika.altoEditor.utils.Config;
 import cz.inovatika.altoEditor.utils.Const;
+import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.utils.configuration.Configurator;
 import cz.inovatika.utils.db.DataSource;
 import io.javalin.Javalin;
@@ -22,6 +23,11 @@ import java.nio.charset.StandardCharsets;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import static cz.inovatika.altoEditor.user.UserUtils.getToken;
+import static cz.inovatika.altoEditor.user.UserUtils.getUserProfile;
+import static cz.inovatika.altoEditor.user.UserUtils.isAdminRolePath;
+import static cz.inovatika.altoEditor.user.UserUtils.isAltoEditorRolePath;
+import static cz.inovatika.altoEditor.user.UserUtils.isPublicPath;
 import static cz.inovatika.altoEditor.utils.Const.CONFIG_FILE_NAME;
 import static cz.inovatika.altoEditor.utils.Const.DEFAULT_RESOURCE_CONFIG;
 import static cz.inovatika.altoEditor.utils.Utils.checkFile;
@@ -55,11 +61,11 @@ public class AltoEditorInitializer {
         ProcessDispatcher dispatcher = new ProcessDispatcher();
         ProcessDispatcher.setDefault(dispatcher);
         dispatcher.init();
-        try {
-            FileGeneratorProcess.resumeAll(dispatcher);
-        } catch (Throwable t) {
-            LOGGER.error("Impossible to resume planned batches.");
-        }
+//        try {
+//            FileGeneratorProcess.resumeAll(dispatcher);
+//        } catch (Throwable t) {
+//            LOGGER.error("Impossible to resume planned batches.");
+//        }
     }
 
     private static void initHome() throws IOException {
@@ -115,8 +121,38 @@ public class AltoEditorInitializer {
 
     private void initApi() {
         Javalin app = Javalin.create().start(Config.getPort());
+
+        // Middleware pro autentizaci na chráněných endpointech
+        app.before(ctx -> {
+            if (isPublicPath(ctx.path())) {
+                // pokracuje na public ednpointy
+            } else {
+                String token = getToken(ctx);
+                if (token == null) {
+                    ctx.status(401).result("Unauthorized");
+                    LOGGER.warn("Unauthorized access (token is null) to endpoint: " + ctx.path());
+                } else {
+                    UserProfile user = getUserProfile(token);
+                    if (user == null || user.getRoles().isEmpty()) {
+                        ctx.status(401).result("Unauthorized");
+                        LOGGER.warn("Unauthorized access (user roles is null) to endpoint: " + ctx.path());
+                    } else {
+                        if (isAdminRolePath(ctx.path(), user)) {
+                            // pokracuje jako admin user k endpointum api
+                        } else if (isAltoEditorRolePath(ctx.path(), user)) {
+                            // pokracuje jako alto editor k endpointum api
+                        } else {
+                            ctx.status(403).result("Forbidden");
+                            LOGGER.warn("Forbidden access (user = " + user.getUsername() + ") to endpoint: " + ctx.path());
+                        }
+                    }
+                }
+            }
+
+        });
         app.before(ctx -> ctx.res().setCharacterEncoding(StandardCharsets.UTF_8.name()));
         app.before(ctx -> ctx.res().setContentType("application/json; charset=utf-8"));
+
         app.get(Const.PATH_ROOT, InfoResource::info);
         app.get(Const.PATH_APP, InfoResource::info);
         app.get(Const.PATH_INFO, InfoResource::info);
@@ -127,7 +163,7 @@ public class AltoEditorInitializer {
         app.get(Const.PATH_DB_USERS, DbResource::getAllUsers);
         app.get(Const.PATH_DB_USER, DbResource::getUser);
         app.post(Const.PATH_DB_USER, DbResource::createUser);
-        app.put(Const.PATH_DB_USER, DbResource::updateUser);
+//        app.put(Const.PATH_DB_USER, DbResource::updateUser);
         app.get(Const.PATH_DB_DIGITAL_OBJECTS, DbResource::getAllDigitalObjects);
         app.get(Const.PATH_DB_DIGITAL_OBJECT, DbResource::getUsersDigitalObjects);
         app.post(Const.PATH_DB_DIGITAL_OBJECT, DbResource::createDigitalObject);

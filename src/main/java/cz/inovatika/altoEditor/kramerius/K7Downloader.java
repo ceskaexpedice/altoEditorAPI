@@ -7,6 +7,7 @@ import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
 import cz.inovatika.altoEditor.storage.local.LocalStorage;
 import cz.inovatika.altoEditor.storage.local.LocalStorage.LocalObject;
+import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Config;
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class K7Downloader {
 
     private static final Logger LOGGER = LogManager.getLogger(K7Downloader.class.getName());
 
-    public void downloadFoxml(String pid, String instanceId, String login) throws AltoEditorException, IOException {
+    public void downloadFoxml(String pid, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {
         AkubraStorage storage = AkubraStorage.getInstance();
         if (storage.exist(pid)) {
             LOGGER.warn("Object already exists in repo");
@@ -50,24 +51,16 @@ public class K7Downloader {
             throw new DigitalObjectNotFoundException(instanceId, String.format("This instance \"%s\" is not configured.", instanceId));
         }
 
-        K7Authenticator authenticator = new K7Authenticator(instance);
-        String token = authenticator.authenticate();
-
-        if (token == null || token.isEmpty()) {
-            LOGGER.error("Kramerius token is null");
-            throw new AltoEditorException(instanceId, "Kramerius token is null");
-        }
-
-        String foxml = download(instance, pid, token);
+        String foxml = download(instance, pid, userProfile.getToken());
         saveToTmp(foxml, pid);
 
         if (!containsAlto(pid)) {
-            String alto = downloadAlto(instance, pid, token);
+            String alto = downloadAlto(instance, pid, userProfile.getToken());
             saveAltoToTmp(alto, pid);
             updateFoxml(pid);
         }
 
-        importToStorage(pid, login);
+        importToStorage(pid, userProfile.getUsername());
         deleteFromTmp(pid);
     }
 
@@ -250,18 +243,18 @@ public class K7Downloader {
         writeToFile(altoContent, altoFile, pid);
     }
 
-    public File saveImage(String pid, String instanceId) throws AltoEditorException, IOException {
-        return saveImage(pid, pid, instanceId);
+    public File saveImage(String pid, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {
+        return saveImage(pid, pid, instanceId, userProfile);
     }
 
-    public File saveImage(String parentPid, String pid, String instanceId) throws AltoEditorException, IOException {
+    public File saveImage(String parentPid, String pid, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {
         File peroPath = createFolder(new File(Config.getPeroPath()), false);
         File parentFile = createFolder(new File(peroPath, getPidAsFile(parentPid)), true);
 
 
 
         K7ObjectInfo k7ObjectInfo = new K7ObjectInfo();
-        String model = k7ObjectInfo.getModel(pid, instanceId);
+        String model = k7ObjectInfo.getModel(pid, instanceId, userProfile);
         if (model == null) {
             throw new IOException("Unknown model for pid = " + pid);
         }
@@ -269,18 +262,18 @@ public class K7Downloader {
             File imageFile = getFile(parentFile, pid, "IMAGE");
             InputStream imageContent = null;
             try {
-                imageContent = downloadImage(pid, instanceId);
+                imageContent = downloadImage(pid, instanceId, userProfile);
                 writeToFile(imageContent, imageFile, pid);
             } finally {
                 closeQuietly(imageContent, pid);
             }
         } else {
-            List<String> childrenPids = k7ObjectInfo.getChildrenPids(pid, instanceId);
+            List<String> childrenPids = k7ObjectInfo.getChildrenPids(pid, instanceId, userProfile);
             for (String childrenPid : childrenPids) {
                 File imageFile = getFile(parentFile, childrenPid, "IMAGE");
                 InputStream imageContent = null;
                 try {
-                    imageContent = downloadImage(childrenPid, instanceId);
+                    imageContent = downloadImage(childrenPid, instanceId, userProfile);
                     writeToFile(imageContent, imageFile, childrenPid);
                 } finally {
                     closeQuietly(imageContent, childrenPid);
@@ -290,9 +283,9 @@ public class K7Downloader {
         return parentFile;
     }
 
-    private InputStream downloadImage(String pid, String instanceId) throws IOException, AltoEditorException {
+    private InputStream downloadImage(String pid, String instanceId, UserProfile userProfile) throws IOException, AltoEditorException {
         K7ImageViewer imageViewer = new K7ImageViewer();
-        HttpResponse response = imageViewer.getResponse(pid, instanceId);
+        HttpResponse response = imageViewer.getResponse(pid, instanceId, userProfile);
 
         if (HTTP_OK == response.getStatusLine().getStatusCode()) {
             LOGGER.debug("Http response Download FOXML success");

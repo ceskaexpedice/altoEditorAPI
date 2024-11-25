@@ -15,6 +15,10 @@ public class AltoEditorResponse {
 
     private static final Logger LOGGER = LogManager.getLogger(AltoEditorResponse.class.getName());
 
+    public static final int RESPONSE_UNAUTHORIZED = 401;
+    public static final int RESPONSE_FORBIDDEN = 403;
+    public static final int RESPONSE_SUCCESS = 200;
+
     public static final int STATUS_FAILURE = -1;
     public static final int STATUS_LOGIN_INCORRECT = -5;
     public static final int STATUS_LOGIN_REQUIRED = -7;
@@ -147,6 +151,13 @@ public class AltoEditorResponse {
 
     public static AltoEditorResponse asError(Throwable ex) {
         return asError(ex.getMessage(), ex);
+    }
+
+    public static AltoEditorResponse asError(int status, String message) {
+        AltoEditorResponse response = new AltoEditorResponse();
+        response.setStatus(status);
+        response.setErrors(Collections.singletonList(message));
+        return response;
     }
 
     public static AltoEditorResponse asError(String message, Throwable ex) {

@@ -4,6 +4,7 @@ GET {{url}}/info
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{$token}}
 
 ### show sql
 
@@ -11,7 +12,7 @@ GET {{url}}/db
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
-
+Authorization: Bearer {{token}}
 
 ### init db sql
 
@@ -19,8 +20,9 @@ POST {{url}}/db
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{token}}
 
-{"update":true}
+{"update":false}
 
 ### show list versions
 
@@ -28,6 +30,7 @@ GET {{url}}/db/versions
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{token}}
 
 ### show actual version
 
@@ -35,7 +38,7 @@ GET {{url}}/db/actualVersion
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
-
+Authorization: Bearer {{token}}
 
 ### show list users
 
@@ -43,6 +46,7 @@ GET {{url}}/db/users
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{token}}
 
 ### get user
 
@@ -50,6 +54,7 @@ GET {{url}}/db/user?login=lukasSyk
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{token}}
 
 ### create user
 
@@ -57,6 +62,7 @@ POST {{url}}/db/user
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{token}}
 
 {"login":"inovatika"}
 
@@ -67,35 +73,45 @@ PUT {{url}}/db/user
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{token}}
 
 {"userId":"17","login":"lukaSyk"}
 
 ### get digitalObjects
 GET {{url}}/db/objects?orderBy=datum&orderSort=asc&instance=k7
+Authorization: Bearer {{token}}
+
 
 ### get digital Object
 GET {{url}}/db/objects?limit=1&offset=5
+Authorization: Bearer {{token}}
 
 ### get all batches with type
 GET {{url}}/db/batches?type=SINGLE
+Authorization: Bearer {{token}}
 
 ### get batches
 GET {{url}}/db/batch?limit=1&offset=4
+Authorization: Bearer {{token}}
 
 ### get Image
-GET {{url}}/object/image?login=lukasSyk&pid={{uuid}}&instance=k7
+GET {{url}}/object/image?pid={{uuid}}&instance=k7
+Authorization: Bearer {{token}}
 
 ### get Alto
-GET {{url}}/object/alto?pid={{uuid3}}&instance=k7&login=inovatika
+GET {{url}}/object/alto?pid={{uuid3}}&instance=k7
+Authorization: Bearer {{token}}
 
 ### get Ocr
-GET {{url}}/object/ocr?pid={{uuid3}}&instance=k7&login=inovatika
+GET {{url}}/object/ocr?pid={{uuid3}}&instance=k7
+Authorization: Bearer {{token}}
 
 ### update Alto
 POST {{url}}/object/alto
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{token}}
 
 {"login":"inovatika","pid":"{{uuid}}", "data":"{{data}}"}
 
@@ -104,6 +120,7 @@ POST {{url}}/object/pero
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{token}}
 
 {"pid":"uuid:65cb5124-6af4-4b50-acd0-0cbf0867f968","priority":"MEDIUM", "instance":"k7"}
 
@@ -112,6 +129,7 @@ POST {{url}}/object/stateAccepted
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{token}}
 
 {"id":{{digitalObjectId}},"login":"inovatika"}
 
@@ -120,6 +138,7 @@ POST {{url}}/object/stateRejected
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{token}}
 
 {"id":{{digitalObjectId}},"login":"inovatika"}
 
@@ -128,14 +147,16 @@ POST {{url}}/object/uploadKramerius
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{token}}
 
 {"id":{{digitalObjectId}},"login":"inovatika"}
 
 ### get object information
-GET {{url}}/object/objectInformation?login=inovatika&pid={{uuid3}}&instance=k7
+GET {{url}}/object/objectInformation?pid={{uuid3}}&instance=k7
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{token}}
 
 
 
