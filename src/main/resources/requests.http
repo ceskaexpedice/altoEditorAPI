@@ -83,7 +83,7 @@ Authorization: Bearer {{token}}
 
 
 ### get digital Object
-GET {{url}}/db/objects?limit=1&offset=5
+GET {{url}}/db/object?limit=1&offset=5
 Authorization: Bearer {{token}}
 
 ### get all batches with type

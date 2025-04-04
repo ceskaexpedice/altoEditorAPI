@@ -110,6 +110,10 @@ public class Manager {
     public static List<DigitalObjectView> getDigitalObjects(String id, String rUserId, String instance, String pid, String versionXml, String datum, String state, String label, String parentLabel, String parentPath, String login, String orderBy, String orderSort, Integer limit, Integer offset) throws SQLException, ParseException {
         if (login != null && !login.isEmpty()) {
             User user = Manager.getUserByLogin(login);
+            if (user == null) {
+                Manager.createUser(login);
+                user = Manager.getUserByLogin(login);
+            }
             if (user == null || user.getId() == null) {
                 throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
             } else {
@@ -125,6 +129,10 @@ public class Manager {
     public static Integer getDigitalObjectsCount(String id, String rUserId, String instance, String pid, String versionXml, String datum, String state, String label, String parentLabel, String parentPath, String login) throws SQLException, ParseException {
         if (login != null && !login.isEmpty()) {
             User user = Manager.getUserByLogin(login);
+            if (user == null) {
+                Manager.createUser(login);
+                user = Manager.getUserByLogin(login);
+            }
             if (user == null || user.getId() == null) {
                 throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
             } else {
@@ -140,17 +148,20 @@ public class Manager {
     public static List<DigitalObjectView> getDigitalObjects(String login, String pid, String orderBy, String orderSort) throws SQLException {
         if (login != null && !login.isEmpty() && pid != null && !pid.isEmpty()) {
             User user = Manager.getUserByLogin(login);
-            if (user == null || user.getId() == null) {
-//                throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
+            if (user == null) {
                 Manager.createUser(login);
                 user = Manager.getUserByLogin(login);
-                if (user == null || user.getId() == null) {
-                    throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
-                }
+            }
+            if (user == null || user.getId() == null) {
+                throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
             }
             return getDigitalObjectsByUserIdAndPid(user.getId(), pid, orderBy, orderSort);
         } else if (login != null && !login.isEmpty()) {
             User user = Manager.getUserByLogin(login);
+            if (user == null) {
+                Manager.createUser(login);
+                user = Manager.getUserByLogin(login);
+            }
             if (user == null || user.getId() == null) {
                 throw new IllegalStateException(String.format("User with login \"%s\" does not exists.", login));
             }

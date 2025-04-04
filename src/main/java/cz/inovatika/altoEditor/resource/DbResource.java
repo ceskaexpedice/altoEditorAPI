@@ -284,7 +284,7 @@ public class DbResource {
             String label = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_LABEL);
             String parentLabel = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_LABEL);
             String parentPath = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_PATH);
-//            String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
+            String login = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_USER_LOGIN);
 
             String orderBy = getOptStringRequestValue(context, Const.PARAM_ORDER_BY);
             if (orderBy != null) {
@@ -311,9 +311,9 @@ public class DbResource {
             if (offset == null || offset < 0) {
                 offset = 0;
             }
-            int totalCount = Manager.getDigitalObjectsCount(id, rUserId, instance, pid, versionXml, datum, state, label, parentLabel, parentPath, userProfile.getUsername());
+            int totalCount = Manager.getDigitalObjectsCount(id, rUserId, instance, pid, versionXml, datum, state, label, parentLabel, parentPath, login);
             List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(id, rUserId, instance, pid, versionXml,
-                    datum, state, label, parentLabel, parentPath, userProfile.getUsername(), orderBy, orderSort, limit, offset);
+                    datum, state, label, parentLabel, parentPath, login, orderBy, orderSort, limit, offset);
             setResult(context, new AltoEditorResponse(digitalObjects, offset, totalCount));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -337,7 +337,7 @@ public class DbResource {
             String label = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_LABEL);
             String parentLabel = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_LABEL);
             String parentPath = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_PATH);
-//            String login = getStringRequestValue(context, Const.PARAM_USER_LOGIN);
+//            String login = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_USER_LOGIN);
 
             String orderBy = getOptStringRequestValue(context, Const.PARAM_ORDER_BY);
             if (orderBy != null) {

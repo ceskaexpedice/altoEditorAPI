@@ -175,7 +175,7 @@ public class DigitalObjectDao {
         }
         String versionId = versionXml.substring(versionXml.indexOf(".") + 1);
         User user = Manager.getUserByLogin(login);
-        if (user == null || user.getId() == null) {
+        if (user == null) {
             Manager.createUser(login);
             user = Manager.getUserByLogin(login);
         }
