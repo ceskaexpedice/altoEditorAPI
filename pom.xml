@@ -8,7 +8,6 @@
     <artifactId>AltoEditor</artifactId>
     <version>1.5</version>
 
-
     <properties>
         <altoEditor.version>${project.version}</altoEditor.version>
         <maven.compiler.source>17</maven.compiler.source>
