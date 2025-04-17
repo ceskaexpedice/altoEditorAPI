@@ -9,7 +9,6 @@ import cz.inovatika.altoEditor.exception.RequestException;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
 import cz.inovatika.altoEditor.response.AltoEditorStringRecordResponse;
 import cz.inovatika.altoEditor.server.AltoEditorInitializer;
-import cz.inovatika.utils.configuration.Configurator;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -31,7 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.poi.ss.formula.functions.T;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

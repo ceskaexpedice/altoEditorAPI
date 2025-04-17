@@ -1,12 +1,12 @@
 package cz.inovatika.altoEditor.db.dao;
 
+import cz.inovatika.altoEditor.db.DataSource;
 import cz.inovatika.altoEditor.db.Manager;
 import cz.inovatika.altoEditor.db.models.DigitalObject;
 import cz.inovatika.altoEditor.db.models.User;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.altoEditor.utils.Utils;
-import cz.inovatika.utils.db.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

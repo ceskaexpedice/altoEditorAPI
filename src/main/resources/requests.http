@@ -86,6 +86,10 @@ Authorization: Bearer {{token}}
 GET {{url}}/db/object?limit=1&offset=5
 Authorization: Bearer {{token}}
 
+### get digital Object
+GET {{url}}/db/object?pid={{uuid}}
+Authorization: Bearer {{token}}
+
 ### get all batches with type
 GET {{url}}/db/batches?type=SINGLE
 Authorization: Bearer {{token}}
@@ -99,7 +103,7 @@ GET {{url}}/object/image?pid={{uuid}}&instance=k7
 Authorization: Bearer {{token}}
 
 ### get Alto
-GET {{url}}/object/alto?pid={{uuid3}}&instance=k7
+GET {{url}}/object/alto?pid={{uuid}}&instance=k7
 Authorization: Bearer {{token}}
 
 ### get Ocr
@@ -158,6 +162,9 @@ User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
 Authorization: Bearer {{token}}
 
+###
+GET https://k7.inovatika.dev/search/iiif/uuid:70b450a4-565f-4a86-b158-71cc60cc9e8a/full/max/0/default.jpg
+Authorization: Bearer {{token}}
 
 
 

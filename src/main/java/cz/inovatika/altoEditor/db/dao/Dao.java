@@ -1,8 +1,8 @@
 package cz.inovatika.altoEditor.db.dao;
 
+import cz.inovatika.altoEditor.db.DataSource;
 import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.altoEditor.utils.Utils;
-import cz.inovatika.utils.db.DataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

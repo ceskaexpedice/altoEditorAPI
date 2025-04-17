@@ -70,17 +70,17 @@ public class KrameriusOptions {
         Config.getKrameriusInstanceUrl(instance.getId());
         Config.getKrameriusInstanceUrlParametrizedImportQuery(instance.getId());
         Config.getKrameriusInstanceUrlStateQuery(instance.getId());
-        Config.getKrameriusInstancePassword(instance.getId());
-        Config.getKrameriusInstanceUsername(instance.getId());
-        Config.getKrameriusInstanceExportFoxmlFolder(instance.getId());
-        Config.getKrameriusInstanceKrameriusImportFoxmlFolder(instance.getId());
+//        Config.getKrameriusInstancePassword(instance.getId());
+//        Config.getKrameriusInstanceUsername(instance.getId());
+//        Config.getKrameriusInstanceExportFoxmlFolder(instance.getId());
+//        Config.getKrameriusInstanceKrameriusImportFoxmlFolder(instance.getId());
         Config.getKrameriusInstanceUrlLogin(instance.getId());
         Config.getKrameriusInstanceUrlDownloadFoxml(instance.getId());
         Config.getKrameriusInstanceUrlUploadStream(instance.getId());
         Config.getKrameriusInstanceUrlImage(instance.getId());
-        Config.getKrameriusInstanceClientId(instance.getId());
-        Config.getKrameriusInstanceClientSecret(instance.getId());
-        Config.getKrameriusInstanceGrantType(instance.getId());
+//        Config.getKrameriusInstanceClientId(instance.getId());
+//        Config.getKrameriusInstanceClientSecret(instance.getId());
+//        Config.getKrameriusInstanceGrantType(instance.getId());
         return true;
     }
 

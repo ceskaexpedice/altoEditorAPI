@@ -1,6 +1,7 @@
 package cz.inovatika.altoEditor.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.inovatika.altoEditor.db.DataSource;
 import cz.inovatika.altoEditor.process.FileGeneratorProcess;
 import cz.inovatika.altoEditor.process.ProcessDispatcher;
 import cz.inovatika.altoEditor.resource.DbResource;
@@ -8,10 +9,9 @@ import cz.inovatika.altoEditor.resource.DigitalObjectResource;
 import cz.inovatika.altoEditor.resource.InfoResource;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
 import cz.inovatika.altoEditor.utils.Config;
+import cz.inovatika.altoEditor.utils.Configurator;
 import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.altoEditor.user.UserProfile;
-import cz.inovatika.utils.configuration.Configurator;
-import cz.inovatika.utils.db.DataSource;
 import io.javalin.Javalin;
 import java.io.BufferedReader;
 import java.io.File;
@@ -186,11 +186,12 @@ public class AltoEditorInitializer {
 
     private static void initDb() {
         String url = Config.getJdbcUrl();
+        String driver = Config.getJdbcDriver();
         String password = Config.getJdbcPassword();
         String username = Config.getJdbcUserName();
         int poolSize = Config.getJdbcPoolSize();
 
-        DataSource.configure(url, username, password, poolSize);
+        DataSource.configure(url, driver, username, password, poolSize);
         LOGGER.info("Connection to DB established.");
     }
 }

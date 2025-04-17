@@ -1,7 +1,5 @@
 package cz.inovatika.altoEditor.utils;
 
-import cz.inovatika.utils.configuration.Configurator;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -151,7 +149,7 @@ public class Config {
     }
 
     public static final String getKrameriusInstanceUrlImage(String instance) {
-        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_IMAGE, "/search/iiif/");
+        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_IMAGE, "/search/api/client/v7.0/items/");
     }
 
     @Deprecated

@@ -32,7 +32,7 @@ public class K7UserInfo {
     public UserProfile getUser(String token) throws IOException, JSONException {
         String userInfoUrl = Config.getKeycloakUrl() + Config.getKeycloakUserInfo();
 
-        LOGGER.info("Trying to get user info " + userInfoUrl);
+        LOGGER.debug("Trying to get user info " + userInfoUrl);
 
         HttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(userInfoUrl);
@@ -56,7 +56,7 @@ public class K7UserInfo {
                         roles.add(roleJSONArray.getString(i));
                     }
                     if (username != null && !username.isEmpty()) {
-                        LOGGER.debug("Connected to Kramerius and get user info " + username);
+                        LOGGER.info("Connected to Kramerius and get user info " + username);
                         UserProfile userProfile = new UserProfile(username, token, roles);
                         return userProfile;
                     } else {
