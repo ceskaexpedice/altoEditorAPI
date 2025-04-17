@@ -56,7 +56,7 @@ public class K7UserInfo {
                         roles.add(roleJSONArray.getString(i));
                     }
                     if (username != null && !username.isEmpty()) {
-                        LOGGER.info("Connected to Kramerius and get user info " + username);
+                        LOGGER.debug("Connected to Kramerius and get user info " + username);
                         UserProfile userProfile = new UserProfile(username, token, roles);
                         return userProfile;
                     } else {
