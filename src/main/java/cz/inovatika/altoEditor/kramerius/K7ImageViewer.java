@@ -19,7 +19,7 @@ public class K7ImageViewer {
 
         String imageUrl = Config.getKrameriusInstanceUrl(instanceId) +
                 Config.getKrameriusInstanceUrlImage(instanceId) +
-                pid + "/full/max/0/default.jpg";
+                pid + "/image";
         LOGGER.info("Trying to download image from " + imageUrl);
 
         HttpClient httpClient = HttpClients.createDefault();
