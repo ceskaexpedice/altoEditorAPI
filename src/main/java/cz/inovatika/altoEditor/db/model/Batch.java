@@ -4,6 +4,15 @@ import java.sql.Timestamp;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Represents a batch entity with various attributes such as ID, state, priority, and timestamps for
+ * creation and updates. This class provides getter and setter methods to retrieve and modify these
+ * attributes.
+ *
+ * The Batch class is designed to handle information related to a batch, including metadata like
+ * type, instance, and logging details. These attributes can be utilized to manage and track the
+ * state and progress of a batch within a system.
+ */
 public class Batch {
 
     protected static final Logger LOGGER = LogManager.getLogger(Batch.class.getName());

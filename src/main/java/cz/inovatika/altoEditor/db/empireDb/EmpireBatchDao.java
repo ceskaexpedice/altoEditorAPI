@@ -129,7 +129,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         }
 
 
-        EmpireUtils.addOrderBy(cmd, filter.getOrderBy(), table.id, true);
+        EmpireUtils.addOrderBy(cmd, filter.getOrderBy(), filter.getOrderSort(), table.id, true);
         DBReader reader = new DBReader();
         try {
             reader.open(cmd, getConnection());
@@ -137,7 +137,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
                 return Collections.emptyList();
             }
             ArrayList<Batch> batches = new ArrayList<Batch>(filter.getLimit());
-            for (Iterator<DBRecordData> it = reader.iterator(filter.getLimit()); it.hasNext();) {
+            for (Iterator<DBRecordData> it = reader.iterator(filter.getLimit()); it.hasNext(); ) {
                 DBRecordData rec = it.next();
                 Batch batch = new Batch();
                 rec.setBeanProperties(batch);
@@ -149,6 +149,69 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
             reader.close();
         }
     }
+
+    @Override
+    public int countByFilter(BatchFilter filter) {
+        Objects.requireNonNull(filter, "filter must not be null");
+
+        DBCommand cmd = database.createCommand();
+        cmd.select(table.count());
+        if (filter.getId() != null) {
+            cmd.where(table.id.is(filter.getId()));
+        }
+        if (filter.getPid() != null) {
+            cmd.where(table.pid.is(filter.getPid()));
+        }
+        if (filter.getState() != null) {
+            cmd.where(table.state.is(filter.getState()));
+        }
+        if (filter.getSubstate() != null) {
+            cmd.where(table.substate.is(filter.getSubstate()));
+        }
+        if (filter.getPriority() != null) {
+            cmd.where(table.priority.is(filter.getPriority()));
+        }
+        if (filter.getType() != null) {
+            cmd.where(table.type.is(filter.getType()));
+        }
+        if (filter.getInstance() != null) {
+            cmd.where(table.instance.is(filter.getInstance()));
+        }
+        if (filter.getObjectId() != null) {
+            cmd.where(table.objectId.is(filter.getObjectId()));
+        }
+        if (filter.getEstimateItemNumber() != null) {
+            cmd.where(table.estimateItemNumber.is(filter.getEstimateItemNumber()));
+        }
+        if (filter.getLog() != null) {
+            cmd.where(table.estimateItemNumber.like(filter.getLog()));
+        }
+        if (filter.getCreateDateFrom() != null) {
+            cmd.where(table.createDate.isMoreOrEqual(filter.getCreateDateFrom()));
+        }
+        if (filter.getCreateDateTo() != null) {
+            cmd.where(table.createDate.isLessOrEqual(filter.getCreateDateTo()));
+        }
+        if (filter.getUpdateDateFrom() != null) {
+            cmd.where(table.updateDate.isMoreOrEqual(filter.getUpdateDateFrom()));
+        }
+        if (filter.getUpdateDateTo() != null) {
+            cmd.where(table.updateDate.isLessOrEqual(filter.getUpdateDateTo()));
+        }
+
+        DBReader reader = new DBReader();
+        try {
+            reader.open(cmd, getConnection());
+
+            if (reader.moveNext()) {
+                return reader.getInt(0);
+            }
+            return 0;
+        } finally {
+            reader.close();
+        }
+    }
+
 
     @Override
     public void deleteById(Integer batchId) {

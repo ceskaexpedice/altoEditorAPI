@@ -10,15 +10,17 @@ import java.sql.Timestamp;
  */
 public class BatchFilter {
 
-    private static final int DEFAULT_LIMIT = Integer.MAX_VALUE;
-    private static final int DEFAULT_OFFSET = 0;
+    public static final int DEFAULT_LIMIT = 1000;
+    public static final int DEFAULT_OFFSET = 0;
 
     private Integer id;
     private String pid;
     private Timestamp createDateFrom;
     private Timestamp createDateTo;
+    private Timestamp createDate;
     private Timestamp updateDateFrom;
     private Timestamp updateDateTo;
+    private Timestamp updateDate;
     private String state;
     private String substate;
     private String priority;
@@ -27,10 +29,18 @@ public class BatchFilter {
     private Integer objectId;
     private Integer estimateItemNumber;
     private String log;
+
     private String orderBy;
     private String orderSort;
     private Integer limit = DEFAULT_LIMIT;
     private Integer offset = DEFAULT_OFFSET;
+
+    private BatchFilter() {
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
 
     public Integer getId() {
         return id;
@@ -48,12 +58,20 @@ public class BatchFilter {
         return createDateTo;
     }
 
+    public Timestamp getCreateDate() {
+        return createDate;
+    }
+
     public Timestamp getUpdateDateFrom() {
         return updateDateFrom;
     }
 
     public Timestamp getUpdateDateTo() {
         return updateDateTo;
+    }
+
+    public Timestamp getUpdateDate() {
+        return updateDate;
     }
 
     public String getState() {
@@ -104,107 +122,168 @@ public class BatchFilter {
         return offset;
     }
 
-    public BatchFilter setId(Integer id) {
-        this.id = id;
-        return this;
-    }
+    public static class Builder {
+        private Integer id;
+        private String pid;
+        private Timestamp createDateFrom;
+        private Timestamp createDateTo;
+        private Timestamp createDate;
+        private Timestamp updateDateFrom;
+        private Timestamp updateDateTo;
+        private Timestamp updateDate;
+        private String state;
+        private String substate;
+        private String priority;
+        private String type;
+        private String instance;
+        private Integer objectId;
+        private Integer estimateItemNumber;
+        private String log;
+        private String orderBy;
+        private String orderSort;
+        private Integer limit = DEFAULT_LIMIT;
+        private Integer offset = DEFAULT_OFFSET;
 
-    public BatchFilter setPid(String pid) {
-        this.pid = pid;
-        return this;
-    }
+        private Builder() {
+        }
 
-    public BatchFilter setCreateDateFrom(Timestamp createDateFrom) {
-        this.createDateFrom = createDateFrom;
-        return this;
-    }
-
-    public BatchFilter setCreateDateTo(Timestamp createDateTo) {
-        this.createDateTo = createDateTo;
-        return this;
-    }
-
-    public BatchFilter setUpdateDateFrom(Timestamp updateDateFrom) {
-        this.updateDateFrom = updateDateFrom;
-        return this;
-    }
-
-    public BatchFilter setUpdateDateTo(Timestamp updateDateTo) {
-        this.updateDateTo = updateDateTo;
-        return this;
-    }
-
-    public BatchFilter setState(String state) {
-        this.state = state;
-        return this;
-    }
-
-    public BatchFilter setSubstate(String substate) {
-        this.substate = substate;
-        return this;
-    }
-
-    public BatchFilter setPriority(String priority) {
-        this.priority = priority;
-        return this;
-    }
-
-    public BatchFilter setType(String type) {
-        this.type = type;
-        return this;
-    }
-
-    public BatchFilter setInstance(String instance) {
-        this.instance = instance;
-        return this;
-    }
-
-    public BatchFilter setObjectId(Integer objectId) {
-        this.objectId = objectId;
-        return this;
-    }
-
-    public BatchFilter setEstimateItemNumber(Integer estimateItemNumber) {
-        this.estimateItemNumber = estimateItemNumber;
-        return this;
-    }
-
-    public BatchFilter setLog(String log) {
-        this.log = log;
-        return this;
-    }
-
-    public BatchFilter setOrderBy(String orderBy) {
-        this.orderBy = orderBy;
-        return this;
-    }
-
-    public BatchFilter setOrderSort(String orderSort) {
-        this.orderSort = orderSort;
-        return this;
-    }
-
-    public BatchFilter setLimit(Integer limit) {
-        if (limit == null) {
-            this.limit = DEFAULT_LIMIT;
+        public Builder id(Integer id) {
+            this.id = id;
             return this;
         }
-        if (limit < 0) {
-            throw new IllegalArgumentException("limit must be >= 0");
-        }
-        this.limit = limit;
-        return this;
-    }
 
-    public BatchFilter setOffset(Integer offset) {
-        if (offset == null) {
-            this.offset = DEFAULT_OFFSET;
+        public Builder pid(String pid) {
+            this.pid = pid;
             return this;
         }
-        if (offset < 0) {
-            throw new IllegalArgumentException("offset must be >= 0");
+
+        public Builder createDateFrom(Timestamp createDateFrom) {
+            this.createDateFrom = createDateFrom;
+            return this;
         }
-        this.offset = offset;
-        return this;
+
+        public Builder createDateTo(Timestamp createDateTo) {
+            this.createDateTo = createDateTo;
+            return this;
+        }
+
+        public Builder createDate(Timestamp createDate) {
+            this.createDate = createDate;
+            return this;
+        }
+
+        public Builder updateDateFrom(Timestamp updateDateFrom) {
+            this.updateDateFrom = updateDateFrom;
+            return this;
+        }
+
+        public Builder updateDateTo(Timestamp updateDateTo) {
+            this.updateDateTo = updateDateTo;
+            return this;
+        }
+
+        public Builder updateDate(Timestamp updateDate) {
+            this.updateDate = updateDate;
+            return this;
+        }
+
+        public Builder state(String state) {
+            this.state = state;
+            return this;
+        }
+
+        public Builder substate(String substate) {
+            this.substate = substate;
+            return this;
+        }
+
+        public Builder priority(String priority) {
+            this.priority = priority;
+            return this;
+        }
+
+        public Builder type(String type) {
+            this.type = type;
+            return this;
+        }
+
+        public Builder instance(String instance) {
+            this.instance = instance;
+            return this;
+        }
+
+        public Builder objectId(Integer objectId) {
+            this.objectId = objectId;
+            return this;
+        }
+
+        public Builder estimateItemNumber(Integer estimateItemNumber) {
+            this.estimateItemNumber = estimateItemNumber;
+            return this;
+        }
+
+        public Builder log(String log) {
+            this.log = log;
+            return this;
+        }
+
+        public Builder orderBy(String orderBy) {
+            this.orderBy = orderBy;
+            return this;
+        }
+
+        public Builder orderSort(String orderSort) {
+            this.orderSort = orderSort;
+            return this;
+        }
+
+        public Builder limit(Integer limit) {
+            if (limit == null) {
+                this.limit = DEFAULT_LIMIT;
+                return this;
+            }
+            if (limit < 0) {
+                throw new IllegalArgumentException("limit must be >= 0");
+            }
+            this.limit = limit;
+            return this;
+        }
+
+        public Builder offset(Integer offset) {
+            if (offset == null) {
+                this.offset = DEFAULT_OFFSET;
+                return this;
+            }
+            if (offset < 0) {
+                throw new IllegalArgumentException("offset must be >= 0");
+            }
+            this.offset = offset;
+            return this;
+        }
+
+        public BatchFilter build() {
+            BatchFilter filter = new BatchFilter();
+            filter.id = this.id;
+            filter.pid = this.pid;
+            filter.createDateFrom = this.createDateFrom;
+            filter.createDateTo = this.createDateTo;
+            filter.createDate = this.createDate;
+            filter.updateDateFrom = this.updateDateFrom;
+            filter.updateDateTo = this.updateDateTo;
+            filter.updateDate = this.updateDate;
+            filter.state = this.state;
+            filter.substate = this.substate;
+            filter.priority = this.priority;
+            filter.type = this.type;
+            filter.instance = this.instance;
+            filter.objectId = this.objectId;
+            filter.estimateItemNumber = this.estimateItemNumber;
+            filter.log = this.log;
+            filter.orderBy = this.orderBy;
+            filter.orderSort = this.orderSort;
+            filter.limit = this.limit;
+            filter.offset = this.offset;
+            return filter;
+        }
     }
 }

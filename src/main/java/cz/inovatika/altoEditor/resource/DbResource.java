@@ -2,10 +2,13 @@ package cz.inovatika.altoEditor.resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import cz.inovatika.altoEditor.db.Manager;
-import cz.inovatika.altoEditor.db.dao.Dao;
-import cz.inovatika.altoEditor.db.models.Batch;
-import cz.inovatika.altoEditor.db.models.User;
-import cz.inovatika.altoEditor.db.models.Version;
+import cz.inovatika.altoEditor.db.filter.BatchFilter;
+import cz.inovatika.altoEditor.db.filter.UserFilter;
+import cz.inovatika.altoEditor.db.manager.BatchManager;
+import cz.inovatika.altoEditor.db.manager.UserManager;
+import cz.inovatika.altoEditor.db.model.Batch;
+import cz.inovatika.altoEditor.db.model.User;
+import cz.inovatika.altoEditor.db.model.Version;
 import cz.inovatika.altoEditor.exception.RequestException;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
@@ -15,12 +18,14 @@ import cz.inovatika.altoEditor.utils.Const;
 import io.javalin.http.Context;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.server.Authentication;
 
 import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_FORBIDDEN;
 import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_UNAUTHORIZED;
@@ -28,10 +33,11 @@ import static cz.inovatika.altoEditor.user.UserUtils.getToken;
 import static cz.inovatika.altoEditor.user.UserUtils.getUserProfile;
 import static cz.inovatika.altoEditor.utils.Const.DEFAULT_RESOURCE_SQL;
 import static cz.inovatika.altoEditor.utils.Utils.getBooleanNodeValue;
+import static cz.inovatika.altoEditor.utils.Utils.getIntegerNodeValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptIntegerRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptStringRequestValue;
+import static cz.inovatika.altoEditor.utils.Utils.getOptTimeStampRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.getStringNodeValue;
-import static cz.inovatika.altoEditor.utils.Utils.getStringRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.readFile;
 import static cz.inovatika.altoEditor.utils.Utils.setContext;
 import static cz.inovatika.altoEditor.utils.Utils.setResult;
@@ -54,6 +60,7 @@ public class DbResource {
         }
     }
 
+    // TODO
     public static void createSchema(Context context) {
         if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
             setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
@@ -63,8 +70,6 @@ public class DbResource {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
             boolean update = getBooleanNodeValue(node, "update");
             if (update) {
-                Dao dbDao = new Dao();
-                dbDao.createSchema();
                 setResult(context, new AltoEditorResponse("SQL script executed successfully."));
             } else {
                 showSchema(context);
@@ -106,7 +111,9 @@ public class DbResource {
             return;
         }
         try {
-            List<User> users = Manager.getAllUsers();
+            UserManager userManager = UserManager.getInstance();
+            UserFilter filter = UserFilter.builder().build();
+            List<User> users = userManager.findUser(filter);
             setResult(context, new AltoEditorResponse(users));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -118,13 +125,17 @@ public class DbResource {
             setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
             return;
         }
-        UserProfile userProfile = getUserProfile(getToken(context));
         try {
-            User user = Manager.getUserByLogin(userProfile.getUsername());
-            setResult(context, new AltoEditorResponse(user));
+            String login = getOptStringRequestValue(context, Const.PARAM_USER_LOGIN);
+
+            UserManager userManager = UserManager.getInstance();
+            UserFilter filter = UserFilter.builder().login(login).build();
+            List<User> users = userManager.findUser(filter);
+            setResult(context, new AltoEditorResponse(users));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
         }
+
     }
 
     public static void createUser(Context context) {
@@ -134,12 +145,13 @@ public class DbResource {
         }
         UserProfile userProfile = getUserProfile(getToken(context));
         try {
-            User user = Manager.getUserByLogin(userProfile.getUsername());
-            if (user != null) {
-                throw new IOException(String.format("User login \"%s\" already exists.", user.getLogin()));
+            UserManager userManager = UserManager.getInstance();
+            UserFilter filter = UserFilter.builder().login(userProfile.getUsername()).build();
+            List<User> users = userManager.findUser(filter);
+            if (users != null && !users.isEmpty()) {
+                throw new IOException(String.format("User login \"%s\" already exists.", users.get(0).getLogin()));
             } else {
-                Manager.createUser(userProfile.getUsername());
-                user = Manager.getUserByLogin(userProfile.getUsername());
+                User user = userManager.addNewUser(userProfile.getUsername());
                 setResult(context, new AltoEditorResponse(user));
             }
         } catch (Exception ex) {
@@ -152,17 +164,31 @@ public class DbResource {
             setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
             return;
         }
-        UserProfile userProfile = getUserProfile(getToken(context));
+
         try {
             JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            String userId = getStringNodeValue(node, Const.PARAM_USER_USERID);
+            Integer userId = getIntegerNodeValue(node, Const.PARAM_USER_USERID);
+            String login = getStringNodeValue(node, Const.PARAM_USER_LOGIN);
 
-            User user = Manager.getUserById(userId);
-            if (user == null) {
+            UserManager userManager = UserManager.getInstance();
+
+            UserFilter filter = UserFilter.builder().login(login).build();
+            List<User> users = userManager.findUser(filter);
+            if (users != null && !users.isEmpty()) {
+                throw new IOException(String.format("User with this login \"%s\" already exists.", login));
+            }
+
+            filter = UserFilter.builder().id(userId).build();
+            users = userManager.findUser(filter);
+            if (users == null || users.isEmpty()) {
                 throw new IOException(String.format("User with id \"%s\" does not exists.", userId));
+            } else if (users.size() > 1) {
+                throw new IOException(String.format("More than one User with id \"%s\".", userId));
             } else {
-                Manager.updateUser(userId, userProfile.getUsername());
-                user = Manager.getUserById(userId);
+                User user = users.get(0);
+                user.setLogin(login);
+
+                user = userManager.updateUser(user);
                 setResult(context, new AltoEditorResponse(user));
             }
         } catch (Exception ex) {
@@ -187,7 +213,9 @@ public class DbResource {
                     throw new RequestException(Const.PARAM_ORDER_SORT, String.format("Unsupported param \"%s\".", orderSort));
                 }
             }
-            List<Batch> batches = Manager.getAllBatches(orderBy, orderSort);
+            BatchManager batchManager = BatchManager.getInstance();
+            BatchFilter filter = BatchFilter.builder().orderBy(orderBy).orderSort(orderSort).build();
+            List<Batch> batches = batchManager.findBatch(filter);
             setResult(context, new AltoEditorResponse(batches));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -202,16 +230,20 @@ public class DbResource {
         UserProfile userProfile = getUserProfile(getToken(context));
         try {
 //            String login = getOptStringRequestValue(context, "login");
-            String id = getOptStringRequestValue(context, Const.PARAM_BATCH_ID);
+            Integer id = getOptIntegerRequestValue(context, Const.PARAM_BATCH_ID);
             String pid = getOptStringRequestValue(context, Const.PARAM_BATCH_PID);
-            String createDate = getOptStringRequestValue(context, Const.PARAM_BATCH_CREATE_DATE);
-            String updateDate = getOptStringRequestValue(context, Const.PARAM_BATCH_UPDATE_DATE);
+            Timestamp createDateFrom = getOptTimeStampRequestValue(context, Const.PARAM_BATCH_CREATE_DATE_FROM);
+            Timestamp createDateTo = getOptTimeStampRequestValue(context, Const.PARAM_BATCH_CREATE_DATE_TO);
+            Timestamp createDate = getOptTimeStampRequestValue(context, Const.PARAM_BATCH_CREATE_DATE);
+            Timestamp updateDateFrom = getOptTimeStampRequestValue(context, Const.PARAM_BATCH_UPDATE_DATE_FROM);
+            Timestamp updateDateTo = getOptTimeStampRequestValue(context, Const.PARAM_BATCH_UPDATE_DATE_TO);
+            Timestamp updateDate = getOptTimeStampRequestValue(context, Const.PARAM_BATCH_UPDATE_DATE);
             String state = getOptStringRequestValue(context, Const.PARAM_BATCH_STATE);
             String substate = getOptStringRequestValue(context, Const.PARAM_BATCH_SUBSTATE);
             String priority = getOptStringRequestValue(context, Const.PARAM_BATCH_PRIORITY);
             String type = getOptStringRequestValue(context, Const.PARAM_BATCH_TYPE);
             String instanceId = getOptStringRequestValue(context, Const.PARAM_BATCH_INSTANCE);
-            String estimateItemNumber = getOptStringRequestValue(context, Const.PARAM_BATCH_ESTIMATE_ITEM_NUMBER);
+            Integer estimateItemNumber = getOptIntegerRequestValue(context, Const.PARAM_BATCH_ESTIMATE_ITEM_NUMBER);
             String log = getOptStringRequestValue(context, Const.PARAM_BATCH_LOG);
 
             String orderBy = getOptStringRequestValue(context, Const.PARAM_ORDER_BY);
@@ -239,13 +271,16 @@ public class DbResource {
                 offset = 0;
             }
 
-            if (createDate != null || updateDate != null) {
-                checkDateFormat(Const.PARAM_BATCH_CREATE_DATE, createDate);
-                checkDateFormat(Const.PARAM_BATCH_UPDATE_DATE, updateDate);
-            }
-
-            int totalCount = Manager.getBatchesCount(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log);
-            List<Batch> batches = Manager.getBatches(id, pid, createDate, updateDate, state, substate, priority, type, instanceId, estimateItemNumber, log, orderBy, orderSort, limit, offset);
+            BatchManager batchManager = BatchManager.getInstance();
+            BatchFilter filter = BatchFilter.builder()
+                    .id(id).pid(pid)
+                    .createDateFrom(createDateFrom).createDateTo(createDateTo).createDate(createDate)
+                    .updateDateFrom(updateDateFrom).updateDateTo(updateDateTo).updateDate(updateDate)
+                    .state(state).substate(substate).priority(priority).type(type).instance(instanceId).estimateItemNumber(estimateItemNumber).log(log)
+                    .orderBy(orderBy).orderSort(orderSort).limit(limit).offset(offset)
+                    .build();
+            int totalCount = batchManager.getBatchesCount(filter);
+            List<Batch> batches = batchManager.findBatch(filter);
             setResult(context, new AltoEditorResponse(batches, offset, totalCount));
 
         } catch (Exception ex) {
@@ -258,7 +293,7 @@ public class DbResource {
             return;
         } else {
             DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-            formatter .setLenient(false);
+            formatter.setLenient(false);
             try {
                 formatter.parse(date);
             } catch (ParseException e) {

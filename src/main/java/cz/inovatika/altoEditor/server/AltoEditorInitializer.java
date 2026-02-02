@@ -1,7 +1,11 @@
 package cz.inovatika.altoEditor.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.inovatika.altoEditor.db.DataSource;
+import cz.inovatika.altoEditor.db.dao.DaoFactory;
+import cz.inovatika.altoEditor.db.empireDb.EmpireConfiguration;
+import cz.inovatika.altoEditor.db.empireDb.EmpireDaoFactory;
+import cz.inovatika.altoEditor.db.manager.BatchManager;
+import cz.inovatika.altoEditor.db.manager.UserManager;
 import cz.inovatika.altoEditor.process.FileGeneratorProcess;
 import cz.inovatika.altoEditor.process.ProcessDispatcher;
 import cz.inovatika.altoEditor.resource.DbResource;
@@ -163,7 +167,7 @@ public class AltoEditorInitializer {
         app.get(Const.PATH_DB_USERS, DbResource::getAllUsers);
         app.get(Const.PATH_DB_USER, DbResource::getUser);
         app.post(Const.PATH_DB_USER, DbResource::createUser);
-//        app.put(Const.PATH_DB_USER, DbResource::updateUser);
+        app.put(Const.PATH_DB_USER, DbResource::updateUser);
         app.get(Const.PATH_DB_DIGITAL_OBJECTS, DbResource::getAllDigitalObjects);
         app.get(Const.PATH_DB_DIGITAL_OBJECT, DbResource::getUsersDigitalObjects);
         app.post(Const.PATH_DB_DIGITAL_OBJECT, DbResource::createDigitalObject);
@@ -191,7 +195,13 @@ public class AltoEditorInitializer {
         String username = Config.getJdbcUserName();
         int poolSize = Config.getJdbcPoolSize();
 
-        DataSource.configure(url, driver, username, password, poolSize);
+        EmpireConfiguration dbConfig = new EmpireConfiguration(driver, url, username, password);
+        DaoFactory factory = new EmpireDaoFactory(dbConfig);
+        factory.init();
+
         LOGGER.info("Connection to DB established.");
+
+        BatchManager.setInstance(factory);
+        UserManager.setInstance(factory);
     }
 }

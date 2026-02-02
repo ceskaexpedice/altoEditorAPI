@@ -24,29 +24,32 @@ class EmpireUtils {
      * @param defaultDescending {@code true} to sort {@code defaultSortByColumn} top down
      */
     public static void addOrderBy(DBCommand cmd,
-                                  String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
+                                  String columnBeanPropertyName, String sorting, DBTableColumn defaultSortByColumn,
                                   boolean defaultDescending
     ) {
         DBColumnExpr[] selectExprList = cmd.getSelectExprList();
         List<? extends DBColumnExpr> selections = Arrays.asList(selectExprList);
-        addOrderBy(cmd, selections, columnBeanPropertyName, defaultSortByColumn, defaultDescending);
+        addOrderBy(cmd, selections, columnBeanPropertyName, defaultSortByColumn, sorting, defaultDescending);
     }
 
     private static void addOrderBy(DBCommand cmd, List<? extends DBColumnExpr> selections,
-            String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
+            String columnBeanPropertyName, DBTableColumn defaultSortByColumn, String order,
             boolean defaultDescending
     ) {
         DBColumnExpr sortByCol = findSelection(selections, columnBeanPropertyName);
-        boolean descending;
-        if (sortByCol != null) {
-            descending = isDescendingSort(columnBeanPropertyName);
-        } else if (defaultSortByColumn != null) {
+        boolean descending = getOrdering(order, defaultDescending);
+        if (sortByCol == null) {
             sortByCol = defaultSortByColumn;
             descending = defaultDescending;
-        } else {
-            return ;
         }
         cmd.orderBy(sortByCol, descending);
+    }
+
+    private static boolean getOrdering(String order, boolean defaultDescending) {
+        if (order == null) {
+            return defaultDescending;
+        }
+        return "asc".equalsIgnoreCase(order) ? false : true;
     }
 
     private static boolean isDescendingSort(String prefixedBeanPropertyName) {
