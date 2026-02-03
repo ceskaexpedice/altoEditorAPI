@@ -49,7 +49,7 @@ public class BatchManager {
         this.daos = daos;
     }
 
-    public Batch addNewBatch(String pid, String priority, String instanceId, Integer dObjId) throws SQLException {
+    public Batch addNewBatch(String pid, String priority, String instanceId, Integer dObjId) {
         Batch batch = new Batch();
         batch.setPid(pid);
         batch.setPriority(priority);
@@ -118,7 +118,7 @@ public class BatchManager {
     }
 
     public Batch setSubStateBatch(Batch batch, String subState) {
-        batch.setSubstate(subState);
+        batch.setSubState(subState);
 
         return updateBatch(batch);
     }

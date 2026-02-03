@@ -15,6 +15,8 @@ public interface DaoFactory {
 
     UserDao createUserDao();
 
+    VersionDao createVersionDao();
+
     void init();
 
 }

@@ -44,7 +44,7 @@ public class UserManager {
         this.daos = daos;
     }
 
-    public User addNewUser(String login) throws SQLException {
+    public User addNewUser(String login) {
         User user = new User();
         user.setLogin(login);
 
@@ -100,6 +100,21 @@ public class UserManager {
             return dao.countByFilter(filter);
         } finally {
             tx.close();
+        }
+    }
+
+    public Integer getOrCreateUser(String login) {
+        Objects.requireNonNull(login, "login must not be null");
+
+        UserFilter filter = UserFilter.builder().login(login).build();
+        List<User> users = findUser(filter);
+        if (users.isEmpty()) {
+            User user = addNewUser(login);
+            return user.getId();
+        } else if (users.size() == 1) {
+            return users.get(0).getId();
+        } else {
+            throw new IllegalStateException("More than one user with login " + login);
         }
     }
 }

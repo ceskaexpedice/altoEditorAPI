@@ -8,7 +8,7 @@ import java.sql.Timestamp;
  * for filtering and sorting data and supports fluent API to customize
  * the filter configuration.
  */
-public class BatchFilter {
+public final class BatchFilter {
 
     public static final int DEFAULT_LIMIT = 1000;
     public static final int DEFAULT_OFFSET = 0;
@@ -22,7 +22,7 @@ public class BatchFilter {
     private Timestamp updateDateTo;
     private Timestamp updateDate;
     private String state;
-    private String substate;
+    private String subState;
     private String priority;
     private String type;
     private String instance;
@@ -78,8 +78,8 @@ public class BatchFilter {
         return state;
     }
 
-    public String getSubstate() {
-        return substate;
+    public String getSubState() {
+        return subState;
     }
 
     public String getPriority() {
@@ -132,7 +132,7 @@ public class BatchFilter {
         private Timestamp updateDateTo;
         private Timestamp updateDate;
         private String state;
-        private String substate;
+        private String subState;
         private String priority;
         private String type;
         private String instance;
@@ -192,8 +192,8 @@ public class BatchFilter {
             return this;
         }
 
-        public Builder substate(String substate) {
-            this.substate = substate;
+        public Builder subState(String subState) {
+            this.subState = subState;
             return this;
         }
 
@@ -272,7 +272,7 @@ public class BatchFilter {
             filter.updateDateTo = this.updateDateTo;
             filter.updateDate = this.updateDate;
             filter.state = this.state;
-            filter.substate = this.substate;
+            filter.subState = this.subState;
             filter.priority = this.priority;
             filter.type = this.type;
             filter.instance = this.instance;

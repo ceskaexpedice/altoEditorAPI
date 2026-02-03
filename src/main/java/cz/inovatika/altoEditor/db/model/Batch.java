@@ -22,7 +22,7 @@ public class Batch {
     public Timestamp createDate = null;
     public Timestamp updateDate = null;
     public String state = null;
-    public String substate = null;
+    public String subState = null;
     public String priority = null;
     public String type = null;
     public String instance = null;
@@ -51,8 +51,8 @@ public class Batch {
         return state;
     }
 
-    public String getSubstate() {
-        return substate;
+    public String getSubState() {
+        return subState;
     }
 
     public String getType() {
@@ -99,8 +99,8 @@ public class Batch {
         this.state = state;
     }
 
-    public void setSubstate(String substate) {
-        this.substate = substate;
+    public void setSubState(String subState) {
+        this.subState = subState;
     }
 
     public void setPriority(String priority) {

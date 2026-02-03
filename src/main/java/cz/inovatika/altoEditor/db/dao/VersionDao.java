@@ -1,55 +1,27 @@
 package cz.inovatika.altoEditor.db.dao;
 
-import cz.inovatika.altoEditor.db.DataSource;
-import cz.inovatika.altoEditor.db.models.Version;
-import cz.inovatika.altoEditor.utils.Utils;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
+import cz.inovatika.altoEditor.db.filter.VersionFilter;
+import cz.inovatika.altoEditor.db.model.Version;
+import java.util.ConcurrentModificationException;
 import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.Optional;
 
-public class VersionDao {
+/**
+ * Data Access Object (DAO) interface for managing {@link Version} entities in a storage system.
+ * Provides methods for creating, retrieving, updating, and deleting version records,
+ * as well as for querying versions using filters.
+ */
+public interface VersionDao extends Dao {
 
-    protected static final Logger LOGGER = LogManager.getLogger(VersionDao.class.getName());
+    Version createVersion();
 
-    public static List<Version> getAllVersions() throws SQLException {
-        Connection connection = null;
-        Statement statement = null;
-        List<Version> versions = new ArrayList<>();
-        try {
-            connection = DataSource.getConnection();
-            statement = connection.createStatement();
+    void update(Version version) throws ConcurrentModificationException;
 
-            final ResultSet resultSet = statement.executeQuery("select * from version order by datum, id desc");
-            while (resultSet.next()) {
-                Version version = new Version(resultSet);
-                versions.add(version);
-            }
-            return versions;
-        } finally {
-            Utils.closeSilently(statement);
-            Utils.closeSilently(connection);
-        }
-    }
+    Optional<Version> findById(Integer versionId);
 
-    public static Version getActualVersion() throws SQLException {
-        Connection connection = null;
-        Statement statement = null;
-        try {
-            connection = DataSource.getConnection();
-            statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery("select * from version order by id desc limit 1");
-            while (resultSet.next()) {
-                return new Version(resultSet);
-            }
-            return null;
-        } finally {
-            Utils.closeSilently(statement);
-            Utils.closeSilently(connection);
-        }
-    }
+    List<Version> findByFilter(VersionFilter filter);
+
+    int countByFilter(VersionFilter filter);
+
+    void deleteById(Integer versionId);
 }

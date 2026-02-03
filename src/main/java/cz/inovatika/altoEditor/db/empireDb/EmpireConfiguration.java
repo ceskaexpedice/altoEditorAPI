@@ -1,0 +1,191 @@
+/*
+ * Copyright (C) 2013 Jan Pokorsky
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package cz.inovatika.altoEditor.db.empireDb;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import org.apache.empire.data.DataType;
+import org.apache.empire.db.DBCmdType;
+import org.apache.empire.db.DBColumn;
+import org.apache.empire.db.DBDatabase;
+import org.apache.empire.db.DBDatabaseDriver;
+import org.apache.empire.db.DBObject;
+import org.apache.empire.db.DBSQLScript;
+import org.apache.empire.db.DBTable;
+import org.apache.empire.db.DBTableColumn;
+import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
+import org.apache.empire.db.postgresql.PostgreDDLGenerator;
+
+/**
+ *
+ * @author Jan Pokorsky
+ */
+public final class EmpireConfiguration {
+
+    private final AltoEditorDatabase schema;
+    private String jdbcClass;
+    private String jdbcURL;
+    private String jdbcUser;
+    private String jdbcPwd;
+
+    public EmpireConfiguration(
+            String jdbcClass,
+            String jdbcURL,
+            String jdbcUser,
+            String jdbcPwd
+            ) {
+
+        this.jdbcClass = jdbcClass;
+        this.jdbcURL = jdbcURL;
+        this.jdbcUser = jdbcUser;
+        this.jdbcPwd = jdbcPwd;
+        schema = new AltoEditorDatabase();
+    }
+
+    public AltoEditorDatabase getSchema() {
+        return schema;
+    }
+    
+    public DBDatabaseDriver getDriver() {
+//        if (DBDatabaseDriverPostgreSQL.class.getName().equals(empireDBDriverClass)) {
+//            if (databaseName == null || databaseName.isEmpty()) {
+//            }
+            DBDatabaseDriverPostgreSQL drv = new DBDatabaseDriverPostgreSQL();
+            return drv;
+//        } else {
+//            throw new UnsupportedOperationException("empireDBDriverClass\n" + toString());
+//        }
+    }
+
+    public Connection getConnection() throws SQLException {
+        try {
+            Class.forName(jdbcClass);
+        } catch (ClassNotFoundException ex) {
+            throw new IllegalStateException(jdbcClass, ex);
+        }
+        Connection c = DriverManager.getConnection(jdbcURL, jdbcUser, jdbcPwd);
+        c.setAutoCommit(false);
+        return c;
+    }
+    
+    @Override
+    public String toString() {
+        return "EmpireConfiguration{"
+                + "jdbcClass=" + jdbcClass
+                + ", jdbcURL=" + jdbcURL
+                + ", jdbcUser=" + jdbcUser
+//                + ", jdbcPwd=" + jdbcPwd
+                + '}';
+    }
+
+    private static final class FixedDBDatabaseDriverPostgreSQL extends DBDatabaseDriverPostgreSQL {
+
+        private static final long serialVersionUID = 1L;
+
+        private PostgreDDLGenerator ddlGenerator;
+
+        public FixedDBDatabaseDriverPostgreSQL() {
+            // e.g. for DATETIME:
+            //   addColumn("CREATED", DataType.DATETIME, 0, true, SYSDATE);
+            //   generate DEFAULT NOW()
+            // see DBDDLGenerator.appendColumnDesc
+            setDDLColumnDefaults(true);
+        }
+
+        @Override
+        public String getSQLPhrase(int phrase) {
+            switch (phrase) {
+                // store milliseconds within timestamp
+                // see http://empire-db.15390.n3.nabble.com/DBSequence-Table-and-PostGre-td925674.html
+                case SQL_DATETIME_PATTERN :
+                    return "yyyy-MM-dd HH:mm:ss.SSS";
+            }
+            return super.getSQLPhrase(phrase); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void getDDLScript(DBCmdType type, DBObject dbo, DBSQLScript script) {
+            if (ddlGenerator == null) {
+                ddlGenerator = new FixedPostgreDDLGenerator(this);
+            }
+            // forward request
+            ddlGenerator.getDDLScript(type, dbo, script);
+        }
+
+        @Override
+        protected String getSQLDateTimeString(Object value, int sqlTemplate, int sqlPattern, int sqlCurrentDate) {
+            if (value instanceof Timestamp && sqlPattern == SQL_DATETIME_PATTERN) {
+                // gets timestamp in full precision
+                // Postgres default timestamp precision is microseconds!
+                return '\'' +((Timestamp) value).toString() + '\'';
+            }
+            return super.getSQLDateTimeString(value, sqlTemplate, sqlPattern, sqlCurrentDate);
+        }
+
+        @Override
+        public Timestamp getUpdateTimestamp(Connection conn) {
+            return new Timestamp(System.currentTimeMillis());
+        }
+
+    }
+
+    /**
+     * The generator does not create a sequence for newly added table to existing database.
+     * {@code createDatabase} and {@code createTable} fix it.
+     *
+     * <p>For now the generator creates no sequence as they are produced by PostgreSql.
+     */
+    private static final class FixedPostgreDDLGenerator extends PostgreDDLGenerator {
+
+        private boolean isCreateDatabase;
+
+        public FixedPostgreDDLGenerator(DBDatabaseDriverPostgreSQL driver) {
+            super(driver);
+        }
+
+        @Override
+        protected void createDatabase(DBDatabase db, DBSQLScript script) {
+            isCreateDatabase = true;
+            try {
+                super.createDatabase(db, script);
+            } finally {
+                isCreateDatabase = false;
+            }
+        }
+
+        @Override
+        protected void createTable(DBTable t, DBSQLScript script) {
+            if (!isCreateDatabase) {
+                for (DBColumn c : t.getColumns()) {
+                    if (c.getDataType() == DataType.AUTOINC) {
+                        createSequence(t.getDatabase(), (DBTableColumn) c, script);
+                    }
+                }
+            }
+            super.createTable(t, script);
+        }
+
+        @Override
+        protected void createSequence(DBDatabase db, DBTableColumn c, DBSQLScript script) {
+            // PostgreSql creates sequences itself for SERIAL type.
+        }
+
+    }
+
+}

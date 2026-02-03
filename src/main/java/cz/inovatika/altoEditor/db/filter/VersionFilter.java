@@ -1,23 +1,29 @@
 package cz.inovatika.altoEditor.db.filter;
 
+import java.sql.Timestamp;
+
 /**
- * Represents a filter for querying users. Provides various parameters to
- * customize filtering criteria such as user id, login, ordering, and pagination options.
+ * Represents a filter used for querying or searching based on versioning-related criteria.
+ * Provides options to configure filters such as ID, version, date, ordering, offset, and limits.
+ * Instances of this class are immutable and can be built using the {@code Builder} inner class.
  */
-public final class UserFilter {
+public final class VersionFilter {
 
     public static final int DEFAULT_LIMIT = 1000;
     public static final int DEFAULT_OFFSET = 0;
 
     private Integer id = null;
-    private String login = null;
+    private Timestamp datum = null;
+    private Timestamp datumFrom = null;
+    private Timestamp datumTo = null;
+    private Integer version = null;
 
     private String orderBy;
     private String orderSort;
     private Integer limit = DEFAULT_LIMIT;
     private Integer offset = DEFAULT_OFFSET;
 
-    public UserFilter() {
+    public VersionFilter() {
     }
 
     public static Builder builder() {
@@ -28,8 +34,20 @@ public final class UserFilter {
         return id;
     }
 
-    public String getLogin() {
-        return login;
+    public Timestamp getDatum() {
+        return datum;
+    }
+
+    public Timestamp getDatumFrom() {
+        return datumFrom;
+    }
+
+    public Timestamp getDatumTo() {
+        return datumTo;
+    }
+
+    public Integer getVersion() {
+        return version;
     }
 
     public String getOrderBy() {
@@ -48,29 +66,12 @@ public final class UserFilter {
         return offset;
     }
 
-    public UserFilter setOrderBy(String orderBy) {
-        this.orderBy = orderBy;
-        return this;
-    }
-
-    public UserFilter setOrderSort(String orderSort) {
-        this.orderSort = orderSort;
-        return this;
-    }
-
-    public UserFilter setLimit(Integer limit) {
-        this.limit = limit;
-        return this;
-    }
-
-    public UserFilter setOffset(Integer offset) {
-        this.offset = offset;
-        return this;
-    }
-
     public static class Builder {
         private Integer id;
-        private String login;
+        private Timestamp datumFrom = null;
+        private Timestamp datumTo = null;
+        private Timestamp datum = null;
+        private Integer version = null;
         private String orderBy;
         private String orderSort;
         private Integer limit = DEFAULT_LIMIT;
@@ -84,8 +85,23 @@ public final class UserFilter {
             return this;
         }
 
-        public Builder login(String login) {
-            this.login = login;
+        public Builder datumFrom(Timestamp datumFrom) {
+            this.datumFrom = datumFrom;
+            return this;
+        }
+
+        public Builder datumTo(Timestamp datumTo) {
+            this.datumTo = datumTo;
+            return this;
+        }
+
+        public Builder datum(Timestamp datum) {
+            this.datum = datum;
+            return this;
+        }
+
+        public Builder version(Integer version) {
+            this.version = version;
             return this;
         }
 
@@ -123,10 +139,13 @@ public final class UserFilter {
             return this;
         }
 
-        public UserFilter build() {
-            UserFilter filter = new UserFilter();
+        public VersionFilter build() {
+            VersionFilter filter = new VersionFilter();
             filter.id = this.id;
-            filter.login = this.login;
+            filter.version = this.version;
+            filter.datum = this.datum;
+            filter.datumFrom = this.datumFrom;
+            filter.datumTo = this.datumTo;
             filter.orderBy = this.orderBy;
             filter.orderSort = this.orderSort;
             filter.limit = this.limit;

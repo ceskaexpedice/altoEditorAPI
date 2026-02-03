@@ -56,7 +56,8 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
             record.read(table, batch.getId(), connection);
         }
         batch.setUpdateDate(new Timestamp(System.currentTimeMillis()));
-        record.setBeanProperties(batch);
+
+        record = setBeanProperties(batch, record);
 
         try {
             record.update(connection);
@@ -84,7 +85,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         Objects.requireNonNull(filter, "filter must not be null");
 
         DBCommand cmd = database.createCommand();
-        cmd.select(table.id, table.pid, table.createDate, table.updateDate, table.state, table.substate, table.priority, table.type, table.instance, table.objectId, table.estimateItemNumber, table.log);
+        cmd.select(table.id, table.pid, table.createDate, table.updateDate, table.state, table.subState, table.priority, table.type, table.instance, table.objectId, table.estimateItemNumber, table.log);
         if (filter.getId() != null) {
             cmd.where(table.id.is(filter.getId()));
         }
@@ -94,8 +95,8 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         if (filter.getState() != null) {
             cmd.where(table.state.is(filter.getState()));
         }
-        if (filter.getSubstate() != null) {
-            cmd.where(table.substate.is(filter.getSubstate()));
+        if (filter.getSubState() != null) {
+            cmd.where(table.subState.is(filter.getSubState()));
         }
         if (filter.getPriority() != null) {
             cmd.where(table.priority.is(filter.getPriority()));
@@ -165,8 +166,8 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         if (filter.getState() != null) {
             cmd.where(table.state.is(filter.getState()));
         }
-        if (filter.getSubstate() != null) {
-            cmd.where(table.substate.is(filter.getSubstate()));
+        if (filter.getSubState() != null) {
+            cmd.where(table.subState.is(filter.getSubState()));
         }
         if (filter.getPriority() != null) {
             cmd.where(table.priority.is(filter.getPriority()));
@@ -218,6 +219,23 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         DBCommand cmd = database.createCommand();
         cmd.where(table.id.is(batchId));
         database.executeDelete(table, cmd, getConnection());
+    }
+
+    private DBRecord setBeanProperties(Batch batch, DBRecord record) {
+        if (batch != null) {
+            record.setValue(table.pid, batch.getPid());
+            record.setValue(table.state, batch.getState());
+            record.setValue(table.subState, batch.getSubState());
+            record.setValue(table.priority, batch.getPriority());
+            record.setValue(table.type, batch.getType());
+            record.setValue(table.instance, batch.getInstance());
+            record.setValue(table.objectId, batch.getObjectId());
+            record.setValue(table.estimateItemNumber, batch.getEstimateItemNumber());
+            record.setValue(table.log, batch.getLog());
+            return record;
+        } else {
+            return record;
+        }
     }
 
     private Optional<Batch> getBeanProperties(DBRecordData record, Batch existingBatch) {
