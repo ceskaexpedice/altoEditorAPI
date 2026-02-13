@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
+import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
@@ -14,7 +15,6 @@ import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
 import org.apache.empire.db.exceptions.QueryFailedException;
-import org.apache.empire.db.expr.compare.DBCompareExpr;
 import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -69,6 +69,7 @@ public class AltoEditorDatabase extends DBDatabase {
         public final DBTableColumn objectId;
         public final DBTableColumn estimateItemNumber;
         public final DBTableColumn log;
+        public final DBTableColumn ocrEngine;
 
         public BatchTable(DBDatabase db) {
             super("BATCH", db);
@@ -78,12 +79,13 @@ public class AltoEditorDatabase extends DBDatabase {
             updateDate = addColumn("UPDATE_DATE", DataType.TIMESTAMP, 0, true);
             state = addColumn("STATE", DataType.TEXT, 20, true);
             subState = addColumn("SUB_STATE", DataType.TEXT, 20, false);
-            priority = addColumn("PRIORITY", DataType.TEXT, 0, true);
+            priority = addColumn("PRIORITY", DataType.TEXT, 100, true);
             type = addColumn("TYPE", DataType.TEXT, 20, false);
             instance = addColumn("INSTANCE", DataType.TEXT, 20, false);;
             objectId = addColumn("OBJECT_ID", DataType.INTEGER, 2000, false);
             estimateItemNumber = addColumn("ESTIMATE_ITEM_NUMBER", DataType.INTEGER, 0, false);
             log = addColumn("LOG", DataType.CLOB, 0, false);
+            ocrEngine = addColumn("OCR_ENGINE", DataType.INTEGER, 0, false);
             setPrimaryKey(id);
             addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { id, pid, state});
         }
@@ -200,6 +202,14 @@ public class AltoEditorDatabase extends DBDatabase {
     private void upgradeDdl(AltoEditorDatabase schema, Connection conn) throws SQLException {
         try {
             conn.setAutoCommit(true);
+
+            DBDatabaseDriver driver = schema.getDriver();
+            DBSQLScript script = new DBSQLScript();
+
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.ocrEngine, script);
+
+            LOG.debug(script.toString());
+            script.executeAll(driver, conn);
 
             Statement statement = conn.createStatement();
             statement.addBatch("ALTER TABLE digitalobject RENAME COLUMN rUserId TO r_user_id");

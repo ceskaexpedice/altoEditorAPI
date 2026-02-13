@@ -1,6 +1,7 @@
 package cz.inovatika.altoEditor.db.filter;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * Represents a filter for querying users. Provides various parameters to
@@ -11,11 +12,11 @@ public final class DigitalObjectFilter {
     public static final int DEFAULT_LIMIT = 1000;
     public static final int DEFAULT_OFFSET = 0;
 
-    private Integer id;
+    private List<Integer> id;
     private Integer rUserId;
     private String login;
     private String instance;
-    private String pid;
+    private List<String> pid;
     private String label;
     private String parentPath;
     private String parentLabel;
@@ -38,7 +39,7 @@ public final class DigitalObjectFilter {
         return new Builder();
     }
 
-    public Integer getId() {
+    public List<Integer> getId() {
         return id;
     }
 
@@ -54,7 +55,7 @@ public final class DigitalObjectFilter {
         return instance;
     }
 
-    public String getPid() {
+    public List<String> getPid() {
         return pid;
     }
 
@@ -111,11 +112,11 @@ public final class DigitalObjectFilter {
     }
 
     public static class Builder {
-        private Integer id;
+        private List<Integer> id;
         private Integer rUserId;
         private String login;
         private String instance;
-        private String pid;
+        private List<String> pid;
         private String label;
         private String parentPath;
         private String parentLabel;
@@ -133,7 +134,7 @@ public final class DigitalObjectFilter {
         private Builder() {
         }
 
-        public Builder id(Integer id) {
+        public Builder id(List<Integer> id) {
             this.id = id;
             return this;
         }
@@ -153,7 +154,7 @@ public final class DigitalObjectFilter {
             return this;
         }
 
-        public Builder pid(String pid) {
+        public Builder pid(List<String> pid) {
             this.pid = pid;
             return this;
         }

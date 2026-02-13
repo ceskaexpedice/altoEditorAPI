@@ -6,13 +6,9 @@ import cz.inovatika.altoEditor.db.dao.DigitalObjectDao;
 import cz.inovatika.altoEditor.db.dao.Transaction;
 import cz.inovatika.altoEditor.db.filter.DigitalObjectFilter;
 import cz.inovatika.altoEditor.db.model.DigitalObject;
-import cz.inovatika.altoEditor.exception.AltoEditorException;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
-import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Const;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.text.ParseException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
@@ -131,7 +127,7 @@ public class DigitalObjectManager {
     }
 
     public List<DigitalObjectView> getDigitalObjectsWithMaxVersionByPid(String pid) {
-        DigitalObjectFilter filter = DigitalObjectFilter.builder().pid(pid).orderBy(Const.PARAM_DIGITAL_OBJECT_VERSION_XML).orderSort("desc").build();
+        DigitalObjectFilter filter = DigitalObjectFilter.builder().pid(pid == null ? Collections.emptyList() : List.of(pid)).orderBy(Const.PARAM_DIGITAL_OBJECT_VERSION_XML).orderSort("desc").build();
 
         List<DigitalObjectView> digitalObjectViews = findDigitalObject(filter);
 
@@ -146,9 +142,25 @@ public class DigitalObjectManager {
             }
         }
 
-        filter = DigitalObjectFilter.builder().pid(pid).version(String.valueOf(maxVersion)).build();
+        filter = DigitalObjectFilter.builder().pid(pid == null ? Collections.emptyList() : List.of(pid)).version(String.valueOf(maxVersion)).build();
 
         return findDigitalObject(filter);
 
+    }
+
+    public void deleteById(Integer digitalObjectId) {
+        Objects.requireNonNull(digitalObjectId, "digitalObjectId must not be null");
+
+        DigitalObjectDao dao = daos.createDigitalObjectDao();
+        Transaction tx = daos.createTransaction();
+
+        dao.setTransaction(tx);
+
+        try {
+            dao.deleteById(digitalObjectId);
+            tx.commit();
+        } finally {
+            tx.close();
+        }
     }
 }

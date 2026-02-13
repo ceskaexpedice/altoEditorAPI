@@ -5,7 +5,9 @@ import cz.inovatika.altoEditor.db.dao.DaoFactory;
 import cz.inovatika.altoEditor.db.empireDb.EmpireConfiguration;
 import cz.inovatika.altoEditor.db.empireDb.EmpireDaoFactory;
 import cz.inovatika.altoEditor.db.manager.BatchManager;
+import cz.inovatika.altoEditor.db.manager.DigitalObjectManager;
 import cz.inovatika.altoEditor.db.manager.UserManager;
+import cz.inovatika.altoEditor.db.manager.VersionManager;
 import cz.inovatika.altoEditor.process.FileGeneratorProcess;
 import cz.inovatika.altoEditor.process.ProcessDispatcher;
 import cz.inovatika.altoEditor.resource.DbResource;
@@ -160,19 +162,21 @@ public class AltoEditorInitializer {
         app.get(Const.PATH_ROOT, InfoResource::info);
         app.get(Const.PATH_APP, InfoResource::info);
         app.get(Const.PATH_INFO, InfoResource::info);
-        app.get(Const.PATH_DB, DbResource::showSchema);
-        app.post(Const.PATH_DB, DbResource::createSchema);
+//        app.get(Const.PATH_DB, DbResource::showSchema);
+//        app.post(Const.PATH_DB, DbResource::createSchema);
         app.get(Const.PATH_DB_VERSIONS, DbResource::getVersions);
         app.get(Const.PATH_DB_ACTUAL_VERSION, DbResource::getVersion);
         app.get(Const.PATH_DB_USERS, DbResource::getAllUsers);
         app.get(Const.PATH_DB_USER, DbResource::getUser);
-        app.post(Const.PATH_DB_USER, DbResource::createUser);
+//        app.post(Const.PATH_DB_USER, DbResource::createUser);
         app.put(Const.PATH_DB_USER, DbResource::updateUser);
         app.get(Const.PATH_DB_DIGITAL_OBJECTS, DbResource::getAllDigitalObjects);
         app.get(Const.PATH_DB_DIGITAL_OBJECT, DbResource::getUsersDigitalObjects);
         app.post(Const.PATH_DB_DIGITAL_OBJECT, DbResource::createDigitalObject);
         app.put(Const.PATH_DB_DIGITAL_OBJECT, DbResource::updateDigitalObject);
+        app.delete(Const.PATH_DB_DIGITAL_OBJECTS, DbResource::deleteDigitalObjects);
         app.get(Const.PATH_DB_BATCHES, DbResource::getBatches);
+        app.delete(Const.PATH_DB_BATCHES, DbResource::deleteBatches);
         app.get(Const.PATH_DB_BATCH, DbResource::getBatches);
         app.get(Const.PATH_DIGITAL_OBJECT_INFORMATION, DigitalObjectResource::getObjectInformation);
         app.get(Const.PATH_DIGITAL_OBJECT_IMAGE, DigitalObjectResource::getImage);
@@ -180,7 +184,8 @@ public class AltoEditorInitializer {
         app.get(Const.PATH_DIGITAL_OBJECT_ALTO_ORIGINAL, DigitalObjectResource::getAltoOriginal);
         app.get(Const.PATH_DIGITAL_OBJECT_OCR, DigitalObjectResource::getOcr);
         app.post(Const.PATH_DIGITAL_OBJECT_ALTO, DigitalObjectResource::updateAlto);
-        app.post(Const.PATH_DIGITAL_OBJECT_PERO_GENERATE, DigitalObjectResource::generatePero);
+        app.post(Const.PATH_DIGITAL_OBJECT_PERO, DigitalObjectResource::generatePero);
+        app.get(Const.PATH_DIGITAL_OBJECT_PERO, DigitalObjectResource::getPeroEngines);
         app.post(Const.PATH_DIGITAL_OBJECT_STATE_ACCEPTED, DigitalObjectResource::stateAccepted);
         app.post(Const.PATH_DIGITAL_OBJECT_STATE_REJECTED, DigitalObjectResource::stateRejected);
         app.post(Const.PATH_DIGITAL_OBJECT_UPLOAD_KRAMERIUS, DigitalObjectResource::uploadKramerius);
@@ -199,9 +204,11 @@ public class AltoEditorInitializer {
         DaoFactory factory = new EmpireDaoFactory(dbConfig);
         factory.init();
 
-        LOGGER.info("Connection to DB established.");
-
         BatchManager.setInstance(factory);
         UserManager.setInstance(factory);
+        DigitalObjectManager.setInstance(factory);
+        VersionManager.setInstance(factory);
+
+        LOGGER.info("Connection to DB established.");
     }
 }

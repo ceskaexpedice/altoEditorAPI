@@ -1,6 +1,7 @@
 package cz.inovatika.altoEditor.db.manager;
 
 import cz.inovatika.altoEditor.db.dao.DaoFactory;
+import cz.inovatika.altoEditor.db.dao.DigitalObjectDao;
 import cz.inovatika.altoEditor.db.dao.Transaction;
 import cz.inovatika.altoEditor.db.dao.BatchDao;
 import cz.inovatika.altoEditor.db.filter.BatchFilter;
@@ -49,12 +50,13 @@ public class BatchManager {
         this.daos = daos;
     }
 
-    public Batch addNewBatch(String pid, String priority, String instanceId, Integer dObjId) {
+    public Batch addNewBatch(String pid, String priority, String instanceId, Integer ocrEngine) {
         Batch batch = new Batch();
         batch.setPid(pid);
         batch.setPriority(priority);
         batch.setInstance(instanceId);
-        batch.setObjectId(dObjId);
+        batch.setOcrEngine(ocrEngine);
+        batch.setState(Const.BATCH_STATE_PLANNED);
 
         return updateBatch(batch);
     }
@@ -112,12 +114,14 @@ public class BatchManager {
     }
 
     public Batch startWaitingBatch(Batch batch) {
+        Objects.requireNonNull(batch, "batch must not be null");
         batch.setState(Const.BATCH_STATE_RUNNING);
 
         return updateBatch(batch);
     }
 
     public Batch setSubStateBatch(Batch batch, String subState) {
+        Objects.requireNonNull(batch, "batch must not be null");
         batch.setSubState(subState);
 
         return updateBatch(batch);
@@ -137,6 +141,8 @@ public class BatchManager {
     }
 
     public Batch finishedWithError(Batch batch, Throwable t) {
+        Objects.requireNonNull(batch, "batch must not be null");
+
         batch.setState(Const.BATCH_STATE_FAILED);
         batch.setLog(toString(t));
 
@@ -145,6 +151,7 @@ public class BatchManager {
 
     public Batch finishedSuccesfully(Batch batch) {
         batch.setState(Const.BATCH_STATE_DONE);
+        batch.setSubState(Const.BATCH_SUBSTATE_DONE);
 
         return updateBatch(batch);
     }
@@ -167,5 +174,21 @@ public class BatchManager {
             exception = exception.substring(0, 239);
         }
         return exception;
+    }
+
+    public void deleteById(Integer batchId) {
+        Objects.requireNonNull(batchId, "batchId must not be null");
+
+        BatchDao dao = daos.createBatchDao();
+        Transaction tx = daos.createTransaction();
+
+        dao.setTransaction(tx);
+
+        try {
+            dao.deleteById(batchId);
+            tx.commit();
+        } finally {
+            tx.close();
+        }
     }
 }

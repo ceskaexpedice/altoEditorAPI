@@ -1,7 +1,9 @@
 package cz.inovatika.altoEditor.process;
 
-import cz.inovatika.altoEditor.db.Manager;
-import cz.inovatika.altoEditor.db.models.Batch;
+import cz.inovatika.altoEditor.db.manager.BatchManager;
+import cz.inovatika.altoEditor.db.manager.DigitalObjectManager;
+import cz.inovatika.altoEditor.db.model.Batch;
+import cz.inovatika.altoEditor.db.model.DigitalObject;
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import cz.inovatika.altoEditor.kramerius.K7Downloader;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
@@ -32,7 +34,7 @@ public class FileGeneratorProcess implements Runnable {
     }
 
     public static void stopRunningBatches() throws SQLException {
-        Manager manager = new Manager();
+        BatchManager manager = BatchManager.getInstance();
         List<Batch> runningBatches = manager.findRunningBatches();
         for (Batch batch : runningBatches) {
             manager.finishedWithError(batch, new Exception("Application has been stopped."));
@@ -40,7 +42,7 @@ public class FileGeneratorProcess implements Runnable {
     }
 
     public static void stopAllBatches() throws SQLException {
-        Manager manager = new Manager();
+        BatchManager manager = BatchManager.getInstance();
         List<Batch> runningBatches = manager.findRunningBatches();
         for (Batch batch : runningBatches) {
             manager.finishedWithError(batch, new Exception("Application has been stopped."));
@@ -50,19 +52,6 @@ public class FileGeneratorProcess implements Runnable {
             manager.finishedWithError(batch, new Exception("Application has been stopped."));
         }
     }
-
-//    public static void resumeAll(ProcessDispatcher dispatcher) throws SQLException {
-//        Manager manager = new Manager();
-//        List<Batch> batches2schedule = manager.findWaitingBatches();
-//        for (Batch batch : batches2schedule) {
-//            try {
-//                FileGeneratorProcess resume = FileGeneratorProcess.resume(batch);
-//                dispatcher.addPeroProcess(resume);
-//            } catch (Exception ex) {
-//
-//            }
-//        }
-//    }
 
     private static FileGeneratorProcess resume(Batch batch, UserProfile userProfile) throws SQLException {
         FileGeneratorProcess process = FileGeneratorProcess.prepare(batch, userProfile);
@@ -90,24 +79,26 @@ public class FileGeneratorProcess implements Runnable {
         if (userProfile == null) {
             throw new IllegalStateException("UserProfile is null");
         }
+        BatchManager batchManager = BatchManager.getInstance();
+        DigitalObjectManager digitalObjectManager = DigitalObjectManager.getInstance();
         try {
-            batch = Manager.startWaitingBatch(batch);
+            batch = batchManager.startWaitingBatch(batch);
 
             K7Downloader downloader = new K7Downloader();
-            batch = Manager.setSubStateBatch(batch, Const.BATCH_SUBSTATE_DOWNLOADING);
+            batch = batchManager.setSubStateBatch(batch, Const.BATCH_SUBSTATE_DOWNLOADING);
             File folder = downloader.saveImage(batch.getPid(), batch.getInstance(), userProfile);
-            batch = Manager.updateInfoBatch(batch, folder);
+            batch = batchManager.updateInfoBatch(batch, folder);
             PeroOperator operator = new PeroOperator();
-            batch = Manager.setSubStateBatch(batch, Const.BATCH_SUBSTATE_GENERATING);
-            PeroOperator.Result result = operator.generate(folder);
+            batch = batchManager.setSubStateBatch(batch, Const.BATCH_SUBSTATE_GENERATING);
+            PeroOperator.Result result = operator.generate(folder, batch.getOcrEngine());
             if (result.getException() != null) {
-                batch = Manager.finishedWithError(batch, result.getException());
+                batch = batchManager.finishedWithError(batch, result.getException());
                 throw result.getException();
             }
             if (Const.BATCH_TYPE_SINGLE.equals(batch.getType())) {
                 File altoFile = getAltoFile(folder);
                 if (altoFile != null) {
-                    batch = Manager.setSubStateBatch(batch, Const.BATCH_SUBSTATE_SAVING);
+                    batch = batchManager.setSubStateBatch(batch, Const.BATCH_SUBSTATE_SAVING);
                     AkubraStorage storage = AkubraStorage.getInstance();
                     AkubraStorage.AkubraObject akubraObject = storage.find(batch.getPid());
                     AltoDatastreamEditor.importAlto(akubraObject, altoFile.toURI(), "ALTO updated by PERO.", AltoDatastreamEditor.ALTO_ID + ".1");
@@ -115,21 +106,24 @@ public class FileGeneratorProcess implements Runnable {
                     deleteFolder(folder);
                     if (batch.getObjectId() == null || batch.getObjectId() == 0) {
                         UserProfile tmpUser = new UserProfile(Const.USER_PERO, userProfile.getToken());
-                        Manager.createDigitalObject(tmpUser, batch.getPid(), AltoDatastreamEditor.ALTO_ID + ".1", batch.getInstance(), Const.DIGITAL_OBJECT_STATE_GENERATED);
+                        digitalObjectManager.addNewDigitalObject(tmpUser.getUsername(), batch.getPid(), AltoDatastreamEditor.ALTO_ID + ".1", batch.getInstance(), Const.DIGITAL_OBJECT_STATE_GENERATED);
                     } else {
-                        Manager.updateDigitalObjectWithState(batch.getObjectId(), Const.DIGITAL_OBJECT_STATE_GENERATED);
+                        DigitalObject digitalObject = digitalObjectManager.getDigitalObject(batch.getObjectId());
+                        digitalObject.setState(Const.DIGITAL_OBJECT_STATE_GENERATED);
+                        digitalObjectManager.updateDigitalObject(digitalObject);
+
                     }
-                    batch = Manager.finishedSuccesfully(batch);
+                    batch = batchManager.finishedSuccesfully(batch);
                 } else {
-                    batch = Manager.finishedWithError(batch, new Exception("Alto file is missing!"));
+                    batch = batchManager.finishedWithError(batch, new Exception("Alto file is missing!"));
                 }
             } else {
-                Manager.finishedSuccesfully(batch);
+                batchManager.finishedSuccesfully(batch);
             }
             return batch;
         } catch (Throwable t) {
             t.printStackTrace();
-            return Manager.finishedWithError(batch, t);
+            return batchManager.finishedWithError(batch, t);
         }
     }
 

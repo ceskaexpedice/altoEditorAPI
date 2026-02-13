@@ -1,18 +1,23 @@
 package cz.inovatika.altoEditor.resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import cz.inovatika.altoEditor.db.Manager;
 import cz.inovatika.altoEditor.db.filter.BatchFilter;
+import cz.inovatika.altoEditor.db.filter.DigitalObjectFilter;
 import cz.inovatika.altoEditor.db.filter.UserFilter;
+import cz.inovatika.altoEditor.db.filter.VersionFilter;
 import cz.inovatika.altoEditor.db.manager.BatchManager;
+import cz.inovatika.altoEditor.db.manager.DigitalObjectManager;
 import cz.inovatika.altoEditor.db.manager.UserManager;
+import cz.inovatika.altoEditor.db.manager.VersionManager;
 import cz.inovatika.altoEditor.db.model.Batch;
+import cz.inovatika.altoEditor.db.model.DigitalObject;
 import cz.inovatika.altoEditor.db.model.User;
 import cz.inovatika.altoEditor.db.model.Version;
 import cz.inovatika.altoEditor.exception.RequestException;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.response.AltoEditorResponse;
 import cz.inovatika.altoEditor.server.AltoEditorInitializer;
+import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
 import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Const;
 import io.javalin.http.Context;
@@ -22,62 +27,30 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import javax.ws.rs.BadRequestException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jetty.server.Authentication;
+import org.jetbrains.annotations.NotNull;
 
 import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_FORBIDDEN;
 import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_UNAUTHORIZED;
 import static cz.inovatika.altoEditor.user.UserUtils.getToken;
 import static cz.inovatika.altoEditor.user.UserUtils.getUserProfile;
-import static cz.inovatika.altoEditor.utils.Const.DEFAULT_RESOURCE_SQL;
-import static cz.inovatika.altoEditor.utils.Utils.getBooleanNodeValue;
 import static cz.inovatika.altoEditor.utils.Utils.getIntegerNodeValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptIntegerRequestValue;
+import static cz.inovatika.altoEditor.utils.Utils.getOptListIntegerRequestValue;
+import static cz.inovatika.altoEditor.utils.Utils.getOptListStringRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptStringRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptTimeStampRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.getStringNodeValue;
-import static cz.inovatika.altoEditor.utils.Utils.readFile;
-import static cz.inovatika.altoEditor.utils.Utils.setContext;
 import static cz.inovatika.altoEditor.utils.Utils.setResult;
 
 public class DbResource {
 
     private static final Logger LOGGER = LogManager.getLogger(DbResource.class.getName());
-
-    public static void showSchema(Context context) {
-        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
-            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
-            return;
-        }
-        try {
-            InputStream resource = readFile(DEFAULT_RESOURCE_SQL);
-            setContext(context, null);
-            context.result(resource);
-        } catch (IOException ex) {
-            setResult(context, AltoEditorResponse.asError(ex));
-        }
-    }
-
-    // TODO
-    public static void createSchema(Context context) {
-        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
-            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
-            return;
-        }
-        try {
-            JsonNode node = AltoEditorInitializer.mapper.readTree(context.body());
-            boolean update = getBooleanNodeValue(node, "update");
-            if (update) {
-                setResult(context, new AltoEditorResponse("SQL script executed successfully."));
-            } else {
-                showSchema(context);
-            }
-        } catch (Exception ex) {
-            setResult(context, AltoEditorResponse.asError(ex));
-        }
-    }
 
     public static void getVersions(Context context) {
         if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
@@ -85,7 +58,10 @@ public class DbResource {
             return;
         }
         try {
-            List<Version> versionList = Manager.getAllVersions();
+            VersionManager versionManager = VersionManager.getInstance();
+            VersionFilter filter = VersionFilter.builder().orderBy("id").orderSort("desc").build();
+
+            List<Version> versionList = versionManager.findVersion(filter);
             setResult(context, new AltoEditorResponse(versionList));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -98,7 +74,12 @@ public class DbResource {
             return;
         }
         try {
-            Version version = Manager.getActualVersion();
+            VersionManager versionManager = VersionManager.getInstance();
+            VersionFilter filter = VersionFilter.builder().orderBy("id").orderSort("desc").limit(1).build();
+
+            List<Version> versionList = versionManager.findVersion(filter);
+            Version version = versionList.get(0)
+                    ;
             setResult(context, new AltoEditorResponse(version));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -203,7 +184,7 @@ public class DbResource {
                 if (!(Const.PARAM_BATCH_ID.equals(orderBy) || Const.PARAM_BATCH_PID.equals(orderBy) || Const.PARAM_BATCH_CREATE_DATE.equals(orderBy)
                         || Const.PARAM_BATCH_UPDATE_DATE.equals(orderBy) || Const.PARAM_BATCH_STATE.equals(orderBy) || Const.PARAM_BATCH_SUBSTATE.equals(orderBy)
                         || Const.PARAM_BATCH_PRIORITY.equals(orderBy) || Const.PARAM_BATCH_TYPE.equals(orderBy) || Const.PARAM_BATCH_INSTANCE.equals(orderBy)
-                        || Const.PARAM_BATCH_ESTIMATE_ITEM_NUMBER.equals(orderBy) || Const.PARAM_BATCH_LOG.equals(orderBy))) {
+                        || Const.PARAM_BATCH_ESTIMATE_ITEM_NUMBER.equals(orderBy) || Const.PARAM_BATCH_LOG.equals(orderBy) || Const.PARAM_BATCH_OCR_ENGINE.equals(orderBy))) {
                     throw new RequestException(Const.PARAM_ORDER_BY, String.format("Unsupported param \"%s\".", orderBy));
                 }
             }
@@ -245,13 +226,14 @@ public class DbResource {
             String instanceId = getOptStringRequestValue(context, Const.PARAM_BATCH_INSTANCE);
             Integer estimateItemNumber = getOptIntegerRequestValue(context, Const.PARAM_BATCH_ESTIMATE_ITEM_NUMBER);
             String log = getOptStringRequestValue(context, Const.PARAM_BATCH_LOG);
+            Integer ocrEngine = getOptIntegerRequestValue(context, Const.PARAM_BATCH_OCR_ENGINE);
 
             String orderBy = getOptStringRequestValue(context, Const.PARAM_ORDER_BY);
             if (orderBy != null) {
                 if (!(Const.PARAM_BATCH_ID.equals(orderBy) || Const.PARAM_BATCH_PID.equals(orderBy) || Const.PARAM_BATCH_CREATE_DATE.equals(orderBy)
                         || Const.PARAM_BATCH_UPDATE_DATE.equals(orderBy) || Const.PARAM_BATCH_STATE.equals(orderBy) || Const.PARAM_BATCH_SUBSTATE.equals(orderBy)
                         || Const.PARAM_BATCH_PRIORITY.equals(orderBy) || Const.PARAM_BATCH_TYPE.equals(orderBy) || Const.PARAM_BATCH_INSTANCE.equals(orderBy)
-                        || Const.PARAM_BATCH_ESTIMATE_ITEM_NUMBER.equals(orderBy) || Const.PARAM_BATCH_LOG.equals(orderBy))) {
+                        || Const.PARAM_BATCH_ESTIMATE_ITEM_NUMBER.equals(orderBy) || Const.PARAM_BATCH_LOG.equals(orderBy) || Const.PARAM_BATCH_OCR_ENGINE.equals(orderBy))) {
                     throw new RequestException(Const.PARAM_ORDER_BY, String.format("Unsupported param \"%s\".", orderBy));
                 }
             }
@@ -273,10 +255,12 @@ public class DbResource {
 
             BatchManager batchManager = BatchManager.getInstance();
             BatchFilter filter = BatchFilter.builder()
-                    .id(id).pid(pid)
+                    .id(id == null ? Collections.emptyList() : List.of(id))
+                    .pid(pid == null ? Collections.emptyList() : List.of(pid))
                     .createDateFrom(createDateFrom).createDateTo(createDateTo).createDate(createDate)
                     .updateDateFrom(updateDateFrom).updateDateTo(updateDateTo).updateDate(updateDate)
-                    .state(state).substate(substate).priority(priority).type(type).instance(instanceId).estimateItemNumber(estimateItemNumber).log(log)
+                    .state(state).subState(substate).priority(priority).type(type).instance(instanceId)
+                    .estimateItemNumber(estimateItemNumber).log(log).ocrEngine(ocrEngine)
                     .orderBy(orderBy).orderSort(orderSort).limit(limit).offset(offset)
                     .build();
             int totalCount = batchManager.getBatchesCount(filter);
@@ -309,12 +293,14 @@ public class DbResource {
         }
         UserProfile userProfile = getUserProfile(getToken(context));
         try {
-            String id = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_ID);
-            String rUserId = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_RUSERID);
+            Integer id = getOptIntegerRequestValue(context, Const.PARAM_DIGITAL_OBJECT_ID);
+            Integer rUserId = getOptIntegerRequestValue(context, Const.PARAM_DIGITAL_OBJECT_RUSERID);
             String instance = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
             String pid = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
             String versionXml = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_VERSION_XML);
-            String datum = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_DATUM);
+            Timestamp datumFrom = getOptTimeStampRequestValue(context, Const.PARAM_DIGITAL_OBJECT_DATUM_FROM);
+            Timestamp datumTo = getOptTimeStampRequestValue(context, Const.PARAM_DIGITAL_OBJECT_DATUM_TO);
+            Timestamp datum = getOptTimeStampRequestValue(context, Const.PARAM_DIGITAL_OBJECT_DATUM);
             String state = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_STATE);
             String label = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_LABEL);
             String parentLabel = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_LABEL);
@@ -346,9 +332,18 @@ public class DbResource {
             if (offset == null || offset < 0) {
                 offset = 0;
             }
-            int totalCount = Manager.getDigitalObjectsCount(id, rUserId, instance, pid, versionXml, datum, state, label, parentLabel, parentPath, login);
-            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(id, rUserId, instance, pid, versionXml,
-                    datum, state, label, parentLabel, parentPath, login, orderBy, orderSort, limit, offset);
+            DigitalObjectManager digitalObjectManager = DigitalObjectManager.getInstance();
+            DigitalObjectFilter filter = DigitalObjectFilter.builder()
+                    .id(id == null ? Collections.emptyList() : List.of(id))
+                    .pid(pid == null ? Collections.emptyList() : List.of(pid))
+                    .rUserId(rUserId).instance(instance).version(versionXml)
+                    .datumFrom(datumFrom).datumTo(datumTo).datum(datum).state(state).label(label)
+                    .parentLabel(parentLabel).parentPath(parentPath).login(login)
+                    .orderBy(orderBy).orderSort(orderSort).limit(limit).offset(offset).build();
+
+            int totalCount = digitalObjectManager.getDigitalObjectsCount(filter);
+            List<DigitalObjectView> digitalObjects = digitalObjectManager.findDigitalObject(filter);
+
             setResult(context, new AltoEditorResponse(digitalObjects, offset, totalCount));
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
@@ -362,12 +357,14 @@ public class DbResource {
         }
         UserProfile userProfile = getUserProfile(getToken(context));
         try {
-            String id = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_ID);
-            String rUserId = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_RUSERID);
+            Integer id = getOptIntegerRequestValue(context, Const.PARAM_DIGITAL_OBJECT_ID);
+            Integer rUserId = getOptIntegerRequestValue(context, Const.PARAM_DIGITAL_OBJECT_RUSERID);
             String instance = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
             String pid = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
             String versionXml = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_VERSION_XML);
-            String datum = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_DATUM);
+            Timestamp datumFrom = getOptTimeStampRequestValue(context, Const.PARAM_DIGITAL_OBJECT_DATUM_FROM);
+            Timestamp datumTo = getOptTimeStampRequestValue(context, Const.PARAM_DIGITAL_OBJECT_DATUM_TO);
+            Timestamp datum = getOptTimeStampRequestValue(context, Const.PARAM_DIGITAL_OBJECT_DATUM);
             String state = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_STATE);
             String label = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_LABEL);
             String parentLabel = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_LABEL);
@@ -399,9 +396,19 @@ public class DbResource {
             if (offset == null || offset < 0) {
                 offset = 0;
             }
-            int totalCount = Manager.getDigitalObjectsCount(id, rUserId, instance, pid, versionXml, datum, state, label, parentLabel, parentPath, userProfile.getUsername());
-            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(id, rUserId, instance, pid, versionXml,
-                    datum, state, label, parentLabel, parentPath, userProfile.getUsername(), orderBy, orderSort, limit, offset);
+            DigitalObjectManager digitalObjectManager = DigitalObjectManager.getInstance();
+
+            DigitalObjectFilter filter = DigitalObjectFilter.builder()
+                    .id(id == null ? Collections.emptyList() : List.of(id))
+                    .pid(pid == null ? Collections.emptyList() : List.of(pid))
+                    .rUserId(rUserId).instance(instance).version(versionXml)
+                    .datumFrom(datumFrom).datumTo(datumTo).datum(datum).state(state).label(label)
+                    .parentLabel(parentLabel).parentPath(parentPath).login(userProfile.getUsername())
+                    .orderBy(orderBy).orderSort(orderSort).limit(limit).offset(offset).build();
+
+            int totalCount = digitalObjectManager.getDigitalObjectsCount(filter);
+            List<DigitalObjectView> digitalObjects = digitalObjectManager.findDigitalObject(filter);
+
             setResult(context, new AltoEditorResponse(digitalObjects, offset, totalCount));
 
         } catch (Exception ex) {
@@ -421,15 +428,16 @@ public class DbResource {
             String version = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_VERSION_XML);
             String instance = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
 
-            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(userProfile.getUsername(), pid);
+            DigitalObjectManager digitalObjectManager = DigitalObjectManager.getInstance();
+            DigitalObjectFilter filter = DigitalObjectFilter.builder().login(userProfile.getUsername()).pid(pid == null ? Collections.emptyList() : List.of(pid)).build();
+            List<DigitalObjectView> digitalObjects = digitalObjectManager.findDigitalObject(filter);
             if (digitalObjects != null && !digitalObjects.isEmpty()) {
                 throw new IOException(String.format("User login \"%s\" already exists.", userProfile.getUsername()));
             } else {
-
-                Manager.createDigitalObject(userProfile, pid, version, instance);
-                digitalObjects = Manager.getDigitalObjects(userProfile.getUsername(), pid);
+                digitalObjectManager.addNewDigitalObject(userProfile.getUsername(), pid, version, instance);
+                digitalObjects = digitalObjectManager.findDigitalObject(filter);
                 if (digitalObjects == null && digitalObjects.isEmpty()) {
-                    throw new IOException(String.format("Digital object login \"%s\" and \"%s\" doees not exists.", userProfile.getUsername(), pid));
+                    throw new IOException(String.format("Digital object with login \"%s\" and \"%s\" does not exists.", userProfile.getUsername(), pid));
                 } else if (digitalObjects.size() > 1) {
                     throw new IOException(String.format("There are more than 1 record with login \"%s\" and \"%s\" doees not exists.", userProfile.getUsername(), pid));
                 } else {
@@ -452,17 +460,123 @@ public class DbResource {
             String pid = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_PID);
             String version = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_VERSION_XML);
 
-            List<DigitalObjectView> digitalObjects = Manager.getDigitalObjects(userProfile.getUsername(), pid);
+            DigitalObjectManager digitalObjectManager = DigitalObjectManager.getInstance();
+            DigitalObjectFilter filter = DigitalObjectFilter.builder().login(userProfile.getUsername()).pid(pid == null ? Collections.emptyList() : List.of(pid)).build();
+            List<DigitalObjectView> digitalObjects = digitalObjectManager.findDigitalObject(filter);
+
             if (digitalObjects == null && digitalObjects.isEmpty()) {
                 throw new IOException(String.format("Digital object login \"%s\" and \"%s\" does not exists.", userProfile.getUsername(), pid));
             } else if (digitalObjects.size() > 1) {
                 throw new IOException(String.format("There are more than 1 record with login \"%s\" and \"%s\" doees not exists.", userProfile.getUsername(), pid));
             } else {
-                DigitalObjectView digitalObject = digitalObjects.get(0);
-                Manager.updateDigitalObject(digitalObject.getId(), version);
-                digitalObject = Manager.getDigitalObjectById(digitalObject.getId());
-                setResult(context, new AltoEditorResponse(digitalObject));
+
+                DigitalObject object = digitalObjectManager.getDigitalObject(digitalObjects.get(0).getId());
+                object.setVersion(version);
+
+                object = digitalObjectManager.updateDigitalObject(object);
+
+                setResult(context, new AltoEditorResponse(object));
             }
+        } catch (Exception ex) {
+            setResult(context, AltoEditorResponse.asError(ex));
+        }
+    }
+
+    public static void deleteDigitalObjects(@NotNull Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
+
+        try {
+            List<Integer> ids = getOptListIntegerRequestValue(context, Const.PARAM_DIGITAL_OBJECT_ID);
+            List<String> pids = getOptListStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
+
+            if (ids.isEmpty() && pids.isEmpty()) {
+                throw new BadRequestException(String.format("PID or ID must be filled."));
+            }
+
+            DigitalObjectManager manager = DigitalObjectManager.getInstance();
+            BatchManager batchmanager = BatchManager.getInstance();
+
+            DigitalObjectFilter filter = DigitalObjectFilter.builder().id(ids).pid(pids).build();
+            List<DigitalObjectView> digitalObjects = manager.findDigitalObject(filter);
+
+            AkubraStorage storage = AkubraStorage.getInstance();
+
+            if (digitalObjects.isEmpty()) {
+                throw new BadRequestException("No digital objects found for given id/pid");
+            }
+
+            for (DigitalObjectView digitalObject : digitalObjects) {
+
+                BatchFilter batchFilter = BatchFilter.builder().pid(digitalObject.getPid() == null ? Collections.emptyList() : List.of(digitalObject.getPid())).build();
+                List<Batch> batches = batchmanager.findBatch(batchFilter);
+
+                for (Batch batch : batches) {
+                    try {
+                        batchmanager.deleteById(batch.getId());
+                    } catch (Exception e) {
+                        LOGGER.warn("Failed to delete batch " + batch.getId() + ": " + e.getMessage());
+                    }
+                }
+
+                AkubraStorage.AkubraObject object = storage.find(digitalObject.getPid());
+                if (object != null) {
+                    try {
+                        object.purge("Deleted by user " + userProfile.getUsername());
+                        object.flush();
+                    } catch (Exception e) {
+                        LOGGER.warn("Failed to purge storage object " + digitalObject.getPid() + ": " + e.getMessage());
+                    }
+                } else {
+                    // log info, storage neexistuje
+                    LOGGER.warn("Storage object not found for pid: " + digitalObject.getPid());
+                }
+
+                    manager.deleteById(digitalObject.getId());
+            }
+            setResult(context, "OK");
+        } catch (Exception ex) {
+            setResult(context, AltoEditorResponse.asError(ex));
+        }
+    }
+
+    public static void deleteBatches(@NotNull Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
+
+        try {
+            List<Integer> ids = getOptListIntegerRequestValue(context, Const.PARAM_BATCH_ID);
+            List<String> pids = getOptListStringRequestValue(context, Const.PARAM_BATCH_PID);
+
+            if (ids.isEmpty() && pids.isEmpty()) {
+                throw new BadRequestException(String.format("PID or ID must be filled."));
+            }
+
+            BatchManager batchmanager = BatchManager.getInstance();
+
+            BatchFilter filter = BatchFilter.builder().id(ids).pid(pids).build();
+            List<Batch> batches = batchmanager.findBatch(filter);
+
+
+            if (batches.isEmpty()) {
+                throw new BadRequestException("No batches found for given id/pid");
+            }
+
+            for (Batch batch : batches) {
+                try {
+                    batchmanager.deleteById(batch.getId());
+                } catch (Exception e) {
+                    LOGGER.warn("Failed to delete batch " + batch.getId() + ": " + e.getMessage());
+                }
+            }
+
+            setResult(context, "OK");
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
         }

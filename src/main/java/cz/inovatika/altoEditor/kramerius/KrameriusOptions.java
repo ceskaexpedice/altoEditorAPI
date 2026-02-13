@@ -12,6 +12,14 @@ public class KrameriusOptions {
 
     private static final Logger LOGGER = LogManager.getLogger(KrameriusOptions.class.getName());
 
+    public static final String KRAMERIUS_PROCESS_FINISHED = "FINISHED";
+    public static final String KRAMERIUS_PROCESS_WARNING = "WARNING";
+    public static final String KRAMERIUS_PROCESS_FAILED = "FAILED";
+    public static final String KRAMERIUS_PROCESS_ERROR = "ERROR";
+    public static final String KRAMERIUS_PROCESS_PLANNED = "PLANNED";
+    public static final String KRAMERIUS_PROCESS_RUNNING = "RUNNING";
+
+
     private List<KrameriusInstance> krameriusInstances;
 
     public static KrameriusOptions get() {

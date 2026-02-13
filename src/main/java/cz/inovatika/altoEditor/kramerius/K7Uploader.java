@@ -13,6 +13,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
@@ -23,6 +24,8 @@ import org.json.JSONObject;
 
 import static cz.inovatika.altoEditor.kramerius.KrameriusOptions.findKrameriusInstance;
 import static cz.inovatika.altoEditor.utils.OcrUtils.createOcrFromAlto;
+import static java.net.HttpURLConnection.HTTP_ACCEPTED;
+import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_OK;
 
@@ -30,7 +33,7 @@ public class K7Uploader {
 
     private static final Logger LOGGER = LogManager.getLogger(K7Uploader.class.getName());
 
-    public void uploadAltoOcr(String pid, String versionId, String instanceId, UserProfile userProfile) throws IOException, AltoEditorException {
+    public void uploadAltoOcr(String pid, String versionId, String instanceId, UserProfile userProfile) throws IOException, AltoEditorException, InterruptedException {
         String alto = getAltoFromRepository(pid, versionId);
         if (alto == null || alto.isEmpty()) {
             throw new AltoEditorException(alto, "Alto to upload is null or empty");
@@ -47,6 +50,9 @@ public class K7Uploader {
 
         uploadStream(instance, userProfile.getToken(), pid, Const.DATASTREAM_TYPE_ALTO, alto);
         uploadStream(instance, userProfile.getToken(), pid, Const.DATASTREAM_TYPE_OCR, ocr);
+
+        K7Indexer k7Indexer = new K7Indexer();
+        k7Indexer.indexDocument(instance, userProfile.getToken(), pid);
     }
 
     private void uploadStream(KrameriusOptions.KrameriusInstance instance, String token, String pid, String stream, String content) throws IOException {
@@ -64,23 +70,32 @@ public class K7Uploader {
         httpPut.setHeader(new BasicHeader("Accept-Language", "cs,en;q=0.9,de;q=0.8,cs-CZ;q=0.7,sk;q=0.6"));
         httpPut.setHeader(new BasicHeader("Content-Type", Const.MIMETYPE_MAP.get(stream)));
 
-        StringEntity body = new StringEntity(content, StandardCharsets.UTF_8.name());
-        body.setContentType(Const.MIMETYPE_MAP.get(stream));
-        body.setContentEncoding(StandardCharsets.UTF_8.name());
-        httpPut.setEntity(body);
+        ByteArrayEntity entity = new ByteArrayEntity(content.getBytes(StandardCharsets.UTF_8));
+        httpPut.setEntity(entity);
 
         HttpResponse response = httpClient.execute(httpPut);
-        operateResponse(response, stream);
+        operateResponse(pid, stream, response);
     }
 
     private String getUrlUploadStream(KrameriusOptions.KrameriusInstance instance, String pid, String stream) {
         return Config.getKrameriusInstanceUrl(instance.getId()) + Config.getKrameriusInstanceUrlUploadStream(instance.getId()) + pid + "/akubra/updateManaged/" + stream;
     }
 
-    private void operateResponse(HttpResponse response, String stream) throws IOException {
-        if (HTTP_OK == response.getStatusLine().getStatusCode()) {
-            LOGGER.debug(String.format("Http response Uploaded %s success", stream));
-            return;
+    private void operateResponse(String pid, String stream, HttpResponse response) throws IOException {
+        if (HTTP_OK == response.getStatusLine().getStatusCode() || HTTP_CREATED == response.getStatusLine().getStatusCode() || HTTP_ACCEPTED == response.getStatusLine().getStatusCode()) {
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                String result = EntityUtils.toString(response.getEntity());
+                if (result != null && result.isEmpty()) {
+                    LOGGER.info(pid + "/" + stream + " - Uploaded to Kramerius ");
+                } else {
+                    LOGGER.warn("Created Importing process, but unexpected response." + result);
+                    throw new IOException("Created Importing process, but unexpected response." + result);
+                }
+            } else {
+                LOGGER.warn("Get response but entity is null");
+                throw new IOException("Get response but entity is null");
+            }
         } else if (HTTP_INTERNAL_ERROR == response.getStatusLine().getStatusCode()) {
             LOGGER.warn(String.format("Uploading %s ended with code %s.", stream, response.getStatusLine().getStatusCode()));
             HttpEntity entity = response.getEntity();

@@ -3,6 +3,7 @@ package cz.inovatika.altoEditor.user;
 import cz.inovatika.altoEditor.kramerius.K7UserInfo;
 import cz.inovatika.altoEditor.utils.Config;
 import cz.inovatika.altoEditor.utils.Const;
+import io.javalin.http.servlet.JavalinServletContext;
 import java.io.IOException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -54,6 +54,7 @@ public class Config {
     private static final String PROP_PROCESSOR_PERO_ARG = "processor.pero.arg";
     private static final String PROP_PROCESSOR_PERO_TIMEOUT = "processor.pero.timeout";
     private static final String PROP_PROCESSOR_PERO_KEY = "processor.pero.key";
+    private static final String PROP_PROCESSOR_PERO_URL = "processor.pero.url";
 
 
     public static final String getVersion() {
@@ -143,7 +144,7 @@ public class Config {
         return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_TYPE);
     }
 
-    @Deprecated
+    @Deprecated //TODO check
     public static final String getKrameriusInstanceUrlParametrizedImportQuery(String instance) {
         return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_PARAMETRIZED_IMPORT_QUERY, "/search/api/admin/v7.0/processes");
     }
@@ -152,7 +153,7 @@ public class Config {
         return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_IMAGE, "/search/api/client/v7.0/items/");
     }
 
-    @Deprecated
+    @Deprecated //TODO check
     public static final String getKrameriusInstanceUrlStateQuery(String instance) {
         return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_STATE_QUERY, "/search/api/admin/v7.0/processes/by_process_uuid/");
     }
@@ -218,6 +219,10 @@ public class Config {
 
     public static final String getProcessorPeroKey() {
         return Configurator.get().getConfig().getString(PROP_PROCESSOR_PERO_KEY);
+    }
+
+    public static final String getProcessorPeroUrl() {
+        return (String) getDefault(PROP_PROCESSOR_PERO_URL, "https://pero-ocr.fit.vutbr.cz/api/");
     }
 
     public static final String getPermissionEditor() {

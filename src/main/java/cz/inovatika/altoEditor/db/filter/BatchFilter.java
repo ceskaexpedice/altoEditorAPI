@@ -1,6 +1,7 @@
 package cz.inovatika.altoEditor.db.filter;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * Represents a filter used to apply various constraints or parameters
@@ -13,8 +14,8 @@ public final class BatchFilter {
     public static final int DEFAULT_LIMIT = 1000;
     public static final int DEFAULT_OFFSET = 0;
 
-    private Integer id;
-    private String pid;
+    private List<Integer> id;
+    private List<String> pid;
     private Timestamp createDateFrom;
     private Timestamp createDateTo;
     private Timestamp createDate;
@@ -29,6 +30,7 @@ public final class BatchFilter {
     private Integer objectId;
     private Integer estimateItemNumber;
     private String log;
+    private Integer ocrEngine;
 
     private String orderBy;
     private String orderSort;
@@ -42,11 +44,11 @@ public final class BatchFilter {
         return new Builder();
     }
 
-    public Integer getId() {
+    public List<Integer> getId() {
         return id;
     }
 
-    public String getPid() {
+    public List<String> getPid() {
         return pid;
     }
 
@@ -106,6 +108,10 @@ public final class BatchFilter {
         return log;
     }
 
+    public Integer getOcrEngine() {
+        return ocrEngine;
+    }
+
     public String getOrderBy() {
         return orderBy;
     }
@@ -123,8 +129,8 @@ public final class BatchFilter {
     }
 
     public static class Builder {
-        private Integer id;
-        private String pid;
+        private List<Integer> id;
+        private List<String> pid;
         private Timestamp createDateFrom;
         private Timestamp createDateTo;
         private Timestamp createDate;
@@ -139,6 +145,7 @@ public final class BatchFilter {
         private Integer objectId;
         private Integer estimateItemNumber;
         private String log;
+        private Integer ocrEngine;
         private String orderBy;
         private String orderSort;
         private Integer limit = DEFAULT_LIMIT;
@@ -147,12 +154,12 @@ public final class BatchFilter {
         private Builder() {
         }
 
-        public Builder id(Integer id) {
+        public Builder id(List<Integer> id) {
             this.id = id;
             return this;
         }
 
-        public Builder pid(String pid) {
+        public Builder pid(List<String> pid) {
             this.pid = pid;
             return this;
         }
@@ -227,6 +234,11 @@ public final class BatchFilter {
             return this;
         }
 
+        public Builder ocrEngine(Integer ocrEngine) {
+            this.ocrEngine = ocrEngine;
+            return this;
+        }
+
         public Builder orderBy(String orderBy) {
             this.orderBy = orderBy;
             return this;
@@ -279,6 +291,7 @@ public final class BatchFilter {
             filter.objectId = this.objectId;
             filter.estimateItemNumber = this.estimateItemNumber;
             filter.log = this.log;
+            filter.ocrEngine = this.ocrEngine;
             filter.orderBy = this.orderBy;
             filter.orderSort = this.orderSort;
             filter.limit = this.limit;

@@ -29,7 +29,7 @@ public class Batch {
     public Integer objectId = null;
     public Integer estimateItemNumber = null;
     public String log = null;
-
+    public Integer ocrEngine = null;
 
     public Integer getId() {
         return id;
@@ -79,6 +79,10 @@ public class Batch {
         return objectId;
     }
 
+    public Integer getOcrEngine() {
+        return ocrEngine;
+    }
+
     public void setId(Integer id) {
         this.id = id;
     }
@@ -125,5 +129,9 @@ public class Batch {
 
     public void setLog(String log) {
         this.log = log;
+    }
+
+    public void setOcrEngine(Integer ocrEngine) {
+        this.ocrEngine = ocrEngine;
     }
 }

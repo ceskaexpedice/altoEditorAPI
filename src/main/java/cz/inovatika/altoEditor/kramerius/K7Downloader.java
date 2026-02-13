@@ -3,6 +3,7 @@ package cz.inovatika.altoEditor.kramerius;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import cz.inovatika.altoEditor.exception.AltoEditorException;
+import cz.inovatika.altoEditor.exception.DigitalObjectException;
 import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
 import cz.inovatika.altoEditor.storage.local.LocalStorage;
@@ -39,11 +40,22 @@ public class K7Downloader {
 
     private static final Logger LOGGER = LogManager.getLogger(K7Downloader.class.getName());
 
+    /**
+     * Downloads a FOXML file for a given PID and instance, processes it, and imports it into the storage.
+     * During the process, it checks if the object exists, handles ALTO files if necessary,
+     * and manages temporary storage files.
+     *
+     * @param pid        The persistent identifier of the object to be downloaded.
+     * @param instanceId The identifier of the Kramerius instance where the object resides.
+     * @param userProfile The user profile containing authentication details (e.g., username and token).
+     * @throws AltoEditorException If an error occurs during the FOXML processing or storage operations.
+     * @throws IOException         If a network or file operation-related error occurs during the download or save process.
+     */
     public void downloadFoxml(String pid, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {
         AkubraStorage storage = AkubraStorage.getInstance();
         if (storage.exist(pid)) {
             LOGGER.warn("Object already exists in repo");
-            return;
+            throw new DigitalObjectException(pid, "Object already exists in repo");
         }
 
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId);
@@ -51,17 +63,21 @@ public class K7Downloader {
             throw new DigitalObjectNotFoundException(instanceId, String.format("This instance \"%s\" is not configured.", instanceId));
         }
 
-        String foxml = download(instance, pid, userProfile.getToken());
-        saveToTmp(foxml, pid);
+        try {
+            String foxml = download(instance, pid, userProfile.getToken());
+            saveToTmp(foxml, pid);
 
-        if (!containsAlto(pid)) {
-            String alto = downloadAlto(instance, pid, userProfile.getToken());
-            saveAltoToTmp(alto, pid);
-            updateFoxml(pid);
+            if (!containsAlto(pid)) {
+                String alto = downloadAlto(instance, pid, userProfile.getToken());
+                saveAltoToTmp(alto, pid);
+                updateFoxml(pid);
+            }
+
+            importToStorage(pid, userProfile.getUsername());
+        } finally {
+            deleteFromTmp(pid);
         }
 
-        importToStorage(pid, userProfile.getUsername());
-        deleteFromTmp(pid);
     }
 
     private void deleteFromTmp(String pid) throws AltoEditorException {
@@ -83,8 +99,8 @@ public class K7Downloader {
         LocalObject lObj = localStorage.load(pid, pidFile);
 
         File altoFile = getFile(pid, AltoDatastreamEditor.ALTO_ID);
-        if (pidFile == null || !pidFile.exists() || !pidFile.canRead() || !pidFile.canWrite()) {
-            throw new IOException("Can not read foxml: " + pidFile.getAbsolutePath());
+        if (altoFile == null || !altoFile.exists() || !altoFile.canRead() || !altoFile.canWrite()) {
+            throw new IOException("Can not read foxml: " + altoFile.getAbsolutePath());
         }
         AltoDatastreamEditor.importAlto(lObj, altoFile.toURI(), "Default ALTO", AltoDatastreamEditor.ALTO_ID + ".0");
         lObj.flush();
@@ -162,8 +178,8 @@ public class K7Downloader {
                 String result = EntityUtils.toString(response.getEntity());
                 if (result != null && !result.isEmpty()) {
                     JSONObject object = new JSONObject(result);
-                    LOGGER.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and reason is " + object.get("message"));
-                    throw new IOException("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and reason is " + object.get("message"));
+                    LOGGER.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and reason is " + object.optString("message"));
+                    throw new IOException("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and reason is " + object.optString("message"));
                 } else {
                     LOGGER.warn("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the result is null");
                     throw new IOException("Downloaded FOXML ended with code " + response.getStatusLine().getStatusCode() + " and the result is null");
@@ -252,7 +268,6 @@ public class K7Downloader {
         File parentFile = createFolder(new File(peroPath, getPidAsFile(parentPid)), true);
 
 
-
         K7ObjectInfo k7ObjectInfo = new K7ObjectInfo();
         String model = k7ObjectInfo.getModel(pid, instanceId, userProfile);
         if (model == null) {
@@ -292,13 +307,6 @@ public class K7Downloader {
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 return entity.getContent();
-//                String result = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-//                if (result != null && !result.isEmpty()) {
-//                    return result;
-//                } else {
-//                    LOGGER.warn("Downloaded FOXML but result is null or empty");
-//                    throw new IOException("Downloaded FOXML but result is null or empty");
-//                }
             } else {
                 LOGGER.warn("Downloaded Image but entity is null");
                 throw new IOException("Downloaded Image but entity is null");

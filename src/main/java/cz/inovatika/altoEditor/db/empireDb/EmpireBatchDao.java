@@ -16,6 +16,7 @@ import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRecordData;
+import org.apache.empire.db.DBTableColumn;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
 import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 import org.apache.logging.log4j.LogManager;
@@ -86,11 +87,11 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
 
         DBCommand cmd = database.createCommand();
         cmd.select(table.id, table.pid, table.createDate, table.updateDate, table.state, table.subState, table.priority, table.type, table.instance, table.objectId, table.estimateItemNumber, table.log);
-        if (filter.getId() != null) {
-            cmd.where(table.id.is(filter.getId()));
+        if (filter.getId() != null && !filter.getId().isEmpty()) {
+            cmd.where(table.id.in(filter.getId()));
         }
-        if (filter.getPid() != null) {
-            cmd.where(table.pid.is(filter.getPid()));
+        if (filter.getPid() != null && !filter.getPid().isEmpty()) {
+            cmd.where(table.pid.in(filter.getPid()));
         }
         if (filter.getState() != null) {
             cmd.where(table.state.is(filter.getState()));
@@ -127,6 +128,9 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         }
         if (filter.getUpdateDateTo() != null) {
             cmd.where(table.updateDate.isLessOrEqual(filter.getUpdateDateTo()));
+        }
+        if (filter.getOcrEngine() != null) {
+            cmd.where(table.ocrEngine.is(filter.getOcrEngine()));
         }
 
 
@@ -157,11 +161,11 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
 
         DBCommand cmd = database.createCommand();
         cmd.select(table.count());
-        if (filter.getId() != null) {
-            cmd.where(table.id.is(filter.getId()));
+        if (filter.getId() != null && !filter.getId().isEmpty()) {
+            cmd.where(table.id.in(filter.getId()));
         }
-        if (filter.getPid() != null) {
-            cmd.where(table.pid.is(filter.getPid()));
+        if (filter.getPid() != null && !filter.getPid().isEmpty()) {
+            cmd.where(table.pid.in(filter.getPid()));
         }
         if (filter.getState() != null) {
             cmd.where(table.state.is(filter.getState()));
@@ -198,6 +202,9 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         }
         if (filter.getUpdateDateTo() != null) {
             cmd.where(table.updateDate.isLessOrEqual(filter.getUpdateDateTo()));
+        }
+        if (filter.getOcrEngine() != null) {
+            cmd.where(table.ocrEngine.is(filter.getOcrEngine()));
         }
 
         DBReader reader = new DBReader();
@@ -232,6 +239,9 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
             record.setValue(table.objectId, batch.getObjectId());
             record.setValue(table.estimateItemNumber, batch.getEstimateItemNumber());
             record.setValue(table.log, batch.getLog());
+            record.setValue(table.ocrEngine, batch.getOcrEngine());
+            record.setValue(table.createDate, batch.getCreateDate());
+            record.setValue(table.updateDate, batch.getUpdateDate());
             return record;
         } else {
             return record;

@@ -21,11 +21,19 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.logging.log4j.LogManager;
@@ -141,7 +149,12 @@ public class Utils {
             if (keyNode.isInt()) {
                 return keyNode.intValue();
             } else {
-                throw new RequestException(key, String.format("Value of param \"%s\" is not Integer.", key));
+                String value = keyNode.asText().replaceAll("[^0-9]", "");
+                if (value.length() > 0) {
+                    return Integer.parseInt(value);
+                } else {
+                    throw new RequestException(key, String.format("Value of param \"%s\" is not Integer.", key));
+                }
             }
         } else {
             throw new RequestException(key, String.format("Missing value of param \"%s\".", key));
@@ -161,13 +174,21 @@ public class Utils {
         }
     }
 
-    public static String getOptStringNodeValue(JsonNode node, String key) throws AltoEditorException {
+    public static String getOptStringNodeValue(JsonNode node, String key) {
         if (node.get(key) != null) {
             JsonNode keyNode = node.get(key);
             return keyNode.textValue();
         } else {
             return null;
         }
+    }
+
+    public static Integer getOptIntegerNodeValue(JsonNode node, String key) throws RequestException {
+        String value = getOptStringNodeValue(node, key);
+        if (value != null && StringUtils.isNumeric(value)) {
+            return Integer.valueOf(value);
+        }
+        return null;
     }
 
     public static Boolean getBooleanNodeValue(JsonNode node, String key) throws AltoEditorException {
@@ -209,18 +230,63 @@ public class Utils {
         }
     }
 
-    public static Integer getOptIntegerRequestValue(Context context, String key) throws RequestException {
+    public static List<String> getOptListStringRequestValue(Context context, String key) throws RequestException {
         if (context != null) {
             if (context.req() != null) {
-                String value = context.req().getParameter(key);
-                if (StringUtils.isNumeric(value)) {
-                    return Integer.valueOf(value);
+                String[] values = context.req().getParameterValues(key);
+                if (values == null) {
+                    return Collections.emptyList();
                 }
+                return Arrays.stream(values).toList();
             } else {
                 throw new RequestException(key, "Request in Context is null");
             }
         } else {
             throw new RequestException(key, "Context is null");
+        }
+    }
+
+    public static List<Integer> getOptListIntegerRequestValue(Context context, String key) throws RequestException {
+        if (context == null) {
+            throw new RequestException(key, "Context is null");
+        }
+
+        String[] values = context.req().getParameterValues(key);
+
+        if (values == null || values.length == 0) {
+            return Collections.emptyList();
+        }
+
+        List<Integer> result = new ArrayList<>(values.length);
+
+        for (String value : values) {
+            if (value == null || value.isBlank()) {
+                continue;
+            }
+
+            try {
+                result.add(Integer.parseInt(value));
+            } catch (NumberFormatException e) {
+                throw new RequestException(key, "Invalid integer value: " + value);
+            }
+        }
+
+        return result.isEmpty() ? Collections.emptyList() : result;
+    }
+
+    public static Timestamp getOptTimeStampRequestValue(Context context, String key) throws RequestException {
+        String value = getOptStringRequestValue(context, key);
+        if (value != null) {
+            LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_DATE);
+            return Timestamp.valueOf(date.atStartOfDay());
+        }
+        return null;
+    }
+
+    public static Integer getOptIntegerRequestValue(Context context, String key) throws RequestException {
+        String value = getOptStringRequestValue(context, key);
+        if (value != null && StringUtils.isNumeric(value)) {
+            return Integer.valueOf(value);
         }
         return null;
     }

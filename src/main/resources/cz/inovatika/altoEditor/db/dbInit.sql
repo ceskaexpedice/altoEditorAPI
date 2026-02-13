@@ -25,3 +25,13 @@ ALTER TABLE digitalobject ADD COLUMN parentPath VARCHAR(255);
 ALTER TABLE digitalobject ADD COLUMN parentLabel VARCHAR(255);
 ALTER TABLE digitalobject ADD COLUMN lock BOOLEAN;
 INSERT INTO version (id, datum, version) VALUES (NEXTVAL('version_id_seq'), NOW(), '3');
+
+
+drop table version;
+drop table digitalobject;
+drop table batch;
+drop table users;
+drop sequence version_id_seq;
+drop sequence digitalobject_id_seq;
+drop sequence batch_id_seq;
+drop sequence users_id_seq;

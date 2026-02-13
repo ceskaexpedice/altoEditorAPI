@@ -33,6 +33,7 @@ public class Const {
     public static final String BATCH_SUBSTATE_DOWNLOADING = "DOWNLOADING";
     public static final String BATCH_SUBSTATE_GENERATING = "GENERATING";
     public static final String BATCH_SUBSTATE_SAVING = "SAVING";
+    public static final String BATCH_SUBSTATE_DONE = "DONE";
 
     public static final String BATCH_PRIORITY_LOW = "LOW";
     public static final String BATCH_PRIORITY_MEDIUM = "MEDIUM";
@@ -71,7 +72,7 @@ public class Const {
     public static final String PATH_DIGITAL_OBJECT_ALTO = getPath(PATH_DIGITAL_OBJECT, "alto");
     public static final String PATH_DIGITAL_OBJECT_ALTO_ORIGINAL = getPath(PATH_DIGITAL_OBJECT, "altoOriginal");
     public static final String PATH_DIGITAL_OBJECT_OCR = getPath(PATH_DIGITAL_OBJECT, "ocr");
-    public static final String PATH_DIGITAL_OBJECT_PERO_GENERATE = getPath(PATH_DIGITAL_OBJECT, "pero");
+    public static final String PATH_DIGITAL_OBJECT_PERO = getPath(PATH_DIGITAL_OBJECT, "pero");
     public static final String PATH_DIGITAL_OBJECT_STATE_ACCEPTED = getPath(PATH_DIGITAL_OBJECT, "stateAccepted");
     public static final String PATH_DIGITAL_OBJECT_STATE_REJECTED = getPath(PATH_DIGITAL_OBJECT, "stateRejected");
     public static final String PATH_DIGITAL_OBJECT_UPLOAD_KRAMERIUS = getPath(PATH_DIGITAL_OBJECT, "uploadKramerius");
@@ -82,20 +83,25 @@ public class Const {
     public static List<String> ADMINS_PATH = Arrays.asList(PATH_ROOT, PATH_APP, PATH_INFO, PATH_DB, PATH_DB_VERSIONS, PATH_DB_ACTUAL_VERSION,
             PATH_DB_USERS, PATH_DB_USER, PATH_DB_DIGITAL_OBJECTS, PATH_DB_DIGITAL_OBJECT, PATH_DB_BATCHES, PATH_DB_BATCH,
             PATH_DIGITAL_OBJECT, PATH_DIGITAL_OBJECT_INFORMATION, PATH_DIGITAL_OBJECT_IMAGE, PATH_DIGITAL_OBJECT_ALTO,
-            PATH_DIGITAL_OBJECT_ALTO_ORIGINAL, PATH_DIGITAL_OBJECT_OCR, PATH_DIGITAL_OBJECT_PERO_GENERATE, PATH_DIGITAL_OBJECT_STATE_ACCEPTED,
+            PATH_DIGITAL_OBJECT_ALTO_ORIGINAL, PATH_DIGITAL_OBJECT_OCR, PATH_DIGITAL_OBJECT_PERO, PATH_DIGITAL_OBJECT_STATE_ACCEPTED,
             PATH_DIGITAL_OBJECT_STATE_REJECTED, PATH_DIGITAL_OBJECT_UPLOAD_KRAMERIUS, PATH_DIGITAL_OBJECT_LOCK, PATH_DIGITAL_OBJECT_UNLOCK);
     public static List<String> EDITORS_PATH = Arrays.asList(PATH_ROOT, PATH_APP, PATH_INFO, PATH_DB_VERSIONS, PATH_DB_ACTUAL_VERSION,
             PATH_DB_USERS, PATH_DB_USER, PATH_DB_DIGITAL_OBJECTS, PATH_DB_DIGITAL_OBJECT, PATH_DB_BATCHES, PATH_DB_BATCH,
             PATH_DIGITAL_OBJECT, PATH_DIGITAL_OBJECT_INFORMATION, PATH_DIGITAL_OBJECT_IMAGE, PATH_DIGITAL_OBJECT_ALTO,
-            PATH_DIGITAL_OBJECT_ALTO_ORIGINAL, PATH_DIGITAL_OBJECT_OCR, PATH_DIGITAL_OBJECT_PERO_GENERATE);
+            PATH_DIGITAL_OBJECT_ALTO_ORIGINAL, PATH_DIGITAL_OBJECT_OCR, PATH_DIGITAL_OBJECT_PERO);
 
     public static final String PARAM_BATCH_ID = "id";
     public static final String PARAM_BATCH_PID = "pid";
+    public static final String PARAM_BATCH_CREATE_DATE_FROM = "createDateFrom";
+    public static final String PARAM_BATCH_CREATE_DATE_TO = "createDateTo";
     public static final String PARAM_BATCH_CREATE_DATE = "createDate";
+    public static final String PARAM_BATCH_UPDATE_DATE_FROM = "updateDateFrom";
+    public static final String PARAM_BATCH_UPDATE_DATE_TO = "updateDateTo";
     public static final String PARAM_BATCH_UPDATE_DATE = "updateDate";
     public static final String PARAM_BATCH_STATE = "state";
     public static final String PARAM_BATCH_SUBSTATE = "substate";
     public static final String PARAM_BATCH_PRIORITY = "priority";
+    public static final String PARAM_BATCH_OCR_ENGINE = "ocrEngine";
     public static final String PARAM_BATCH_TYPE = "type";
     public static final String PARAM_BATCH_INSTANCE = "instance";
     public static final String PARAM_BATCH_OBJECT_ID = "objectId";
@@ -109,6 +115,8 @@ public class Const {
     public static final String PARAM_DIGITAL_OBJECT_PID = "pid";
     public static final String PARAM_DIGITAL_OBJECT_VERSION_XML = "versionXml";
     public static final String PARAM_DIGITAL_OBJECT_DATUM = "datum";
+    public static final String PARAM_DIGITAL_OBJECT_DATUM_FROM = "datumTo";
+    public static final String PARAM_DIGITAL_OBJECT_DATUM_TO = "datumFrom";
     public static final String PARAM_DIGITAL_OBJECT_STATE = "state";
     public static final String PARAM_DIGITAL_OBJECT_LABEL = "label";
     public static final String PARAM_DIGITAL_OBJECT_PARENT_PATH = "parentPath";

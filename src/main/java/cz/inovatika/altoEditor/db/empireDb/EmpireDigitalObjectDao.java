@@ -90,8 +90,8 @@ public class EmpireDigitalObjectDao extends EmpireDao implements DigitalObjectDa
         cmd.select(tableUser.login);
         cmd.join(table.rUserId, tableUser.id);
 
-        if (filter.getId() != null) {
-            cmd.where(table.id.is(filter.getId()));
+        if (filter.getId() != null && !filter.getId().isEmpty()) {
+            cmd.where(table.id.in(filter.getId()));
         }
         if (filter.getrUserId() != null) {
             cmd.where(table.rUserId.is(filter.getrUserId()));
@@ -99,8 +99,8 @@ public class EmpireDigitalObjectDao extends EmpireDao implements DigitalObjectDa
         if (filter.getInstance() != null) {
             cmd.where(table.instance.is(filter.getInstance()));
         }
-        if (filter.getPid() != null) {
-            cmd.where(table.pid.is(filter.getPid()));
+        if (filter.getPid() != null && !filter.getPid().isEmpty()) {
+            cmd.where(table.pid.in(filter.getPid()));
         }
         if (filter.getLabel() != null) {
             cmd.where(table.label.is(filter.getLabel()));
@@ -164,8 +164,8 @@ public class EmpireDigitalObjectDao extends EmpireDao implements DigitalObjectDa
         cmd.select(table.count());
         cmd.join(table.rUserId, tableUser.id);
 
-        if (filter.getId() != null) {
-            cmd.where(table.id.is(filter.getId()));
+        if (filter.getId() != null && !filter.getId().isEmpty()) {
+            cmd.where(table.id.in(filter.getId()));
         }
         if (filter.getrUserId() != null) {
             cmd.where(table.rUserId.is(filter.getrUserId()));
@@ -173,8 +173,8 @@ public class EmpireDigitalObjectDao extends EmpireDao implements DigitalObjectDa
         if (filter.getInstance() != null) {
             cmd.where(table.instance.is(filter.getInstance()));
         }
-        if (filter.getPid() != null) {
-            cmd.where(table.pid.is(filter.getPid()));
+        if (filter.getPid() != null && !filter.getPid().isEmpty()) {
+            cmd.where(table.pid.in(filter.getPid()));
         }
         if (filter.getLabel() != null) {
             cmd.where(table.label.is(filter.getLabel()));

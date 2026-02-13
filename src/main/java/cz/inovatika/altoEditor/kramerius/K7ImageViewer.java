@@ -27,7 +27,6 @@ public class K7ImageViewer {
         httpGet.setHeader(new BasicHeader("Keep-Alive", "timeout=600, max=1000"));
         httpGet.setHeader(new BasicHeader("Authorization", "Bearer " + userProfile.getToken()));
         httpGet.setHeader(new BasicHeader("Connection", "Keep-Alive, Upgrade"));
-        HttpResponse response = httpClient.execute(httpGet);
-        return response;
+        return httpClient.execute(httpGet);
     }
 }

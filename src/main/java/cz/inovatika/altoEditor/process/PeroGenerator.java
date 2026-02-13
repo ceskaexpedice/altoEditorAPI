@@ -21,62 +21,6 @@ public class PeroGenerator extends ExternalProcess {
         this.outputAlto = new File(imageFile.getAbsolutePath().substring(0, imageFile.getAbsolutePath().lastIndexOf(".")) + altoSuffix);
     }
 
-//    public void run() {
-//        if (!imageFile.exists()) {
-//            throw new IllegalStateException(imageFile.getAbsolutePath() + " not exists!");
-//        }
-//        if (outputOcr.exists()) {
-//            throw new IllegalStateException(outputOcr.getAbsolutePath() + " exists!");
-//        }
-//        if (outputAlto.exists()) {
-//            throw new IllegalStateException(outputAlto.getAbsolutePath() + " exists!");
-//        }
-//
-//        List<String> cmd = new ArrayList<>();
-//        cmd.add(Config.getProcessorPeroExec());
-//        cmd.add(Config.getProcessorPeroArg());
-//        cmd.add("-i");
-//        cmd.add(imageFile.getAbsolutePath());
-//        cmd.add("-oO");
-//        cmd.add(outputOcr.getAbsolutePath());
-//        cmd.add("-oA");
-//        cmd.add(outputAlto.getAbsolutePath());
-//        cmd.add("-key");
-//        cmd.add(Config.getProcessorPeroKey());
-//
-//        LOGGER.info(String.join(" ", cmd));
-//
-//        try {
-//            Runtime r = Runtime.getRuntime();
-//            String s;
-//            Process p = r.exec(String.join(" ", cmd));
-//
-//            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-//
-//            StringWriter infoWriter = new StringWriter();
-//            while ((s = in.readLine()) != null) {
-//                System.out.println(s);
-//                infoWriter.append(s).append("\n");
-//            }
-//            if (!infoWriter.toString().isEmpty()) {
-//                LOGGER.info(infoWriter.toString());
-//            }
-//
-//            StringWriter errorWriter = new StringWriter();
-//            BufferedReader error = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-//            while ((s = error.readLine()) != null) {
-//                System.out.println(s);
-//                errorWriter.append(s).append("\n");
-//            }
-//            if (!errorWriter.toString().isEmpty()) {
-//                LOGGER.severe(errorWriter.toString());
-//            }
-//        } catch (Exception ex) {
-//            LOGGER.severe("Error during generating OCR and ALTO");
-//        }
-//    }
-
-
     @Override
     public void run() {
         if (!imageFile.exists()) {
