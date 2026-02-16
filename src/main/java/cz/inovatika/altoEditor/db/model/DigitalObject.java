@@ -26,8 +26,10 @@ public class DigitalObject {
     private String parentLabel = null;
     private String version = null;
     private Timestamp datum = null;
+    private Timestamp updateTime = null;
     private String state = null;
     private Boolean lock = null;
+    private String model;
 
     public Integer getId() {
         return id;
@@ -47,6 +49,10 @@ public class DigitalObject {
 
     public Timestamp getDatum() {
         return datum;
+    }
+
+    public Timestamp getUpdateTime() {
+        return updateTime;
     }
 
     public String getState() {
@@ -71,6 +77,10 @@ public class DigitalObject {
 
     public Boolean getLock() {
         return lock == null ? false : lock;
+    }
+
+    public String getModel() {
+        return model;
     }
 
     public void setId(Integer id) {
@@ -109,11 +119,19 @@ public class DigitalObject {
         this.datum = datum;
     }
 
+    public void setUpdateTime(Timestamp updateTime) {
+        this.updateTime = updateTime;
+    }
+
     public void setState(String state) {
         this.state = state;
     }
 
     public void setLock(Boolean lock) {
         this.lock = lock;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
     }
 }

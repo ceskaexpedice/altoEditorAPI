@@ -98,6 +98,7 @@ public class K7ObjectInfo {
         String label = null;
         String parentLabel = null;
         String parentPid = null;
+        String model = null;
         try {
 
             JSONObject objectInformationJSON = XML.toJSONObject(objectInformation);
@@ -110,6 +111,9 @@ public class K7ObjectInfo {
             for (int i = 0; i < strArray.length(); i++) {
                 JSONObject strJSON = strArray.getJSONObject(i);
                 String name = strJSON.getString("name");
+                if ("model".equals(name)) {
+                    model = transformJsonValue(strJSON.get("content"));
+                }
                 if ("title.search".equals(name)) {
                     label = transformJsonValue(strJSON.get("content"));
                 }
@@ -124,7 +128,7 @@ public class K7ObjectInfo {
             LOGGER.warn(ex.getMessage());
             ex.printStackTrace();
         }
-        return new ObjectInformation(pid, label, parentPid, parentLabel);
+        return new ObjectInformation(pid, model, label, parentPid, parentLabel);
     }
 
     public String getModel(String pid, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {

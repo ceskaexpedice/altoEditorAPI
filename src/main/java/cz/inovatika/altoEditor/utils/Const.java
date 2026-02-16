@@ -42,6 +42,9 @@ public class Const {
     public static final String BATCH_TYPE_MULTIPLE = "MULTIPLE";
     public static final String BATCH_TYPE_SINGLE = "SINGLE";
 
+    public static final String DIGITAL_OBJECT_MODEL_PAGE = "PAGE";
+    public static final String DIGITAL_OBJECT_MODEL_OTHER = "OTHER";
+
     public static final String FOXML_PROPERTY_CREATEDATE = "info:fedora/fedora-system:def/model#createdDate";
     public static final String FOXML_PROPERTY_LABEL = "info:fedora/fedora-system:def/model#label";
     public static final String FOXML_PROPERTY_LASTMODIFIED = "info:fedora/fedora-system:def/view#lastModifiedDate";

@@ -1,8 +1,12 @@
 package cz.inovatika.altoEditor.models;
 
+import com.hp.hpl.jena.graph.query.SimpleQueryEngine;
+import cz.inovatika.altoEditor.utils.Const;
+
 public class ObjectInformation {
 
     private String pid;
+    private String model;
     private String label;
     private String parentPath;
     private String parentLabel;
@@ -10,11 +14,19 @@ public class ObjectInformation {
     public ObjectInformation() {
     }
 
-    public ObjectInformation(String pid, String label, String parentPid, String parentLabel) {
+    public ObjectInformation(String pid, String model, String label, String parentPid, String parentLabel) {
         this.pid = pid;
+        this.model = transformModel(model);
         this.label = label;
         this.parentPath = fixParentPath(parentPid, pid);
         this.parentLabel = parentLabel;
+    }
+
+    private String transformModel(String model) {
+        if (model == null || model.isEmpty()) {
+            return null;
+        }
+        return Const.DIGITAL_OBJECT_MODEL_PAGE.equalsIgnoreCase(model) ? Const.DIGITAL_OBJECT_MODEL_PAGE : Const.DIGITAL_OBJECT_MODEL_OTHER;
     }
 
     private String fixParentPath(String parentPid, String pid) {
@@ -61,5 +73,13 @@ public class ObjectInformation {
 
     public void setParentLabel(String parentLabel) {
         this.parentLabel = parentLabel;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
     }
 }

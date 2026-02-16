@@ -10,10 +10,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -26,6 +29,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -40,11 +44,7 @@ public class PeroOcrProcessor {
 
     private String apiKey;
     private String serverUrl;
-    private int peroOcrEngine;
-
-    private String imagePath;
-    private String txtPath;
-    private String altoPath;
+    private int peroOcrEngine = 1;
 
     public PeroOcrProcessor() {
         this.serverUrl = Config.getProcessorPeroUrl();
@@ -57,14 +57,30 @@ public class PeroOcrProcessor {
         this.peroOcrEngine = (peroOcrEngine == null || peroOcrEngine < 1) ? 1 : peroOcrEngine;
     }
 
-    public boolean generate(File imageFile, String ocrFileSuffix, String altoFileSuffix) throws JSONException {
-        this.imagePath = imageFile.getAbsolutePath();
+    public boolean generate(List<File> imageFiles, String ocrFileSuffix, String altoFileSuffix) throws JSONException {
+        if (imageFiles == null || imageFiles.isEmpty()) {
+            return false;
+        }
 
-        File[] outputFiles = getOcrFiles(imageFile, ocrFileSuffix, altoFileSuffix);
-        this.txtPath = outputFiles[0].getAbsolutePath();
-        this.altoPath = outputFiles[1].getAbsolutePath();
+        Map<String, File[]> outputMapping = new LinkedHashMap<>();
 
-        return process(this.imagePath, this.txtPath, this.altoPath);
+        for (File imageFile : imageFiles) {
+
+            File[] outputFiles = getOcrFiles(imageFile, ocrFileSuffix, altoFileSuffix);
+
+            String fileName = imageFile.getName();
+            int dotIndex = fileName.lastIndexOf('.');
+            if (dotIndex > 0) {
+                fileName = fileName.substring(0, dotIndex);
+            }
+
+            outputMapping.put(
+                    fileName,
+                    outputFiles
+            );
+        }
+
+        return processBatch(outputMapping);
     }
 
     public static File[] getOcrFiles(File imageFile, String plainOcrFileSuffix, String altoFileSuffix) {
@@ -77,26 +93,22 @@ public class PeroOcrProcessor {
         File txtFile = new File(basePath + plainOcrFileSuffix);
         File altoFile = new File(basePath + altoFileSuffix);
 
-        return new File[]{txtFile, altoFile};
+        return new File[]{imageFile, txtFile, altoFile};
     }
 
-    public boolean process(String imagePath, String txtPath, String altoPath) throws JSONException {
-        String fileName = new File(imagePath).getName();
-        String fileExtension = null;
-        int dotIndex = fileName.lastIndexOf('.');
-        if (dotIndex > 0) {
-            fileExtension = fileName.substring(dotIndex + 1);
-            fileName = fileName.substring(0, dotIndex);
-        }
-        if (fileExtension == null) {
+    public boolean processBatch(Map<String, File[]> files) throws JSONException {
+        if (files == null || files.isEmpty()) {
+            LOGGER.warn("No files provided for batch processing.");
             return false;
         }
 
-        String contentType = getContentType(fileExtension);
-
-        JSONObject data = createJson(fileName);
-        String txtFormat = "txt";
-        String altoFormat = "alto";
+        JSONObject data;
+        try {
+            data = createJson(files);
+        } catch (JSONException e) {
+            LOGGER.error("Failed to create JSON for batch processing", e);
+            return false;
+        }
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             String requestId = postProcessingRequest(httpClient, data);
@@ -104,48 +116,115 @@ public class PeroOcrProcessor {
                 return false;
             }
 
-            boolean uploaded = uploadImage(httpClient, requestId, fileName, imagePath, contentType);
+            boolean uploaded = uploadImagesBatch(httpClient, requestId, files);
             if (!uploaded) {
-                LOGGER.error("Image upload failed for {}", fileName);
+                LOGGER.error("One or more images failed to upload for request {}", requestId);
                 return false;
             }
 
-            String processingResult;
-            do {
-                processingResult = downloadResults(httpClient, txtPath, requestId, fileName, txtFormat);
-                if (Objects.equals("PROCESSED", processingResult)) {
-                    downloadResults(httpClient, altoPath, requestId, fileName, altoFormat);
-                    LOGGER.info("Files {} and {} created for {}", txtFormat, altoFormat, fileName);
-                } else {
-                    try {
-                        TimeUnit.SECONDS.sleep(3);
-                    } catch (InterruptedException e) {
-                        LOGGER.warn("Task interrupted during sleep for {}", fileName);
-                    }
-                    if (Thread.interrupted()) {
-                        LOGGER.info("Thread stopped for {}", fileName);
-                        return false;
-                    }
+            boolean ready = waitForBatchProcessed(httpClient, requestId, 5);
+            if (ready) {
+                for (Map.Entry<String, File[]> entry : files.entrySet()) {
+                    String fileName = entry.getKey();
+                    File[] outputs = entry.getValue();
+
+                    downloadResults(httpClient, outputs[1].getAbsolutePath(), requestId, fileName, "txt");
+                    downloadResults(httpClient, outputs[2].getAbsolutePath(), requestId, fileName, "alto");
                 }
-                if (processingResult == null) {
-                    LOGGER.error("Processing result is null for request {}", requestId);
-                    return false;
-                }
-            } while (!Objects.equals("PROCESSED", processingResult));
-            return true;
+                return true;
+            }
+            return false;
         } catch (IOException e) {
-            LOGGER.error("Exception during processing of {}", fileName, e);
+            LOGGER.error("Batch OCR processing failed", e);
             throw new RuntimeException(e);
         }
     }
 
-    private JSONObject createJson(String fileName) throws JSONException {
-        JSONObject outputData = new JSONObject();
-        outputData.put(fileName, JSONObject.NULL);
-        JSONObject dataDict = new JSONObject();
-        dataDict.put("engine", peroOcrEngine);
-        dataDict.put("images", outputData);
-        return dataDict;
+    public boolean waitForBatchProcessed(CloseableHttpClient httpClient, String requestId, long pollIntervalSeconds) {
+        try {
+            while (true) {
+                Map<String, String> fileStates = downloadBatchStatus(httpClient, requestId);
+
+                if (fileStates.isEmpty()) {
+                    LOGGER.warn("No files found for request {}", requestId);
+                    return false;
+                }
+
+                boolean allProcessed = fileStates.values().stream()
+                        .allMatch(state -> "PROCESSED".equalsIgnoreCase(state));
+
+                if (allProcessed) {
+                    LOGGER.info("All files processed for request {}", requestId);
+                    return true;
+                } else {
+                    LOGGER.info("Waiting for batch {}. Current states: {}", requestId, fileStates);
+                }
+
+                try {
+                    TimeUnit.SECONDS.sleep(pollIntervalSeconds);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    LOGGER.info("Batch waiting interrupted for request {}", requestId);
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Exception while waiting for batch {} to be processed", requestId, e);
+            return false;
+        }
+    }
+
+    public Map<String, String> downloadBatchStatus(CloseableHttpClient httpClient, String requestId) throws IOException {
+        String url = this.serverUrl + "request_status/" + requestId;
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.addHeader("api-key", this.apiKey);
+        httpGet.addHeader("Accept", "application/json");
+
+        try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+            int statusCode = response.getStatusLine().getStatusCode();
+
+            if (statusCode >= 200 && statusCode < 300) {
+                String jsonString = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+                JSONObject jsonResponse = new JSONObject(jsonString);
+
+                if (!jsonResponse.getString("status").equalsIgnoreCase("success")) {
+                    LOGGER.warn("Request {} returned non-success status: {}", requestId, jsonResponse.getString("status"));
+                    return Collections.emptyMap();
+                }
+
+                JSONObject requestStatus = jsonResponse.getJSONObject("request_status");
+                Map<String, String> fileStates = new LinkedHashMap<>();
+
+                for (String fileName : requestStatus.keySet()) {
+                    JSONObject fileInfo = requestStatus.getJSONObject(fileName);
+                    String state = fileInfo.optString("state", "UNKNOWN");
+                    fileStates.put(fileName, state);
+                }
+
+                return fileStates;
+
+            } else {
+                String body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+                LOGGER.error("Failed to get batch status for {}. HTTP {}: {}", requestId, statusCode, body);
+                return Collections.emptyMap();
+            }
+        } catch (JSONException e) {
+            LOGGER.error("Invalid JSON response for request {}", requestId, e);
+            return Collections.emptyMap();
+        }
+    }
+
+    private JSONObject createJson(@NotNull Map<String, File[]> files) throws JSONException {
+        JSONObject images = new JSONObject();
+
+        for (Map.Entry<String, File[]> entry : files.entrySet()) {
+            images.put(entry.getKey(), JSONObject.NULL);
+        }
+
+        JSONObject dataJson = new JSONObject();
+        dataJson.put("engine", peroOcrEngine);
+        dataJson.put("images", images);
+        return dataJson;
     }
 
     private String postProcessingRequest(CloseableHttpClient httpClient, JSONObject data) {
@@ -207,6 +286,28 @@ public class PeroOcrProcessor {
         }
     }
 
+    private boolean uploadImagesBatch(CloseableHttpClient httpClient, String requestId, Map<String, File[]> files) {
+        if (files == null || files.isEmpty()) {
+            LOGGER.warn("No files provided for upload for request {}", requestId);
+            return false;
+        }
+
+        for (Map.Entry<String, File[]> entry : files.entrySet()) {
+
+            int dotIndex = entry.getKey().lastIndexOf('.');
+            String extension = dotIndex > 0 ? entry.getKey().substring(dotIndex + 1) : "";
+            String baseName = dotIndex > 0 ? entry.getKey().substring(0, dotIndex) : entry.getKey();
+
+            boolean uploaded = uploadImage(httpClient, requestId, baseName, entry.getValue()[0].getAbsolutePath(), getContentType(extension));
+            if (!uploaded) {
+                LOGGER.error("Stopping batch upload: {} failed to upload", entry.getValue()[0].getAbsolutePath());
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private boolean uploadImage(CloseableHttpClient httpClient, String requestId, String fileName, String imagePath, String contentType) {
         String url = this.serverUrl + "upload_image/" + requestId + "/" + fileName;
         HttpPost httpPost = new HttpPost(url);
@@ -239,8 +340,9 @@ public class PeroOcrProcessor {
         }
     }
 
-    private String downloadResults(CloseableHttpClient httpClient, String outputPath, String requestId, String fileName, String resultFormat) {
-        String url = this.serverUrl + "download_results/" + requestId + "/" + fileName + "/" + resultFormat;
+    private String downloadResults(CloseableHttpClient httpClient, String outputPath, String requestId, String imagePath, String resultFormat) {
+        File imageFile = new File(imagePath);
+        String url = this.serverUrl + "download_results/" + requestId + "/" + imageFile.getName() + "/" + resultFormat;
         HttpGet httpGet = new HttpGet(url);
         httpGet.addHeader("api-key", this.apiKey);
 

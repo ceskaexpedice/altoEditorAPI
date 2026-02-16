@@ -43,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import static cz.inovatika.altoEditor.editor.AltoDatastreamEditor.nextVersion;
 import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_FORBIDDEN;
 import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_UNAUTHORIZED;
+import static cz.inovatika.altoEditor.response.AltoEditorResponse.asError;
 import static cz.inovatika.altoEditor.user.UserUtils.getToken;
 import static cz.inovatika.altoEditor.user.UserUtils.getUserProfile;
 import static cz.inovatika.altoEditor.utils.Const.DIGITAL_OBJECT_STATE_UPLOADED;
@@ -155,7 +156,7 @@ public class DigitalObjectResource {
 
                 if (!digitalObjects.isEmpty()) {
                     LOGGER.debug("Version find in repositories using login as PERO and pid.");
-                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersion());
+                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0));
                     setStringResult(context, response);
                     return;
                 }
@@ -168,7 +169,7 @@ public class DigitalObjectResource {
 
                 if (!digitalObjects.isEmpty()) {
                     LOGGER.debug("Version find in repositories using login as AltoEditor and pid.");
-                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersion());
+                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0));
                     setStringResult(context, response);
                     return;
                 }
@@ -231,7 +232,7 @@ public class DigitalObjectResource {
             for (DigitalObjectView digitalObject : digitalObjects) {
                 LOGGER.debug("Version find in repositories using version and pid.");
                 if (versionXml.equals(digitalObject.getVersion())) {
-                    return getAltoStream(digitalObject.getPid(), digitalObject.getVersion());
+                    return getAltoStream(digitalObject);
                 }
             }
         }
@@ -244,7 +245,7 @@ public class DigitalObjectResource {
 
             if (!digitalObjects.isEmpty()) {
                 LOGGER.debug("Version find in repositories using login and pid.");
-                return getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersion());
+                return getAltoStream(digitalObjects.get(0));
             }
         }
 
@@ -256,7 +257,7 @@ public class DigitalObjectResource {
 
             if (!digitalObjects.isEmpty()) {
                 LOGGER.debug("Version find in repositories using login as PERO and pid.");
-                return getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersion());
+                return getAltoStream(digitalObjects.get(0));
             }
         }
 
@@ -268,29 +269,31 @@ public class DigitalObjectResource {
 
             if (!digitalObjects.isEmpty()) {
                 LOGGER.debug("Version find in repositories using login as AltoEditor and pid.");
-                return getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersion());
+                return getAltoStream(digitalObjects.get(0));
             }
         }
 
         // 5. stazeni nove verze z krameria
         String instanceId = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
 
-        K7Downloader downloader = new K7Downloader();
-        downloader.downloadFoxml(pid, instanceId, userProfile);
-        UserProfile tmpUser = new UserProfile(Const.USER_ALTOEDITOR, userProfile.getToken());
-
-        DigitalObject object = digitalObjectManager.addNewDigitalObject(tmpUser.getUsername(), pid, "0", instanceId);
-
         K7ObjectInfo objectInfo = new K7ObjectInfo();
         ObjectInformation info = objectInfo.getObjectInformation(pid, instanceId, userProfile);
-        if (info != null) {
-            object.setLabel(info.getLabel());
-            object.setParentLabel(info.getParentLabel());
-            object.setParentPath(info.getParentPath());
 
-            digitalObjectManager.updateDigitalObject(object);
+        K7Downloader downloader = new K7Downloader();
+        downloader.downloadFoxml(pid, info.getModel(), instanceId, userProfile);
+        UserProfile tmpUser = new UserProfile(Const.USER_ALTOEDITOR, userProfile.getToken());
+
+        DigitalObject digitalObject = digitalObjectManager.addNewDigitalObject(tmpUser.getUsername(), pid, "0", instanceId);
+        if (info != null) {
+            digitalObject.setLabel(info.getLabel());
+            digitalObject.setParentLabel(info.getParentLabel());
+            digitalObject.setParentPath(info.getParentPath());
+            digitalObject.setModel(info.getModel());
+
+            digitalObject = digitalObjectManager.updateDigitalObject(digitalObject);
         }
-        return getAltoStream(pid, AltoDatastreamEditor.ALTO_ID + ".0");
+
+        return getAltoStream(digitalObject);
     }
 
     public static void updateAlto(Context context) {
@@ -329,7 +332,7 @@ public class DigitalObjectResource {
 
                     digitalObject = digitalObjectManager.updateDigitalObject(digitalObject);
 
-                    AltoEditorStringRecordResponse response = getAltoStream(digitalObject.getPid(), digitalObject.getVersion());
+                    AltoEditorStringRecordResponse response = getAltoStream(digitalObject);
                     setStringResult(context, response);
                     return;
                 }
@@ -354,9 +357,9 @@ public class DigitalObjectResource {
                     AltoDatastreamEditor.updateAlto(akubraObject, data, "ALTO updated by user " + userProfile.getUsername(), versionId);
 
                     digitalObject.setVersion(versionId);
-                    digitalObject = digitalObjectManager.addNewDigitalObject(userProfile.getUsername(), digitalObject.getPid(), digitalObject.getVersion(), digitalObject.getInstance(), Const.DIGITAL_OBJECT_STATE_EDITED);
+                    digitalObject = digitalObjectManager.addNewDigitalObject(userProfile.getUsername(), digitalObject.getPid(), versionId, digitalObject.getInstance(), Const.DIGITAL_OBJECT_STATE_EDITED);
 
-                    AltoEditorStringRecordResponse response = getAltoStream(digitalObject.getPid(), versionId);
+                    AltoEditorStringRecordResponse response = getAltoStream(digitalObject);
                     setStringResult(context, response);
                     return;
                 }
@@ -399,13 +402,13 @@ public class DigitalObjectResource {
                 String versionXml = AltoDatastreamEditor.ALTO_ID + ".1";
                 LOGGER.debug("Version find in repositories using login and pid");
                 if (versionXml == null || versionXml.isEmpty()) {
-                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0).getPid(), digitalObjects.get(0).getVersion());
+                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0));
                     setStringResult(context, response);
                     return;
                 }
                 for (DigitalObjectView digitalObject : digitalObjects) {
                     if (versionXml.equals(digitalObject.getVersion())) {
-                        AltoEditorStringRecordResponse response = getAltoStream(digitalObject.getPid(), digitalObject.getVersion());
+                        AltoEditorStringRecordResponse response = getAltoStream(digitalObject);
                         setStringResult(context, response);
                         return;
                     }
@@ -543,13 +546,38 @@ public class DigitalObjectResource {
         return null;
     }
 
-    private static AltoEditorStringRecordResponse getAltoStream(@NotNull String pid, @NotNull String versionId) throws IOException, AltoEditorException {
+    private static AltoEditorStringRecordResponse getAltoStream(DigitalObjectView digitalObject) throws IOException, AltoEditorException {
+        if (Const.DIGITAL_OBJECT_MODEL_PAGE.equals(digitalObject.getModel())) {
+            return getAltoStream(digitalObject.getPid(), digitalObject.getVersion(), digitalObject.getModel());
+        } else {
+            AltoEditorStringRecordResponse response = new AltoEditorStringRecordResponse();
+            response.setPid(digitalObject.getPid());
+            response.setContent("This digital object does not contain a alto xml.");
+            response.setModel(digitalObject.getModel());
+            return response;
+        }
+    }
+
+    private static AltoEditorStringRecordResponse getAltoStream(DigitalObject digitalObject) throws IOException, AltoEditorException {
+        if (Const.DIGITAL_OBJECT_MODEL_PAGE.equals(digitalObject.getModel())) {
+            return getAltoStream(digitalObject.getPid(), digitalObject.getVersion(), digitalObject.getModel());
+        } else {
+            AltoEditorStringRecordResponse response = new AltoEditorStringRecordResponse();
+            response.setPid(digitalObject.getPid());
+            response.setContent("This digital object does not contain a alto xml.");
+            response.setModel(digitalObject.getModel());
+            return response;
+        }
+    }
+
+    private static AltoEditorStringRecordResponse getAltoStream(@NotNull String pid, @NotNull String versionId, @NotNull String model) throws IOException, AltoEditorException {
         AkubraStorage storage = AkubraStorage.getInstance();
         AkubraObject object = storage.find(pid);
         AltoDatastreamEditor altoEditor = AltoDatastreamEditor.alto(object);
         AltoEditorStringRecordResponse response = altoEditor.readRecord(versionId);
         response.setPid(pid);
         response.setVersion(versionId);
+        response.setModel(model);
         return response;
     }
 

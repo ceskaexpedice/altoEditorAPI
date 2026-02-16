@@ -15,6 +15,9 @@ public class AltoEditorStringRecordResponse {
     @XmlElement(name = "pid")
     private String pid;
 
+    @XmlElement(name = "model")
+    private String model;
+
     @XmlElement(name = "instanceId")
     private String instanceId;
 
@@ -103,5 +106,13 @@ public class AltoEditorStringRecordResponse {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
     }
 }

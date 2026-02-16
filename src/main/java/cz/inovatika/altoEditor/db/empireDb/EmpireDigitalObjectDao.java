@@ -86,7 +86,7 @@ public class EmpireDigitalObjectDao extends EmpireDao implements DigitalObjectDa
         DBCommand cmd = database.createCommand();
         AltoEditorDatabase.UserTable tableUser = database.tableUser;
 
-        cmd.select(table.id, table.rUserId, table.instance, table.pid, table.label, table.parentPath, table.parentLabel, table.version, table.datum, table.state, table.lock);
+        cmd.select(table.id, table.rUserId, table.instance, table.pid, table.label, table.parentPath, table.parentLabel, table.version, table.datum, table.state, table.lock, table.model, table.updateTime);
         cmd.select(tableUser.login);
         cmd.join(table.rUserId, tableUser.id);
 
@@ -131,6 +131,9 @@ public class EmpireDigitalObjectDao extends EmpireDao implements DigitalObjectDa
         }
         if (filter.getLogin() != null) {
             cmd.where(tableUser.login.is(filter.getLogin()));
+        }
+        if (filter.getModel() != null) {
+            cmd.where(table.model.is(filter.getModel()));
         }
 
         EmpireUtils.addOrderBy(cmd, filter.getOrderBy(), filter.getOrderSort(), table.id, true);
@@ -206,6 +209,9 @@ public class EmpireDigitalObjectDao extends EmpireDao implements DigitalObjectDa
         if (filter.getLogin() != null) {
             cmd.where(tableUser.login.is(filter.getLogin()));
         }
+        if (filter.getModel() != null) {
+            cmd.where(table.model.is(filter.getModel()));
+        }
 
         DBReader reader = new DBReader();
         try {
@@ -237,8 +243,10 @@ public class EmpireDigitalObjectDao extends EmpireDao implements DigitalObjectDa
             record.setValue(table.parentLabel, digitalObject.getParentLabel());
             record.setValue(table.version, digitalObject.getVersion());
             record.setValue(table.datum, digitalObject.getDatum());
+            record.setValue(table.updateTime, digitalObject.getUpdateTime());
             record.setValue(table.state, digitalObject.getState());
             record.setValue(table.lock, digitalObject.getLock());
+            record.setValue(table.model, digitalObject.getModel());
             return record;
         } else {
             return record;

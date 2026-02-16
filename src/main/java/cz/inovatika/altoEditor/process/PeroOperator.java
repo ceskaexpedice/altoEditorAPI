@@ -2,6 +2,8 @@ package cz.inovatika.altoEditor.process;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONException;
@@ -42,30 +44,44 @@ public class PeroOperator {
             throw new IOException("Unable to list files in " + folder.getAbsolutePath());
         }
 
-        for (File file : folder.listFiles()) {
+        List<File> imageFiles = new ArrayList<>();
+
+        for (File file : files) {
             if (file.isFile() && file.getName().toLowerCase().endsWith(".jpg")) {
-                try {
-                    generateAltoAndOcr(file, peroEngine);
-                } catch (Exception e) {
-                    LOGGER.error("OCR generation failed for {}", file.getAbsolutePath(), e);
-                }
+                imageFiles.add(file);
             }
+        }
+
+        if (!imageFiles.isEmpty()) {
+            try {
+                generateAltoAndOcr(imageFiles, peroEngine, folder.getName());
+            } catch (Exception e) {
+                LOGGER.error("OCR generation failed for {}", folder.getAbsolutePath(), e);
+            }
+        } else {
+            LOGGER.info("No JPG files found in {}", folder.getAbsolutePath());
         }
     }
 
-    private void generateAltoAndOcr(File imageFile, Integer peroEngine) throws IOException {
+    private void generateAltoAndOcr(List<File> imageFiles, Integer peroEngine, String folderName) throws IOException {
+
+        if (imageFiles == null || imageFiles.isEmpty()) {
+            LOGGER.warn("No images provided for OCR in {}", folderName);
+            return;
+        }
 
         PeroOcrProcessor peroOcrProcessor = new PeroOcrProcessor(peroEngine);
         try {
-            boolean processed = peroOcrProcessor.generate(imageFile, ".txt", ".xml");
+            boolean processed = peroOcrProcessor.generate(imageFiles, ".txt", ".xml");
             if (processed) {
-                LOGGER.info("OCR GENERATED SUCCESSFULLY for {}.", imageFile.getAbsolutePath());
+                LOGGER.info("OCR GENERATED SUCCESSFULLY for {}.", folderName);
             } else {
-                LOGGER.warn("OCR processing returned false for {}", imageFile.getAbsolutePath());
+                LOGGER.warn("OCR processing returned false for {}", folderName);
+                throw new IOException("OCR generation failed for " + folderName);
             }
         } catch (JSONException ex) {
-            LOGGER.error("Generating OCR for {} failed.", imageFile.getName(), ex);
-            throw new IOException("OCR generation failed for " + imageFile.getName(), ex);
+            LOGGER.error("Generating OCR for {} failed.", folderName, ex);
+            throw new IOException("OCR generation failed for " + folderName, ex);
         }
     }
 

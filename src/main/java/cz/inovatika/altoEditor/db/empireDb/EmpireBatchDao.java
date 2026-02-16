@@ -86,7 +86,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         Objects.requireNonNull(filter, "filter must not be null");
 
         DBCommand cmd = database.createCommand();
-        cmd.select(table.id, table.pid, table.createDate, table.updateDate, table.state, table.subState, table.priority, table.type, table.instance, table.objectId, table.estimateItemNumber, table.log);
+        cmd.select(table.id, table.pid, table.createDate, table.updateDate, table.state, table.subState, table.priority, table.type, table.instance, table.objectId, table.estimateItemNumber, table.log, table.ocrEngine);
         if (filter.getId() != null && !filter.getId().isEmpty()) {
             cmd.where(table.id.in(filter.getId()));
         }

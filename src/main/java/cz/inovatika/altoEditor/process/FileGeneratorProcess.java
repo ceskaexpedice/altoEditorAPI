@@ -6,6 +6,8 @@ import cz.inovatika.altoEditor.db.model.Batch;
 import cz.inovatika.altoEditor.db.model.DigitalObject;
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import cz.inovatika.altoEditor.kramerius.K7Downloader;
+import cz.inovatika.altoEditor.kramerius.K7ObjectInfo;
+import cz.inovatika.altoEditor.models.ObjectInformation;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
 import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Const;
@@ -86,6 +88,11 @@ public class FileGeneratorProcess implements Runnable {
 
             K7Downloader downloader = new K7Downloader();
             batch = batchManager.setSubStateBatch(batch, Const.BATCH_SUBSTATE_DOWNLOADING);
+            String pid = batch.getPid();
+
+            Integer digitalObjectId = batch.getObjectId();
+
+
             File folder = downloader.saveImage(batch.getPid(), batch.getInstance(), userProfile);
             batch = batchManager.updateInfoBatch(batch, folder);
             PeroOperator operator = new PeroOperator();

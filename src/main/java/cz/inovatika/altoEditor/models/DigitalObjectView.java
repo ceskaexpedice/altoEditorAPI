@@ -18,6 +18,8 @@ public class DigitalObjectView {
     private String parentPath = null;
     private String parentLabel = null;
     private Boolean lock = null;
+    private String model = null;
+    private Timestamp updateTime = null;
 
     public DigitalObjectView() {
     }
@@ -108,5 +110,21 @@ public class DigitalObjectView {
 
     public void setLock(Boolean lock) {
         this.lock = lock;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public Timestamp getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Timestamp updateTime) {
+        this.updateTime = updateTime;
     }
 }

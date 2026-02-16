@@ -10,6 +10,7 @@ import cz.inovatika.altoEditor.storage.local.LocalStorage;
 import cz.inovatika.altoEditor.storage.local.LocalStorage.LocalObject;
 import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Config;
+import cz.inovatika.altoEditor.utils.Const;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,13 +46,13 @@ public class K7Downloader {
      * During the process, it checks if the object exists, handles ALTO files if necessary,
      * and manages temporary storage files.
      *
-     * @param pid        The persistent identifier of the object to be downloaded.
-     * @param instanceId The identifier of the Kramerius instance where the object resides.
+     * @param pid         The persistent identifier of the object to be downloaded.
+     * @param instanceId  The identifier of the Kramerius instance where the object resides.
      * @param userProfile The user profile containing authentication details (e.g., username and token).
      * @throws AltoEditorException If an error occurs during the FOXML processing or storage operations.
      * @throws IOException         If a network or file operation-related error occurs during the download or save process.
      */
-    public void downloadFoxml(String pid, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {
+    public void downloadFoxml(String pid, String model, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {
         AkubraStorage storage = AkubraStorage.getInstance();
         if (storage.exist(pid)) {
             LOGGER.warn("Object already exists in repo");
@@ -67,7 +68,7 @@ public class K7Downloader {
             String foxml = download(instance, pid, userProfile.getToken());
             saveToTmp(foxml, pid);
 
-            if (!containsAlto(pid)) {
+            if (Const.DIGITAL_OBJECT_MODEL_PAGE.equals(model) && !containsAlto(pid)) {
                 String alto = downloadAlto(instance, pid, userProfile.getToken());
                 saveAltoToTmp(alto, pid);
                 updateFoxml(pid);

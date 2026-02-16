@@ -26,6 +26,7 @@ public final class DigitalObjectFilter {
     private Timestamp datumTo;
     private String state;
     private String lock;
+    private String model;
 
     private String orderBy;
     private String orderSort;
@@ -95,6 +96,10 @@ public final class DigitalObjectFilter {
         return lock;
     }
 
+    public String getModel() {
+        return model;
+    }
+
     public String getOrderBy() {
         return orderBy;
     }
@@ -126,6 +131,8 @@ public final class DigitalObjectFilter {
         private Timestamp datumTo;
         private String state;
         private String lock;
+        private String model;
+
         private String orderBy;
         private String orderSort;
         private Integer limit = DEFAULT_LIMIT;
@@ -204,6 +211,11 @@ public final class DigitalObjectFilter {
             return this;
         }
 
+        public Builder model(String model) {
+            this.model = model;
+            return this;
+        }
+
         public Builder orderBy(String orderBy) {
             this.orderBy = orderBy;
             return this;
@@ -254,6 +266,8 @@ public final class DigitalObjectFilter {
             filter.datumTo = this.datumTo;
             filter.state = this.state;
             filter.lock = this.lock;
+            filter.model = this.model;
+
             filter.orderBy = this.orderBy;
             filter.orderSort = this.orderSort;
             filter.limit = this.limit;
