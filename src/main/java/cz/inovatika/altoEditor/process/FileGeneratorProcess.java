@@ -2,12 +2,11 @@ package cz.inovatika.altoEditor.process;
 
 import cz.inovatika.altoEditor.db.manager.BatchManager;
 import cz.inovatika.altoEditor.db.manager.DigitalObjectManager;
+import cz.inovatika.altoEditor.db.manager.UserManager;
 import cz.inovatika.altoEditor.db.model.Batch;
 import cz.inovatika.altoEditor.db.model.DigitalObject;
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import cz.inovatika.altoEditor.kramerius.K7Downloader;
-import cz.inovatika.altoEditor.kramerius.K7ObjectInfo;
-import cz.inovatika.altoEditor.models.ObjectInformation;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
 import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Const;
@@ -88,12 +87,13 @@ public class FileGeneratorProcess implements Runnable {
 
             K7Downloader downloader = new K7Downloader();
             batch = batchManager.setSubStateBatch(batch, Const.BATCH_SUBSTATE_DOWNLOADING);
-            String pid = batch.getPid();
 
-            Integer digitalObjectId = batch.getObjectId();
+            DigitalObject digitalObject = null;
+            if (batch.getObjectId() != null && batch.getObjectId() != 0) {
+                digitalObject = digitalObjectManager.getDigitalObject(batch.getObjectId());
+            }
 
-
-            File folder = downloader.saveImage(batch.getPid(), batch.getInstance(), userProfile);
+            File folder = downloader.saveImage(batch.getPid(), batch.getInstance(), userProfile, digitalObject.getModel());
             batch = batchManager.updateInfoBatch(batch, folder);
             PeroOperator operator = new PeroOperator();
             batch = batchManager.setSubStateBatch(batch, Const.BATCH_SUBSTATE_GENERATING);
@@ -113,9 +113,8 @@ public class FileGeneratorProcess implements Runnable {
                     deleteFolder(folder);
                     if (batch.getObjectId() == null || batch.getObjectId() == 0) {
                         UserProfile tmpUser = new UserProfile(Const.USER_PERO, userProfile.getToken());
-                        digitalObjectManager.addNewDigitalObject(tmpUser.getUsername(), batch.getPid(), AltoDatastreamEditor.ALTO_ID + ".1", batch.getInstance(), Const.DIGITAL_OBJECT_STATE_GENERATED);
+                        digitalObject = digitalObjectManager.addNewDigitalObject(tmpUser.getUsername(), batch.getPid(), "1", batch.getInstance(), Const.DIGITAL_OBJECT_STATE_GENERATED);
                     } else {
-                        DigitalObject digitalObject = digitalObjectManager.getDigitalObject(batch.getObjectId());
                         digitalObject.setState(Const.DIGITAL_OBJECT_STATE_GENERATED);
                         digitalObjectManager.updateDigitalObject(digitalObject);
 
@@ -125,6 +124,14 @@ public class FileGeneratorProcess implements Runnable {
                     batch = batchManager.finishedWithError(batch, new Exception("Alto file is missing!"));
                 }
             } else {
+                UserManager userManager = UserManager.getInstance();
+                Integer userId = userManager.getOrCreateUser(Const.USER_PERO);
+
+                digitalObject.setrUserId(userId);
+                digitalObject.setState(Const.DIGITAL_OBJECT_STATE_GENERATED);
+                digitalObject.setVersion("1");
+
+                digitalObjectManager.updateDigitalObject(digitalObject);
                 batchManager.finishedSuccesfully(batch);
             }
             return batch;

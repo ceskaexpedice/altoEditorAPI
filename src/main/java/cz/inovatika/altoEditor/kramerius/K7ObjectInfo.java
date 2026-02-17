@@ -13,7 +13,9 @@ import java.util.List;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
@@ -190,15 +192,35 @@ public class K7ObjectInfo {
         }
     }
 
-    public List<String> getChildrenPids(String pid, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {
-        KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId);
+    public List<String> getChildrenPids(String pid, String instanceId, UserProfile userProfile, int childCount)
+            throws AltoEditorException, IOException {
+
+        KrameriusOptions.KrameriusInstance instance =
+                findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId);
+
         if (instance == null) {
-            throw new DigitalObjectNotFoundException(instanceId, String.format("This instance \"%s\" is not configured.", instanceId));
+            throw new DigitalObjectNotFoundException(instanceId,
+                    String.format("This instance \"%s\" is not configured.", instanceId));
         }
+
+        List<String> allPids = new ArrayList<>();
+        int rows = 1000;
+        int start = 0;
+
+        while (start < childCount) {
+            int currentRows = Math.min(rows, childCount - start);
+            allPids.addAll(fetchChildrenPidsBatch(pid, instance, userProfile, start, currentRows));
+            start += currentRows;
+        }
+
+        return allPids;
+    }
+
+    public List<String> fetchChildrenPidsBatch(String pid, KrameriusOptions.KrameriusInstance instance, UserProfile userProfile, int start, int row) throws AltoEditorException, IOException {
 
         String childrenInfoUrl = Config.getKrameriusInstanceUrl(instance.getId()) +
                 Config.getKrameriusInstanceUrlModelInfo(instance.getId()) + "?q=own_parent.pid:" +
-                URLEncoder.encode("\"" + pid + "\"", StandardCharsets.UTF_8.name()) + "&fl=pid";
+                URLEncoder.encode("\"" + pid + "\"", StandardCharsets.UTF_8.name()) + "&fl=pid&rows=" + row + "&start=" + start;
         LOGGER.info("Trying to get children info " + childrenInfoUrl);
 
         HttpClient httpClient = HttpClients.createDefault();
@@ -267,21 +289,119 @@ public class K7ObjectInfo {
         return null;
     }
 
-    private String getModelInfo(String result) {
+    private Integer getChildrenPidSize(String result) {
+        if (result == null || result.isBlank()) {
+            LOGGER.warn("getChildrenPidSize called with null or empty result");
+            return null;
+        }
+
         try {
             JSONObject jsonObject = new JSONObject(result);
-            jsonObject = getJSONObject(jsonObject, "response");
-            JSONArray array = getJSONArray(jsonObject, "docs");
-            if (array.length() > 0) {
-                jsonObject = array.getJSONObject(0);
-                if (jsonObject != null) {
-                    return jsonObject.getString("model");
-                }
+            JSONObject responseObject = jsonObject.optJSONObject("response");
+
+            if (responseObject != null && responseObject.has("numFound")) {
+                return responseObject.getInt("numFound");
             }
+
+            LOGGER.warn("numFound not present in response JSON");
             return null;
-        } catch (Throwable t) {
-            t.printStackTrace();
+
+        } catch (JSONException e) {
+            LOGGER.error("Failed to parse JSON in getChildrenPidSize", e);
+            return null;
         }
-        return null;
+    }
+
+    private String getModelInfo(String result) {
+        if (result == null || result.isBlank()) {
+            LOGGER.warn("getModelInfo called with null or empty result");
+            return null;
+        }
+
+        try {
+            JSONObject root = new JSONObject(result);
+            JSONObject response = root.optJSONObject("response");
+
+            if (response == null) {
+                LOGGER.warn("Missing 'response' object in JSON");
+                return null;
+            }
+
+            JSONArray docs = response.optJSONArray("docs");
+            if (docs == null || docs.isEmpty()) {
+                LOGGER.warn("Missing or empty 'docs' array in response");
+                return null;
+            }
+
+            JSONObject firstDoc = docs.optJSONObject(0);
+            if (firstDoc == null) {
+                LOGGER.warn("First element in 'docs' is not a valid JSON object");
+                return null;
+            }
+
+            return firstDoc.optString("model", null);
+
+        } catch (JSONException e) {
+            LOGGER.error("Failed to parse JSON in getModelInfo", e);
+            return null;
+        }
+    }
+
+    public int getChildrenPidSize(String pid, String instanceId, UserProfile userProfile)
+            throws DigitalObjectNotFoundException, IOException {
+
+        KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(
+                KrameriusOptions.get().getKrameriusInstances(), instanceId);
+
+        if (instance == null) {
+            throw new DigitalObjectNotFoundException(instanceId,
+                    String.format("This instance \"%s\" is not configured.", instanceId));
+        }
+
+        String childrenInfoUrl = Config.getKrameriusInstanceUrl(instance.getId()) +
+                Config.getKrameriusInstanceUrlModelInfo(instance.getId()) +
+                "?q=own_parent.pid:" + URLEncoder.encode("\"" + pid + "\"", StandardCharsets.UTF_8) +
+                "&fl=pid";
+
+        LOGGER.info("Trying to get children info " + childrenInfoUrl);
+
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            HttpGet httpGet = new HttpGet(childrenInfoUrl);
+
+            httpGet.setHeader("Keep-Alive", "timeout=600, max=1000");
+            httpGet.setHeader("Authorization", "Bearer " + userProfile.getToken());
+            httpGet.setHeader("Connection", "Keep-Alive, Upgrade");
+            httpGet.setHeader("Accept-Language", "cs,en;q=0.9,de;q=0.8,cs-CZ;q=0.7,sk;q=0.6");
+
+            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+                int status = response.getStatusLine().getStatusCode();
+                HttpEntity entity = response.getEntity();
+                String result = (entity != null) ? EntityUtils.toString(entity, StandardCharsets.UTF_8) : null;
+
+                if (status == HTTP_OK) {
+                    LOGGER.debug("Http response Model info success");
+                    if (result != null && !result.isEmpty()) {
+                        return getChildrenPidSize(result);
+                    }
+                    throw new IOException("GET Model info returned empty result");
+                }
+
+                if (status == HTTP_INTERNAL_ERROR) {
+                    String reason = "unknown";
+                    if (result != null && !result.isEmpty()) {
+                        JSONObject object = new JSONObject(result);
+                        reason = object.optString("message", "unknown");
+                    }
+                    String msg = "GET Children info ended with code " + status + " and reason: " + reason;
+                    LOGGER.warn(msg);
+                    throw new IOException(msg);
+                }
+
+                // Other HTTP errors
+                String msg = "GETTING Children info ended with code " + status;
+                LOGGER.warn(msg);
+                throw new IOException(msg);
+            }
+        }
     }
 }

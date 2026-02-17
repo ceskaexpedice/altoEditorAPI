@@ -144,7 +144,6 @@ public class Config {
         return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_TYPE);
     }
 
-    @Deprecated //TODO check
     public static final String getKrameriusInstanceUrlParametrizedImportQuery(String instance) {
         return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_PARAMETRIZED_IMPORT_QUERY, "/search/api/admin/v7.0/processes");
     }
@@ -153,9 +152,8 @@ public class Config {
         return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_IMAGE, "/search/api/client/v7.0/items/");
     }
 
-    @Deprecated //TODO check
     public static final String getKrameriusInstanceUrlStateQuery(String instance) {
-        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_STATE_QUERY, "/search/api/admin/v7.0/processes/by_process_uuid/");
+        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_STATE_QUERY, "/search/api/admin/v7.0/processes/by_process_id/");
     }
 
     public static final String getKrameriusInstanceUrlDownloadFoxml(String instance) {

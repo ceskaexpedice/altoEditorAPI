@@ -69,6 +69,12 @@ public class FileUtils {
         return "xml";
     }
 
+    public static File getPeroTmpFolder(String model, String parentPid, boolean overwrite) throws AltoEditorException {
+        File peroPath = createFolder(new File(Config.getPeroPath()), false);
+        File parentFile = createFolder(new File(peroPath, (Const.DIGITAL_OBJECT_MODEL_OTHER.equals(model) ? "multi_" : "") +getPidAsFile(parentPid)), overwrite);
+        return parentFile;
+    }
+
     public static File createFolder(File folder, boolean deleteIfExists) throws AltoEditorException {
         if (folder.exists()) {
             if (deleteIfExists) {

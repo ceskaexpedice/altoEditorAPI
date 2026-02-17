@@ -395,25 +395,7 @@ public class DigitalObjectResource {
                 priority = Const.BATCH_PRIORITY_MEDIUM;
             }
 
-            if (!digitalObjects.isEmpty()) {
-                if (digitalObjects.get(0).getLock()) {
-                    throw new DigitalObjectException(pid, String.format("Digital object %s is locked", digitalObjects.get(0).getPid()));
-                }
-                String versionXml = AltoDatastreamEditor.ALTO_ID + ".1";
-                LOGGER.debug("Version find in repositories using login and pid");
-                if (versionXml == null || versionXml.isEmpty()) {
-                    AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0));
-                    setStringResult(context, response);
-                    return;
-                }
-                for (DigitalObjectView digitalObject : digitalObjects) {
-                    if (versionXml.equals(digitalObject.getVersion())) {
-                        AltoEditorStringRecordResponse response = getAltoStream(digitalObject);
-                        setStringResult(context, response);
-                        return;
-                    }
-                }
-            } else {
+            if (digitalObjects.isEmpty()) {
                 DigitalObjectView digitalObject = getDigitalObject(pid);
                 if (digitalObject != null) {
                     if (digitalObject.getLock()) {
@@ -427,7 +409,7 @@ public class DigitalObjectResource {
                         instanceId = getStringNodeValue(node, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
                     }
                     BatchManager batchManager = BatchManager.getInstance();
-                    Batch batch = batchManager.addNewBatch(pid, priority, instanceId, ocrEngine);
+                    Batch batch = batchManager.addNewBatch(pid, priority, instanceId, ocrEngine, digitalObject.getId());
 
                     FileGeneratorProcess process = FileGeneratorProcess.prepare(batch, userProfile);
                     ProcessDispatcher.getDefault().addPeroProcess(process);
@@ -435,6 +417,21 @@ public class DigitalObjectResource {
                     response.setPid(pid);
                     response.setContent("Proces zapsán");
                     setStringResult(context, response);
+                }
+            } else if (digitalObjects.size() == 1) {
+                DigitalObjectView digitalObject = digitalObjects.get(0);
+                if (digitalObject.getLock()) {
+                    throw new DigitalObjectException(pid, String.format("Digital object %s is locked", digitalObjects.get(0).getPid()));
+                }
+                AltoEditorStringRecordResponse response = getAltoStream(digitalObjects.get(0));
+                setStringResult(context, response);
+            } else {
+                for (DigitalObjectView digitalObject : digitalObjects) {
+                    if ((AltoDatastreamEditor.ALTO_ID + ".1").equals(digitalObject.getVersion())) {
+                        AltoEditorStringRecordResponse response = getAltoStream(digitalObject);
+                        setStringResult(context, response);
+                        return;
+                    }
                 }
             }
         } catch (Throwable ex) {
@@ -599,7 +596,8 @@ public class DigitalObjectResource {
             if (digitalObject != null && digitalObject.getPid() != null) {
 
                 K7Uploader uploader = new K7Uploader();
-                uploader.uploadAltoOcr(digitalObject.getPid(), digitalObject.getVersion(), digitalObject.getInstance(), userProfile);
+                uploader.uploadAltoOcr(digitalObject, userProfile);
+//                uploader.uploadAltoOcr(digitalObject.getPid(), digitalObject.getVersion(), digitalObject.getInstance(), userProfile);
 
                 digitalObject.setState(DIGITAL_OBJECT_STATE_UPLOADED);
                 digitalObject.setLock(true);

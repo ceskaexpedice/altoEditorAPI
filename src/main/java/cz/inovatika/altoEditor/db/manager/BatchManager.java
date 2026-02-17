@@ -50,13 +50,14 @@ public class BatchManager {
         this.daos = daos;
     }
 
-    public Batch addNewBatch(String pid, String priority, String instanceId, Integer ocrEngine) {
+    public Batch addNewBatch(String pid, String priority, String instanceId, Integer ocrEngine, Integer digitalObjectId) {
         Batch batch = new Batch();
         batch.setPid(pid);
         batch.setPriority(priority);
         batch.setInstance(instanceId);
         batch.setOcrEngine(ocrEngine);
         batch.setState(Const.BATCH_STATE_PLANNED);
+        batch.setObjectId(digitalObjectId);
 
         return updateBatch(batch);
     }

@@ -129,7 +129,7 @@ User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
 Authorization: Bearer {{token}}
 
-{"pid":"{{uuid}}","priority":"MEDIUM", "instance":"k7", "ocrEngine":"2"}
+{"pid":"{{uuidMono}}","priority":"MEDIUM", "instance":"k7", "ocrEngine":"2"}
 
 
 ### get pero engines

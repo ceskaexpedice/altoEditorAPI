@@ -11,6 +11,7 @@ import cz.inovatika.altoEditor.storage.local.LocalStorage.LocalObject;
 import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Config;
 import cz.inovatika.altoEditor.utils.Const;
+import cz.inovatika.altoEditor.utils.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -260,21 +261,19 @@ public class K7Downloader {
         writeToFile(altoContent, altoFile, pid);
     }
 
-    public File saveImage(String pid, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {
-        return saveImage(pid, pid, instanceId, userProfile);
+    public File saveImage(String pid, String instanceId, UserProfile userProfile, String model) throws AltoEditorException, IOException {
+        return saveImage(pid, pid, instanceId, userProfile, model);
     }
 
-    public File saveImage(String parentPid, String pid, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {
-        File peroPath = createFolder(new File(Config.getPeroPath()), false);
-        File parentFile = createFolder(new File(peroPath, getPidAsFile(parentPid)), true);
+    public File saveImage(String parentPid, String pid, String instanceId, UserProfile userProfile, String model) throws AltoEditorException, IOException {
 
-
-        K7ObjectInfo k7ObjectInfo = new K7ObjectInfo();
-        String model = k7ObjectInfo.getModel(pid, instanceId, userProfile);
-        if (model == null) {
+        if (model == null || model.isEmpty()) {
             throw new IOException("Unknown model for pid = " + pid);
         }
-        if ("page".equals(model)) {
+
+        File parentFile = FileUtils.getPeroTmpFolder(model, parentPid, true);
+
+        if (Const.DIGITAL_OBJECT_MODEL_PAGE.equals(model)) {
             File imageFile = getFile(parentFile, pid, "IMAGE");
             InputStream imageContent = null;
             try {
@@ -284,7 +283,9 @@ public class K7Downloader {
                 closeQuietly(imageContent, pid);
             }
         } else {
-            List<String> childrenPids = k7ObjectInfo.getChildrenPids(pid, instanceId, userProfile);
+            K7ObjectInfo k7ObjectInfo = new K7ObjectInfo();
+            int childCount = k7ObjectInfo.getChildrenPidSize(pid, instanceId, userProfile);
+            List<String> childrenPids = k7ObjectInfo.getChildrenPids(pid, instanceId, userProfile, childCount);
             for (String childrenPid : childrenPids) {
                 File imageFile = getFile(parentFile, childrenPid, "IMAGE");
                 InputStream imageContent = null;

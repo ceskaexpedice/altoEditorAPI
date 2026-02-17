@@ -93,7 +93,7 @@ public class K7Indexer {
 
     public static String getState(String processUuid, String token, KrameriusOptions.KrameriusInstance instance) throws IOException, JSONException, InterruptedException {
 
-        String processQueryUrl = Config.getKrameriusInstanceUrl(instance.getId()) + Config.getKrameriusInstanceUrlStateQuery(instance.getId());
+        String processQueryUrl = Config.getKrameriusInstanceUrl(instance.getId()) + Config.getKrameriusInstanceUrlStateQuery(instance.getId()) + processUuid;
         LOGGER.info("Trying to get Kramerius process status " + processQueryUrl);
 
         String state = KRAMERIUS_PROCESS_PLANNED;

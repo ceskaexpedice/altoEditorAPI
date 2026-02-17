@@ -122,7 +122,7 @@ public class PeroOcrProcessor {
                 return false;
             }
 
-            boolean ready = waitForBatchProcessed(httpClient, requestId, 5);
+            boolean ready = waitForBatchProcessed(httpClient, requestId, 10);
             if (ready) {
                 for (Map.Entry<String, File[]> entry : files.entrySet()) {
                     String fileName = entry.getKey();
@@ -294,13 +294,26 @@ public class PeroOcrProcessor {
 
         for (Map.Entry<String, File[]> entry : files.entrySet()) {
 
-            int dotIndex = entry.getKey().lastIndexOf('.');
-            String extension = dotIndex > 0 ? entry.getKey().substring(dotIndex + 1) : "";
-            String baseName = dotIndex > 0 ? entry.getKey().substring(0, dotIndex) : entry.getKey();
+            File[] fileArray = entry.getValue();
 
-            boolean uploaded = uploadImage(httpClient, requestId, baseName, entry.getValue()[0].getAbsolutePath(), getContentType(extension));
+            if (fileArray == null || fileArray.length == 0) {
+                LOGGER.error("No files found for key {}", entry.getKey());
+                return false;
+            }
+
+            File file = fileArray[0];
+
+            if (file == null || !file.exists() || !file.isFile()) {
+                LOGGER.error("Invalid file for key {}: {}", entry.getKey(), file);
+                return false;
+            }
+
+            int dotIndex = file.getName().lastIndexOf('.');
+            String extension = dotIndex > 0 ? file.getName().substring(dotIndex + 1) : "";
+
+            boolean uploaded = uploadImage(httpClient, requestId, entry.getKey(), file.getAbsolutePath(), getContentType(extension));
             if (!uploaded) {
-                LOGGER.error("Stopping batch upload: {} failed to upload", entry.getValue()[0].getAbsolutePath());
+                LOGGER.error("Stopping batch upload: {} failed to upload", file.getAbsolutePath());
                 return false;
             }
         }
