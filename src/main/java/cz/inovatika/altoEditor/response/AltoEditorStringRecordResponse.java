@@ -30,6 +30,9 @@ public class AltoEditorStringRecordResponse {
     @XmlElement(name = "content")
     private String content;
 
+    @XmlElement(name = "versionState")
+    private String versionState;
+
     @XmlElement(name = "data")
     private Object data;
 
@@ -114,5 +117,13 @@ public class AltoEditorStringRecordResponse {
 
     public void setModel(String model) {
         this.model = model;
+    }
+
+    public String getVersionState() {
+        return versionState;
+    }
+
+    public void setVersionState(String versionState) {
+        this.versionState = versionState;
     }
 }

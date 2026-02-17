@@ -4,6 +4,8 @@ import cz.inovatika.altoEditor.db.filter.DigitalObjectFilter;
 import cz.inovatika.altoEditor.db.manager.BatchManager;
 import cz.inovatika.altoEditor.db.manager.DigitalObjectManager;
 import cz.inovatika.altoEditor.db.model.DigitalObject;
+import cz.inovatika.altoEditor.kramerius.K7Client;
+import cz.inovatika.altoEditor.kramerius.KrameriusOptions;
 import cz.inovatika.altoEditor.process.PeroOcrProcessor;
 import io.javalin.http.Context;
 
@@ -14,7 +16,6 @@ import cz.inovatika.altoEditor.exception.AltoEditorException;
 import cz.inovatika.altoEditor.exception.DigitalObjectException;
 import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
 import cz.inovatika.altoEditor.kramerius.K7Downloader;
-import cz.inovatika.altoEditor.kramerius.K7ImageViewer;
 import cz.inovatika.altoEditor.kramerius.K7ObjectInfo;
 import cz.inovatika.altoEditor.kramerius.K7Uploader;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
@@ -41,6 +42,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import static cz.inovatika.altoEditor.editor.AltoDatastreamEditor.nextVersion;
+import static cz.inovatika.altoEditor.kramerius.KrameriusOptions.findKrameriusInstance;
 import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_FORBIDDEN;
 import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_UNAUTHORIZED;
 import static cz.inovatika.altoEditor.response.AltoEditorResponse.asError;
@@ -105,8 +107,8 @@ public class DigitalObjectResource {
                 instanceId = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
             }
 
-            K7ImageViewer imageViewer = new K7ImageViewer();
-            HttpResponse response = imageViewer.getResponse(pid, instanceId, userProfile);
+            K7Client client = new K7Client(findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId));
+            HttpResponse response = client.getResponse(pid, userProfile.getToken());
 
             if (HTTP_OK == response.getStatusLine().getStatusCode()) {
                 setResult(context, response, pid);
@@ -545,29 +547,31 @@ public class DigitalObjectResource {
 
     private static AltoEditorStringRecordResponse getAltoStream(DigitalObjectView digitalObject) throws IOException, AltoEditorException {
         if (Const.DIGITAL_OBJECT_MODEL_PAGE.equals(digitalObject.getModel())) {
-            return getAltoStream(digitalObject.getPid(), digitalObject.getVersion(), digitalObject.getModel());
+            return getAltoStream(digitalObject.getPid(), digitalObject.getVersion(), digitalObject.getModel(), digitalObject.getState());
         } else {
             AltoEditorStringRecordResponse response = new AltoEditorStringRecordResponse();
             response.setPid(digitalObject.getPid());
             response.setContent("This digital object does not contain a alto xml.");
             response.setModel(digitalObject.getModel());
+            response.setVersionState(digitalObject.getState());
             return response;
         }
     }
 
     private static AltoEditorStringRecordResponse getAltoStream(DigitalObject digitalObject) throws IOException, AltoEditorException {
         if (Const.DIGITAL_OBJECT_MODEL_PAGE.equals(digitalObject.getModel())) {
-            return getAltoStream(digitalObject.getPid(), digitalObject.getVersion(), digitalObject.getModel());
+            return getAltoStream(digitalObject.getPid(), digitalObject.getVersion(), digitalObject.getModel(), digitalObject.getState());
         } else {
             AltoEditorStringRecordResponse response = new AltoEditorStringRecordResponse();
             response.setPid(digitalObject.getPid());
             response.setContent("This digital object does not contain a alto xml.");
             response.setModel(digitalObject.getModel());
+            response.setVersionState(digitalObject.getState());
             return response;
         }
     }
 
-    private static AltoEditorStringRecordResponse getAltoStream(@NotNull String pid, @NotNull String versionId, @NotNull String model) throws IOException, AltoEditorException {
+    private static AltoEditorStringRecordResponse getAltoStream(@NotNull String pid, @NotNull String versionId, @NotNull String model, @NotNull String state) throws IOException, AltoEditorException {
         AkubraStorage storage = AkubraStorage.getInstance();
         AkubraObject object = storage.find(pid);
         AltoDatastreamEditor altoEditor = AltoDatastreamEditor.alto(object);
@@ -575,6 +579,7 @@ public class DigitalObjectResource {
         response.setPid(pid);
         response.setVersion(versionId);
         response.setModel(model);
+        response.setVersionState(state);
         return response;
     }
 

@@ -101,6 +101,10 @@ Authorization: Bearer {{token}}
 GET {{url}}/db/batch
 Authorization: Bearer {{token}}
 
+### delete batch
+DELETE {{url}}/db/batches?id=56
+Authorization: Bearer {{token}}
+
 ### get Image
 GET {{url}}/object/image?pid={{uuid}}&instance=k7
 Authorization: Bearer {{token}}

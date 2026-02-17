@@ -1,9 +1,8 @@
 package cz.inovatika.altoEditor.user;
 
-import cz.inovatika.altoEditor.kramerius.K7UserInfo;
+import cz.inovatika.altoEditor.kramerius.KeyCloakClient;
 import cz.inovatika.altoEditor.utils.Config;
 import cz.inovatika.altoEditor.utils.Const;
-import io.javalin.http.servlet.JavalinServletContext;
 import java.io.IOException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,10 +16,9 @@ public class UserUtils {
         if (token == null || token.isEmpty()) {
             return null;
         }
-        K7UserInfo k7UserInfo = new K7UserInfo();
         try {
-            UserProfile user = k7UserInfo.getUser(token);
-            return user;
+            KeyCloakClient keyCloakClient = new KeyCloakClient(Config.getKeycloakUrl());
+            return keyCloakClient.getUser(token);
         } catch (IOException e) {
             return null;
         }

@@ -205,6 +205,12 @@ public final class AltoDatastreamEditor {
     }
 
     public String readRecordAsString(String versionId) throws AltoEditorException {
+        if (versionId == null || versionId.isEmpty()) {
+            return null;
+        }
+        if (!versionId.startsWith(AltoDatastreamEditor.ALTO_ID + ".")) {
+            versionId = AltoDatastreamEditor.ALTO_ID + "." + versionId;
+        }
         InputStream altoStream = editor.readStream(versionId);
         if (altoStream == null) {
             throw new AltoEditorException("Alto datastream with version " + versionId + " not found in storage");

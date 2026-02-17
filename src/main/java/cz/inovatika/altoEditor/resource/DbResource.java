@@ -22,15 +22,12 @@ import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Const;
 import io.javalin.http.Context;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.ws.rs.BadRequestException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -494,7 +491,7 @@ public class DbResource {
             List<String> pids = getOptListStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
 
             if (ids.isEmpty() && pids.isEmpty()) {
-                throw new BadRequestException(String.format("PID or ID must be filled."));
+                throw new RequestException("id or pid", "PID or ID must be filled.");
             }
 
             DigitalObjectManager manager = DigitalObjectManager.getInstance();
@@ -506,7 +503,7 @@ public class DbResource {
             AkubraStorage storage = AkubraStorage.getInstance();
 
             if (digitalObjects.isEmpty()) {
-                throw new BadRequestException("No digital objects found for given id/pid");
+                throw new RequestException("id or pid", "No digital objects found for given id/pid");
             }
 
             for (DigitalObjectView digitalObject : digitalObjects) {
@@ -555,7 +552,7 @@ public class DbResource {
             List<String> pids = getOptListStringRequestValue(context, Const.PARAM_BATCH_PID);
 
             if (ids.isEmpty() && pids.isEmpty()) {
-                throw new BadRequestException(String.format("PID or ID must be filled."));
+                throw new RequestException("id or pid", "PID or ID must be filled.");
             }
 
             BatchManager batchmanager = BatchManager.getInstance();
@@ -565,7 +562,7 @@ public class DbResource {
 
 
             if (batches.isEmpty()) {
-                throw new BadRequestException("No batches found for given id/pid");
+                throw new RequestException("id or pid", "No batches found for given id/pid");
             }
 
             for (Batch batch : batches) {

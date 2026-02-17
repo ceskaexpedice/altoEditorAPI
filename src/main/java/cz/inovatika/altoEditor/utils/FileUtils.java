@@ -118,16 +118,12 @@ public class FileUtils {
         }
 
         if (!file.createNewFile()) {
-            LOGGER.warn("Can not create file " + file.getAbsolutePath());
+            LOGGER.warn("Can not create file {}", file.getAbsolutePath());
             throw new IOException("Nepodařilo se vytvořit soubor " + file.getAbsolutePath());
         }
 
-        FileOutputStream outputStream = null;
-        try {
-            outputStream = new FileOutputStream(file);
-            IOUtils.copy(content, outputStream);
-        } finally {
-            closeQuietly(outputStream, pid);
+        try (InputStream in = content; FileOutputStream out = new FileOutputStream(file)) {
+            IOUtils.copy(in, out);
         }
     }
 }
