@@ -114,10 +114,10 @@ public class DigitalObjectResource {
                 String parentPid = objectInformation.getParentPid();
                 String json;
                 if (parentPid == null) {
-                    json = getPidNavigationAsString(Collections.emptyList(), pid);
+                    json = getPidNavigationAsString(Collections.emptyList(), pid, instanceId);
                 } else {
                     List<String> pids = client.getChildrenPids(objectInformation.getParentPid(), userProfile.getToken());
-                    json = getPidNavigationAsString(pids, pid);
+                    json = getPidNavigationAsString(pids, pid, instanceId);
                 }
                 setResult(context, json);
             }
@@ -126,12 +126,13 @@ public class DigitalObjectResource {
         }
     }
 
-    public static String getPidNavigationAsString(List<String> pidList, String currentPid) {
+    public static String getPidNavigationAsString(List<String> pidList, String currentPid, String instanceId) {
         JSONObject result = new JSONObject();
 
         int index = pidList.indexOf(currentPid);
         if (index == -1) {
             result.put("pid", currentPid);
+            result.put("instance", instanceId);
             result.put("previousPid", JSONObject.NULL);
             result.put("nextPid", JSONObject.NULL);
             return result.toString();
@@ -141,6 +142,7 @@ public class DigitalObjectResource {
         String next = index < pidList.size() - 1 ? pidList.get(index + 1) : null;
 
         result.put("pid", currentPid);
+        result.put("instance", instanceId);
         result.put("previousPid", previous != null ? previous : JSONObject.NULL);
         result.put("nextPid", next != null ? next : JSONObject.NULL);
 
