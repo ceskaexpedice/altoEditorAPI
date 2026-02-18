@@ -110,7 +110,7 @@ GET {{url}}/object/image?pid={{uuid}}&instance=k7
 Authorization: Bearer {{token}}
 
 ### get Alto
-GET {{url}}/object/alto?pid={{uuidMono}}&instance=k7
+GET {{url}}/object/alto?pid={{uuid}}&instance=k7
 Authorization: Bearer {{token}}
 
 ### get Ocr
@@ -175,6 +175,10 @@ GET {{url}}/object/objectInformation?pid={{uuid3}}&instance=k7
 Connection: Keep-Alive
 User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
+Authorization: Bearer {{token}}
+
+### get siblings
+GET {{url}}/object/siblings?pid={{uuid}}&instance=k7
 Authorization: Bearer {{token}}
 
 ###

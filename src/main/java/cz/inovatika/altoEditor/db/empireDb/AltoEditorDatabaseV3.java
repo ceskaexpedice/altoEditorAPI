@@ -180,6 +180,7 @@ public class AltoEditorDatabaseV3 extends DBDatabase {
             DBSQLScript script = new DBSQLScript();
 
             driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.ocrEngine, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableDigitalObject.lock, script);
 
             LOG.debug(script.toString());
             script.executeAll(driver, conn);

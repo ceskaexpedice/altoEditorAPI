@@ -4,6 +4,7 @@ import cz.inovatika.altoEditor.db.filter.DigitalObjectFilter;
 import cz.inovatika.altoEditor.db.manager.BatchManager;
 import cz.inovatika.altoEditor.db.manager.DigitalObjectManager;
 import cz.inovatika.altoEditor.db.model.DigitalObject;
+import cz.inovatika.altoEditor.exception.RequestException;
 import cz.inovatika.altoEditor.kramerius.K7Client;
 import cz.inovatika.altoEditor.kramerius.K7Utility;
 import cz.inovatika.altoEditor.kramerius.KrameriusOptions;
@@ -38,6 +39,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 
 import static cz.inovatika.altoEditor.editor.AltoDatastreamEditor.nextVersion;
 import static cz.inovatika.altoEditor.kramerius.KrameriusOptions.findKrameriusInstance;
@@ -48,6 +50,7 @@ import static cz.inovatika.altoEditor.user.UserUtils.getUserProfile;
 import static cz.inovatika.altoEditor.utils.Const.DIGITAL_OBJECT_STATE_UPLOADED;
 import static cz.inovatika.altoEditor.utils.Utils.getIntegerNodeValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptIntegerNodeValue;
+import static cz.inovatika.altoEditor.utils.Utils.getOptIntegerRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptStringNodeValue;
 import static cz.inovatika.altoEditor.utils.Utils.getOptStringRequestValue;
 import static cz.inovatika.altoEditor.utils.Utils.getStringNodeValue;
@@ -78,6 +81,70 @@ public class DigitalObjectResource {
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
         }
+    }
+
+    public static void getSiblings(@NotNull Context context) {
+        if (RESPONSE_UNAUTHORIZED == context.res().getStatus() || RESPONSE_FORBIDDEN == context.res().getStatus()) {
+            setResult(context, AltoEditorResponse.asError(context.res().getStatus(), context.result()));
+            return;
+        }
+        UserProfile userProfile = getUserProfile(getToken(context));
+        try {
+            Integer id = getOptIntegerRequestValue(context, Const.PARAM_DIGITAL_OBJECT_ID);
+            String pid = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
+            String instanceId = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
+
+            if (!((id != null && id > 0) || ((pid != null && !pid.isBlank()) && (instanceId != null && !instanceId.isBlank())))) {
+                throw new RequestException("parameters", "Missing parameters {}, {}, {}".formatted(Const.PARAM_DIGITAL_OBJECT_ID, Const.PARAM_DIGITAL_OBJECT_PID, Const.PARAM_DIGITAL_OBJECT_INSTANCE));
+            }
+
+            DigitalObjectManager digitalObjectManager = DigitalObjectManager.getInstance();
+            if (id != null) {
+                DigitalObject digitalObject = digitalObjectManager.getDigitalObject(id);
+
+                if (digitalObject != null) {
+                    pid = digitalObject.getPid();
+                    instanceId = digitalObject.getInstance();
+                }
+            }
+
+
+            try (K7Client client = new K7Client(findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId))) {
+                ObjectInformation objectInformation = client.getObjectInformation(pid, userProfile.getToken());
+                String parentPid = objectInformation.getParentPid();
+                String json;
+                if (parentPid == null) {
+                    json = getPidNavigationAsString(Collections.emptyList(), pid);
+                } else {
+                    List<String> pids = client.getChildrenPids(objectInformation.getParentPid(), userProfile.getToken());
+                    json = getPidNavigationAsString(pids, pid);
+                }
+                setResult(context, json);
+            }
+        } catch (Exception ex) {
+            setResult(context, AltoEditorResponse.asError(ex));
+        }
+    }
+
+    public static String getPidNavigationAsString(List<String> pidList, String currentPid) {
+        JSONObject result = new JSONObject();
+
+        int index = pidList.indexOf(currentPid);
+        if (index == -1) {
+            result.put("pid", currentPid);
+            result.put("previousPid", JSONObject.NULL);
+            result.put("nextPid", JSONObject.NULL);
+            return result.toString();
+        }
+
+        String previous = index > 0 ? pidList.get(index - 1) : null;
+        String next = index < pidList.size() - 1 ? pidList.get(index + 1) : null;
+
+        result.put("pid", currentPid);
+        result.put("previousPid", previous != null ? previous : JSONObject.NULL);
+        result.put("nextPid", next != null ? next : JSONObject.NULL);
+
+        return result.toString();
     }
 
     public static void getImage(Context context) {
@@ -363,8 +430,7 @@ public class DigitalObjectResource {
                     setStringResult(context, response);
                     return;
                 }
-            }
-            else {
+            } else {
                 throw new DigitalObjectNotFoundException(pid, String.format("This pid \"%s\" not found in repository.", pid));
             }
         } catch (Throwable ex) {

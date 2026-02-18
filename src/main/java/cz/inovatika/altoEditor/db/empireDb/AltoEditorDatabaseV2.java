@@ -176,7 +176,6 @@ public class AltoEditorDatabaseV2 extends DBDatabase {
             driver.getDDLScript(DBCmdType.CREATE, schema.tableDigitalObject.label, script);
             driver.getDDLScript(DBCmdType.CREATE, schema.tableDigitalObject.parentPath, script);
             driver.getDDLScript(DBCmdType.CREATE, schema.tableDigitalObject.parentLabel, script);
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableDigitalObject.lock, script);
 
             LOG.debug(script.toString());
             script.executeAll(driver, conn);

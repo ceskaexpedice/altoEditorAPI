@@ -182,6 +182,7 @@ public class AltoEditorInitializer {
         app.get(Const.PATH_DB_BATCH, DbResource::getBatches);
 
         app.get(Const.PATH_DIGITAL_OBJECT_INFORMATION, DigitalObjectResource::getObjectInformation);
+        app.get(Const.PATH_DIGITAL_OBJECT_SIBLINGS, DigitalObjectResource::getSiblings);
         app.get(Const.PATH_DIGITAL_OBJECT_IMAGE, DigitalObjectResource::getImage);
         app.get(Const.PATH_DIGITAL_OBJECT_ALTO, DigitalObjectResource::getAlto);
         app.get(Const.PATH_DIGITAL_OBJECT_ALTO_ORIGINAL, DigitalObjectResource::getAltoOriginal);

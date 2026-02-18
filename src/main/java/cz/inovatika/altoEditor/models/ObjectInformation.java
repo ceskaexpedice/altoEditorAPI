@@ -9,16 +9,18 @@ public class ObjectInformation {
     private String label;
     private String parentPath;
     private String parentLabel;
+    private String parentPid;
 
     public ObjectInformation() {
     }
 
-    public ObjectInformation(String pid, String model, String label, String parentPid, String parentLabel) {
+    public ObjectInformation(String pid, String model, String label, String parentPath, String parentLabel, String parentPid) {
         this.pid = pid;
         this.model = transformModel(model);
         this.label = label;
-        this.parentPath = fixParentPath(parentPid, pid);
+        this.parentPath = fixParentPath(parentPath, pid);
         this.parentLabel = parentLabel;
+        this.parentPid = parentPid;
     }
 
     private String transformModel(String model) {
@@ -80,5 +82,13 @@ public class ObjectInformation {
 
     public void setModel(String model) {
         this.model = model;
+    }
+
+    public String getParentPid() {
+        return parentPid;
+    }
+
+    public void setParentPid(String parentPid) {
+        this.parentPid = parentPid;
     }
 }

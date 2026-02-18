@@ -78,7 +78,7 @@ public class K7Client extends AbstractHttpClient {
         return execute(request, body -> getObjectInformationFromResponse(pid, body));
     }
 
-    public List<String> getChildren(String parentPid, String token, int start, int rows) throws IOException {
+    public List<String> getChildrenPids(String parentPid, String token, int start, int rows) throws IOException {
 
         HttpGet request = createHttpGet(baseUrl + Config.getKrameriusInstanceUrlModelInfo(instance.getId()) + "?q=own_parent.pid:" +
                 URLEncoder.encode("\"" + parentPid + "\"", StandardCharsets.UTF_8.name()) + "&fl=pid&rows=" + rows + "&start=" + start, token);
@@ -139,7 +139,7 @@ public class K7Client extends AbstractHttpClient {
 
         while (start < childCount) {
             int currentRows = Math.min(rows, childCount - start);
-            allPids.addAll(getChildren(pid, token, start, currentRows));
+            allPids.addAll(getChildrenPids(pid, token, start, currentRows));
             start += currentRows;
         }
 
@@ -212,13 +212,14 @@ public class K7Client extends AbstractHttpClient {
             JSONArray fields = docJson.optJSONArray("str");
             if (fields == null) {
                 LOGGER.warn("Missing 'str' array in response for pid {}", pid);
-                return new ObjectInformation(pid, null, null, null, null);
+                return new ObjectInformation(pid, null, null, null, null, null);
             }
 
             String model = null;
             String label = null;
             String parentLabel = null;
             String parentPid = null;
+            String parentPath = null;
 
             for (int i = 0; i < fields.length(); i++) {
                 JSONObject field = fields.getJSONObject(i);
@@ -240,16 +241,19 @@ public class K7Client extends AbstractHttpClient {
                         parentLabel = transformJsonValue(content);
                         break;
                     case "own_pid_path":
+                        parentPath = transformJsonValue(content);
+                        break;
+                    case "own_parent.pid":
                         parentPid = transformJsonValue(content);
                         break;
                 }
             }
 
-            return new ObjectInformation(pid, model, label, parentPid, parentLabel);
+            return new ObjectInformation(pid, model, label, parentPath, parentLabel, parentPid);
 
         } catch (JSONException ex) {
             LOGGER.warn("Failed to parse object information for pid {}. Returning minimal object.", pid, ex);
-            return new ObjectInformation(pid, null, null, null, null);
+            return new ObjectInformation(pid, null, null, null, null, null);
         }
     }
 
