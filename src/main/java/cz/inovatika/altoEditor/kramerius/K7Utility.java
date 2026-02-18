@@ -1,19 +1,21 @@
 package cz.inovatika.altoEditor.kramerius;
 
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import cz.inovatika.altoEditor.db.model.DigitalObject;
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import cz.inovatika.altoEditor.exception.AltoEditorException;
 import cz.inovatika.altoEditor.exception.DigitalObjectException;
 import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
 import cz.inovatika.altoEditor.storage.local.LocalStorage;
-import cz.inovatika.altoEditor.storage.local.LocalStorage.LocalObject;
 import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.altoEditor.utils.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,35 +24,29 @@ import static cz.inovatika.altoEditor.kramerius.KrameriusOptions.findKrameriusIn
 import static cz.inovatika.altoEditor.utils.FileUtils.deleteFolder;
 import static cz.inovatika.altoEditor.utils.FileUtils.getFile;
 import static cz.inovatika.altoEditor.utils.FileUtils.writeToFile;
+import static cz.inovatika.altoEditor.utils.OcrUtils.createOcrFromAlto;
 
 /**
- * The K7Downloader class provides functionality to download, update, and store
- * FOXML data and associated ALTO files from Kramerius digital repositories.
- * It interacts with Kramerius repositories via the K7Client and handles various
- * digital object operations such as downloading, temporary storage, ALTO file
- * management, and ingestion into a local repository.
+ * Utility class providing various functions related to the management of
+ * digital objects in a repository system, specifically those involving
+ * FOXML and ALTO files.
  *
- * This class includes error handling mechanisms to ensure proper handling of
- * edge cases like missing or invalid files, and provides logging for monitoring
- * the processes.
+ * This class includes methods for downloading, processing, and importing
+ * digital objects, handling ALTO OCR uploads, and managing temporary file
+ * storage during operations.
  */
-public class K7Downloader {
+public class K7Utility {
 
-    private static final Logger LOGGER = LogManager.getLogger(K7Downloader.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(K7Utility.class.getName());
 
-    public void downloadFoxml(String pid, String model, String instanceId, UserProfile userProfile) throws AltoEditorException, IOException {
+    public void downloadFoxml(String pid, String model, K7Client client, UserProfile userProfile) throws AltoEditorException, IOException {
         AkubraStorage storage = AkubraStorage.getInstance();
         if (storage.exist(pid)) {
             LOGGER.warn("Object already exists in repo: {}", pid);
             throw new DigitalObjectException(pid, "Object already exists in repo");
         }
 
-        KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId);
-        if (instance == null) {
-            throw new DigitalObjectNotFoundException(instanceId, String.format("This instance \"%s\" is not configured.", instanceId));
-        }
-
-        try (K7Client client = new K7Client(instance)) {
+        try {
             String foxml = client.downloadFoxml(pid, userProfile.getToken());
             saveToTmp(foxml, pid);
 
@@ -106,7 +102,7 @@ public class K7Downloader {
         }
 
         LocalStorage localStorage = new LocalStorage();
-        LocalObject lObj = localStorage.load(pid, pidFile);
+        LocalStorage.LocalObject lObj = localStorage.load(pid, pidFile);
 
         File altoFile = getFile(pid, AltoDatastreamEditor.ALTO_ID);
         if (altoFile == null) {
@@ -132,7 +128,7 @@ public class K7Downloader {
         }
 
         LocalStorage localStorage = new LocalStorage();
-        LocalObject lObj = localStorage.load(pid, pidFile);
+        LocalStorage.LocalObject lObj = localStorage.load(pid, pidFile);
 
         if (lObj != null && lObj.getDigitalObject() != null) {
             List<DatastreamType> datastreams = lObj.getDigitalObject().getDatastream();
@@ -159,7 +155,7 @@ public class K7Downloader {
         }
 
         LocalStorage localStorage = new LocalStorage();
-        LocalObject lObj = localStorage.load(pid, pidFile);
+        LocalStorage.LocalObject lObj = localStorage.load(pid, pidFile);
 
         AkubraStorage akubraStorage = AkubraStorage.getInstance();
         akubraStorage.ingest(lObj, login, "Ingested by AltoEditor from Kramerius");
@@ -193,9 +189,7 @@ public class K7Downloader {
                 InputStream imageContent = client.getStream(pid, userProfile.getToken());
                 writeToFile(imageContent, imageFile, pid);
             } else {
-                K7ObjectInfo k7ObjectInfo = new K7ObjectInfo();
-                int childCount = k7ObjectInfo.getChildrenPidSize(pid, instanceId, userProfile);
-                List<String> childrenPids = k7ObjectInfo.getChildrenPids(pid, instanceId, userProfile, childCount);
+                List<String> childrenPids = client.getChildrenPids(pid, userProfile.getToken());
                 for (String childrenPid : childrenPids) {
                     File imageFile = getFile(parentFile, childrenPid, "IMAGE");
                     InputStream imageContent = client.getStream(childrenPid, userProfile.getToken());
@@ -204,5 +198,92 @@ public class K7Downloader {
             }
         }
         return parentFile;
+    }
+
+    public void uploadAltoOcr(DigitalObject digitalObject, UserProfile userProfile) throws AltoEditorException, IOException, InterruptedException {
+        if (Const.DIGITAL_OBJECT_MODEL_OTHER.equals(digitalObject.getModel())) {
+            uploadBatchAltoOcr(digitalObject, userProfile);
+        } else {
+            uploadAltoOcr(digitalObject.getPid(), digitalObject.getVersion(), digitalObject.getInstance(), userProfile);
+        }
+    }
+
+    private void uploadBatchAltoOcr(DigitalObject digitalObject, UserProfile userProfile) throws AltoEditorException, IOException, InterruptedException {
+
+        File parentFile = FileUtils.getPeroTmpFolder(digitalObject.getModel(), digitalObject.getPid(), false);
+
+        if (parentFile == null || !parentFile.exists() || !parentFile.isDirectory()) {
+            throw new DigitalObjectNotFoundException(digitalObject.getPid(), "Temporary folder not found for this digital object.");
+        }
+
+        KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), digitalObject.getInstance());
+        if (instance == null) {
+            throw new DigitalObjectNotFoundException(digitalObject.getInstance(), String.format("This instance \"%s\" is not configured.", digitalObject.getInstance()));
+        }
+
+        File[] files = parentFile.listFiles(File::isFile);
+        if (files == null || files.length == 0) {
+            throw new AltoEditorException("No files found in temporary folder: " + parentFile.getAbsolutePath());
+        }
+
+        try (K7Client client = new K7Client(instance)) {
+
+            for (File file : files) {
+
+                String filename = file.getName();
+                int dotIndex = filename.lastIndexOf('.');
+                if (dotIndex <= 0) {
+                    LOGGER.warn("Skipping file without extension: {}", filename);
+                    continue;
+                }
+
+                String extension = filename.substring(dotIndex + 1).toLowerCase();
+                String uuid = "uuid:" + (filename.substring(0, dotIndex));
+
+                if (!"xml".equals(extension) && !"txt".equals(extension)) {
+                    continue;
+                }
+
+                try {
+                    String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+
+                    String datastreamType = "txt".equals(extension) ? Const.DATASTREAM_TYPE_OCR : Const.DATASTREAM_TYPE_ALTO;
+                    client.uploadStream(uuid, datastreamType, content, userProfile.getToken());
+                } catch (IOException e) {
+                    throw new AltoEditorException("Failed to read or upload file: " + filename, e);
+                }
+            }
+
+            client.indexDocument(digitalObject.getPid(), userProfile.getToken());
+        }
+    }
+
+    public void uploadAltoOcr(String pid, String versionId, String instanceId, UserProfile userProfile) throws IOException, AltoEditorException, InterruptedException {
+        String alto = getAltoFromRepository(pid, versionId);
+        if (alto == null || alto.isBlank()) {
+            throw new AltoEditorException(pid + "/" + versionId, "Alto to upload is null or empty");
+        }
+        String ocr = createOcrFromAlto(alto);
+        if (ocr == null || ocr.isBlank()) {
+            throw new AltoEditorException(pid + "/" + versionId, "OCR to upload is null or empty");
+        }
+
+        KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId);
+        if (instance == null) {
+            throw new DigitalObjectNotFoundException(instanceId, String.format("This instance \"%s\" is not configured.", instanceId));
+        }
+
+        try (K7Client client = new K7Client(instance)) {
+            client.uploadStream(pid, Const.DATASTREAM_TYPE_ALTO, alto, userProfile.getToken());
+            client.uploadStream(pid, Const.DATASTREAM_TYPE_OCR, ocr, userProfile.getToken());
+            client.indexDocument(pid, userProfile.getToken());
+        }
+    }
+
+    private String getAltoFromRepository(String pid, String versionId) throws IOException, AltoEditorException {
+        AkubraStorage storage = AkubraStorage.getInstance();
+        AkubraStorage.AkubraObject object = storage.find(pid);
+        AltoDatastreamEditor altoEditor = AltoDatastreamEditor.alto(object);
+        return altoEditor.readRecordAsString(versionId);
     }
 }

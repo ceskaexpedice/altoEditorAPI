@@ -1,6 +1,5 @@
 package cz.inovatika.altoEditor.models;
 
-import com.hp.hpl.jena.graph.query.SimpleQueryEngine;
 import cz.inovatika.altoEditor.utils.Const;
 
 public class ObjectInformation {

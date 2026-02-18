@@ -5,6 +5,7 @@ import cz.inovatika.altoEditor.db.manager.BatchManager;
 import cz.inovatika.altoEditor.db.manager.DigitalObjectManager;
 import cz.inovatika.altoEditor.db.model.DigitalObject;
 import cz.inovatika.altoEditor.kramerius.K7Client;
+import cz.inovatika.altoEditor.kramerius.K7Utility;
 import cz.inovatika.altoEditor.kramerius.KrameriusOptions;
 import cz.inovatika.altoEditor.process.PeroOcrProcessor;
 import io.javalin.http.Context;
@@ -15,9 +16,6 @@ import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import cz.inovatika.altoEditor.exception.AltoEditorException;
 import cz.inovatika.altoEditor.exception.DigitalObjectException;
 import cz.inovatika.altoEditor.exception.DigitalObjectNotFoundException;
-import cz.inovatika.altoEditor.kramerius.K7Downloader;
-import cz.inovatika.altoEditor.kramerius.K7ObjectInfo;
-import cz.inovatika.altoEditor.kramerius.K7Uploader;
 import cz.inovatika.altoEditor.models.DigitalObjectView;
 import cz.inovatika.altoEditor.models.ObjectInformation;
 import cz.inovatika.altoEditor.process.FileGeneratorProcess;
@@ -45,7 +43,6 @@ import static cz.inovatika.altoEditor.editor.AltoDatastreamEditor.nextVersion;
 import static cz.inovatika.altoEditor.kramerius.KrameriusOptions.findKrameriusInstance;
 import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_FORBIDDEN;
 import static cz.inovatika.altoEditor.response.AltoEditorResponse.RESPONSE_UNAUTHORIZED;
-import static cz.inovatika.altoEditor.response.AltoEditorResponse.asError;
 import static cz.inovatika.altoEditor.user.UserUtils.getToken;
 import static cz.inovatika.altoEditor.user.UserUtils.getUserProfile;
 import static cz.inovatika.altoEditor.utils.Const.DIGITAL_OBJECT_STATE_UPLOADED;
@@ -74,10 +71,10 @@ public class DigitalObjectResource {
             String pid = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PID);
             String instanceId = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
 
-            K7ObjectInfo objectInfo = new K7ObjectInfo();
-            ObjectInformation objectInformation = objectInfo.getObjectInformation(pid, instanceId, userProfile);
-
-            setResult(context, new AltoEditorResponse(objectInformation));
+            try (K7Client client = new K7Client(findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId))) {
+                ObjectInformation objectInformation = client.getObjectInformation(pid, userProfile.getToken());
+                setResult(context, new AltoEditorResponse(objectInformation));
+            }
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
         }
@@ -278,11 +275,12 @@ public class DigitalObjectResource {
         // 5. stazeni nove verze z krameria
         String instanceId = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_INSTANCE);
 
-        K7ObjectInfo objectInfo = new K7ObjectInfo();
-        ObjectInformation info = objectInfo.getObjectInformation(pid, instanceId, userProfile);
-
-        K7Downloader downloader = new K7Downloader();
-        downloader.downloadFoxml(pid, info.getModel(), instanceId, userProfile);
+        ObjectInformation info = null;
+        try (K7Client client = new K7Client(findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId))) {
+            info = client.getObjectInformation(pid, userProfile.getToken());
+            K7Utility downloader = new K7Utility();
+            downloader.downloadFoxml(pid, info == null ? Const.DIGITAL_OBJECT_MODEL_PAGE : info.getModel(), client, userProfile);
+        }
         UserProfile tmpUser = new UserProfile(Const.USER_ALTOEDITOR, userProfile.getToken());
 
         DigitalObject digitalObject = digitalObjectManager.addNewDigitalObject(tmpUser.getUsername(), pid, "0", instanceId);
@@ -600,9 +598,8 @@ public class DigitalObjectResource {
 
             if (digitalObject != null && digitalObject.getPid() != null) {
 
-                K7Uploader uploader = new K7Uploader();
+                K7Utility uploader = new K7Utility();
                 uploader.uploadAltoOcr(digitalObject, userProfile);
-//                uploader.uploadAltoOcr(digitalObject.getPid(), digitalObject.getVersion(), digitalObject.getInstance(), userProfile);
 
                 digitalObject.setState(DIGITAL_OBJECT_STATE_UPLOADED);
                 digitalObject.setLock(true);

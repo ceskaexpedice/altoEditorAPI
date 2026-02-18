@@ -16,7 +16,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -154,17 +153,17 @@ public class PeroOcrProcessor {
                         .allMatch(state -> "PROCESSED".equalsIgnoreCase(state));
 
                 if (allProcessed) {
-                    LOGGER.info("All files processed for request {}", requestId);
+                    LOGGER.debug("All files processed for request {}", requestId);
                     return true;
                 } else {
-                    LOGGER.info("Waiting for batch {}. Current states: {}", requestId, fileStates);
+                    LOGGER.debug("Waiting for batch {}. Current states: {}", requestId, fileStates);
                 }
 
                 try {
                     TimeUnit.SECONDS.sleep(pollIntervalSeconds);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    LOGGER.info("Batch waiting interrupted for request {}", requestId);
+                    LOGGER.warn("Batch waiting interrupted for request {}", requestId);
                     return false;
                 }
             }
@@ -341,7 +340,7 @@ public class PeroOcrProcessor {
             String body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
 
             if (statusCode >= 200 && statusCode < 300) {
-                LOGGER.info("Image upload of {} succeeded with status code {}", fileName, statusCode);
+                LOGGER.debug("Image upload of {} succeeded with status code {}", fileName, statusCode);
                 return true;
             } else {
                 LOGGER.error("Image upload of {} failed with status {}. Response: {}", fileName, statusCode, body);
@@ -382,7 +381,7 @@ public class PeroOcrProcessor {
                 if (jsonResponse.getString("message").contains("not processed yet")) {
                     return "UNPROCESSED";
                 } else {
-                    LOGGER.info("Request returned status {}: {}", statusCode, jsonResponse.getString("message"));
+                    LOGGER.warn("Request returned status {}: {}", statusCode, jsonResponse.getString("message"));
                 }
             }
         } catch (JSONException | IOException e) {

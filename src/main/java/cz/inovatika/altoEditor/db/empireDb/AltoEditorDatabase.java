@@ -165,8 +165,6 @@ public class AltoEditorDatabase extends DBDatabase {
                 return;
             }
             if (schemaVersion > 0) {
-                LOG.info("Upgrading schema from version " + schemaVersion + ".");
-
                 schemaVersion = AltoEditorDatabaseV4.upgradeToVersion5(schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     LOG.error("Failed to upgrade schema to version " + VERSION + ".");

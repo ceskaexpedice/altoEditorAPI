@@ -19,6 +19,8 @@ import cz.inovatika.altoEditor.utils.Configurator;
 import cz.inovatika.altoEditor.utils.Const;
 import cz.inovatika.altoEditor.user.UserProfile;
 import io.javalin.Javalin;
+import io.javalin.http.ForbiddenResponse;
+import io.javalin.http.UnauthorizedResponse;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +28,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import javax.ws.rs.ForbiddenException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -135,21 +138,22 @@ public class AltoEditorInitializer {
             } else {
                 String token = getToken(ctx);
                 if (token == null) {
-                    ctx.status(401).result("Unauthorized");
-                    LOGGER.warn("Unauthorized access (token is null) to endpoint: " + ctx.path());
+                    LOGGER.warn("Unauthorized access (token is null) to endpoint: {}", ctx.path());
+                    throw new UnauthorizedResponse("Unauthorized");
+
                 } else {
                     UserProfile user = getUserProfile(token);
                     if (user == null || user.getRoles().isEmpty()) {
-                        ctx.status(401).result("Unauthorized");
-                        LOGGER.warn("Unauthorized access (user roles is null) to endpoint: " + ctx.path());
+                        LOGGER.warn("Unauthorized access (user roles is null) to endpoint: {}", ctx.path());
+                        throw new UnauthorizedResponse("Unauthorized");
                     } else {
                         if (isAdminRolePath(ctx.path(), user)) {
                             // pokracuje jako admin user k endpointum api
                         } else if (isAltoEditorRolePath(ctx.path(), user)) {
                             // pokracuje jako alto editor k endpointum api
                         } else {
-                            ctx.status(403).result("Forbidden");
-                            LOGGER.warn("Forbidden access (user = " + user.getUsername() + ") to endpoint: " + ctx.path());
+                            LOGGER.warn("Forbidden access (user = {}) to endpoint: {}", user.getUsername(), ctx.path());
+                            throw new ForbiddenResponse("Forbidden");
                         }
                     }
                 }
@@ -162,13 +166,11 @@ public class AltoEditorInitializer {
         app.get(Const.PATH_ROOT, InfoResource::info);
         app.get(Const.PATH_APP, InfoResource::info);
         app.get(Const.PATH_INFO, InfoResource::info);
-//        app.get(Const.PATH_DB, DbResource::showSchema);
-//        app.post(Const.PATH_DB, DbResource::createSchema);
+
         app.get(Const.PATH_DB_VERSIONS, DbResource::getVersions);
         app.get(Const.PATH_DB_ACTUAL_VERSION, DbResource::getVersion);
         app.get(Const.PATH_DB_USERS, DbResource::getAllUsers);
         app.get(Const.PATH_DB_USER, DbResource::getUser);
-//        app.post(Const.PATH_DB_USER, DbResource::createUser);
         app.put(Const.PATH_DB_USER, DbResource::updateUser);
         app.get(Const.PATH_DB_DIGITAL_OBJECTS, DbResource::getAllDigitalObjects);
         app.get(Const.PATH_DB_DIGITAL_OBJECT, DbResource::getUsersDigitalObjects);
@@ -178,6 +180,7 @@ public class AltoEditorInitializer {
         app.get(Const.PATH_DB_BATCHES, DbResource::getBatches);
         app.delete(Const.PATH_DB_BATCHES, DbResource::deleteBatches);
         app.get(Const.PATH_DB_BATCH, DbResource::getBatches);
+
         app.get(Const.PATH_DIGITAL_OBJECT_INFORMATION, DigitalObjectResource::getObjectInformation);
         app.get(Const.PATH_DIGITAL_OBJECT_IMAGE, DigitalObjectResource::getImage);
         app.get(Const.PATH_DIGITAL_OBJECT_ALTO, DigitalObjectResource::getAlto);

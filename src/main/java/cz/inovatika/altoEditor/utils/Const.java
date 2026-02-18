@@ -13,7 +13,6 @@ public class Const {
     public static final String CONFIG_FILE_NAME = "application.conf";
 
     public static final String DEFAULT_RESOURCE_CONFIG = "cz/inovatika/altoEditor/server/application.conf";
-    public static final String DEFAULT_RESOURCE_SQL = "cz/inovatika/altoEditor/db/dbInit.sql";
 
     public static final String USER_ALTOEDITOR = "AltoEditor";
     public static final String USER_PERO = "PERO";

@@ -34,25 +34,14 @@ public class Config {
     private static final String SUFFIX_KRAMERIUS_INSTANCE_TITLE = "title";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_VERSION = "version";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_URL = "url";
-    private static final String SUFFIX_KRAMERIUS_INSTANCE_URL_LOGIN = "urlLogin";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_URL_PARAMETRIZED_IMPORT_QUERY = "urlParametrizedImportQuery";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_URL_STATE_QUERY = "urlStateQuery";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_URL_DOWNLOAD_FOXML = "urlDownloadFoxml";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_URL_UPLOAD_STREAM = "urlUploadStream";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_URL_MODEL_INFO = "urlModelInfo";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_URL_IMAGE = "urlImage";
-    private static final String SUFFIX_KRAMERIUS_INSTANCE_USERNAME = "username";
-    private static final String SUFFIX_KRAMERIUS_INSTANCE_PASSWORD = "passwd";
-    private static final String SUFFIX_KRAMERIUS_INSTANCE_CLIENT_ID = "clientId";
-    private static final String SUFFIX_KRAMERIUS_INSTANCE_CLIENT_SECRET="clientSecret";
-    private static final String SUFFIX_KRAMERIUS_INSTANCE_GRANT_TYPE = "grantType";
     private static final String SUFFIX_KRAMERIUS_INSTANCE_TYPE = "type";
-    private static final String SUFFIX_KRAMERIUS_INSTANCE_EXPORT_FOXML_FOLDER = "exportFoxmlFolder";
-    private static final String SUFFIX_KRAMERIUS_INSTANCE_KRAMERIUS_IMPORT_FOXML_FOLDER = "krameriusImportFoxmlFolder";
 
-    private static final String PROP_PROCESSOR_PERO_EXEC = "processor.pero.exec";
-    private static final String PROP_PROCESSOR_PERO_ARG = "processor.pero.arg";
-    private static final String PROP_PROCESSOR_PERO_TIMEOUT = "processor.pero.timeout";
     private static final String PROP_PROCESSOR_PERO_KEY = "processor.pero.key";
     private static final String PROP_PROCESSOR_PERO_URL = "processor.pero.url";
 
@@ -120,10 +109,6 @@ public class Config {
         return Arrays.asList(instances.split(","));
     }
 
-    public static final String getKrameriusInstanceId(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance);
-    }
-
     public static final String getKrameriusInstanceVersion(String instance) {
         return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_VERSION, "7");
     }
@@ -134,10 +119,6 @@ public class Config {
 
     public static final String getKrameriusInstanceUrl(String instance) {
         return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL);
-    }
-
-    public static final String getKrameriusInstanceExportFoxmlFolder(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_EXPORT_FOXML_FOLDER);
     }
 
     public static final String getKrameriusInstanceType(String instance) {
@@ -166,53 +147,6 @@ public class Config {
 
     public static final String getKrameriusInstanceUrlModelInfo(String instance) {
         return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_MODEL_INFO, "/search/api/client/v7.0/search");
-    }
-
-    @Deprecated
-    public static final String getKrameriusInstanceKrameriusImportFoxmlFolder(String instance) {
-        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_KRAMERIUS_IMPORT_FOXML_FOLDER, "/import/");
-    }
-
-    @Deprecated
-    public static final String getKrameriusInstanceUrlLogin(String instance) {
-        return (String) getDefault(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_URL_LOGIN, "/auth/realms/kramerius/protocol/openid-connect/token");
-    }
-
-    @Deprecated
-    public static final String getKrameriusInstancePassword(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_PASSWORD);
-    }
-
-    @Deprecated
-    public static final String getKrameriusInstanceClientId(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_CLIENT_ID);
-    }
-
-    @Deprecated
-    public static final String getKrameriusInstanceClientSecret(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_CLIENT_SECRET);
-    }
-
-    @Deprecated
-    public static final String getKrameriusInstanceGrantType(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_GRANT_TYPE);
-    }
-
-    @Deprecated
-    public static final String getKrameriusInstanceUsername(String instance) {
-        return Configurator.get().getConfig().getString(PREFIX_KRAMERIUS_INSTANCE + "." + instance + "." + SUFFIX_KRAMERIUS_INSTANCE_USERNAME);
-    }
-
-    public static final String getProcessorPeroExec() {
-        return Configurator.get().getConfig().getString(PROP_PROCESSOR_PERO_EXEC);
-    }
-
-    public static final String getProcessorPeroArg() {
-        return Configurator.get().getConfig().getString(PROP_PROCESSOR_PERO_ARG);
-    }
-
-    public static final long getProcessorPeroTimeout() {
-        return (long) getDefault(PROP_PROCESSOR_PERO_TIMEOUT, 180000L);
     }
 
     public static final String getProcessorPeroKey() {

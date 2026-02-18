@@ -6,7 +6,7 @@ import cz.inovatika.altoEditor.db.manager.UserManager;
 import cz.inovatika.altoEditor.db.model.Batch;
 import cz.inovatika.altoEditor.db.model.DigitalObject;
 import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
-import cz.inovatika.altoEditor.kramerius.K7Downloader;
+import cz.inovatika.altoEditor.kramerius.K7Utility;
 import cz.inovatika.altoEditor.storage.akubra.AkubraStorage;
 import cz.inovatika.altoEditor.user.UserProfile;
 import cz.inovatika.altoEditor.utils.Const;
@@ -85,7 +85,7 @@ public class FileGeneratorProcess implements Runnable {
         try {
             batch = batchManager.startWaitingBatch(batch);
 
-            K7Downloader downloader = new K7Downloader();
+            K7Utility downloader = new K7Utility();
             batch = batchManager.setSubStateBatch(batch, Const.BATCH_SUBSTATE_DOWNLOADING);
 
             DigitalObject digitalObject = null;

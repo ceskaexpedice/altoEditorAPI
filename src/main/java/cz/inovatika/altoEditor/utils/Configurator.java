@@ -13,8 +13,8 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static cz.inovatika.altoEditor.utils.Utils.getDefaultHome;
 
@@ -38,7 +38,7 @@ public class Configurator {
     public static String CONFIG = "cz/inovatika/altoEditor/server/application.conf";
     public static File ADDITIONAL_CONFIG = null;
 
-    private static final Logger LOG = LoggerFactory.getLogger(Configurator.class.getName());
+    protected static final Logger LOG = LogManager.getLogger(Configurator.class.getName());
 
 
     private static class LazyHolder {

@@ -23,9 +23,6 @@ import cz.inovatika.altoEditor.utils.Const;
 import io.javalin.http.Context;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
@@ -266,20 +263,6 @@ public class DbResource {
 
         } catch (Exception ex) {
             setResult(context, AltoEditorResponse.asError(ex));
-        }
-    }
-
-    private static void checkDateFormat(String key, String date) throws RequestException {
-        if (date == null) {
-            return;
-        } else {
-            DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-            formatter.setLenient(false);
-            try {
-                formatter.parse(date);
-            } catch (ParseException e) {
-                throw new RequestException(key, String.format("Unsupported format \"%s\".", date));
-            }
         }
     }
 

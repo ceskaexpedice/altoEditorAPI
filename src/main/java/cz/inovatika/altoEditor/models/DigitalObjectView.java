@@ -1,8 +1,5 @@
 package cz.inovatika.altoEditor.models;
 
-import cz.inovatika.altoEditor.db.model.DigitalObject;
-import cz.inovatika.altoEditor.db.model.User;
-import cz.inovatika.altoEditor.editor.AltoDatastreamEditor;
 import java.sql.Timestamp;
 
 public class DigitalObjectView {
