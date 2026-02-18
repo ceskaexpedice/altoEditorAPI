@@ -78,7 +78,7 @@ Authorization: Bearer {{token}}
 {"userId":"6","login":"lu"}
 
 ### get digitalObjects
-GET {{url}}/db/objects?orderBy=datum&orderSort=asc&instance=k7
+GET {{url}}/db/objects?orderBy=datum&orderSort=asc&parentLabel=domácn
 Authorization: Bearer {{token}}
 
 ### get digital Object

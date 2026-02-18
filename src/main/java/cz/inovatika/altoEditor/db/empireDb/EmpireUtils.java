@@ -69,4 +69,16 @@ class EmpireUtils {
         }
         return null;
     }
+
+    protected static String startWith(String value) {
+        return value + "%";
+    }
+
+    protected static String endWth(String value) {
+        return "%" + value;
+    }
+
+    protected static String contain(String value) {
+        return "%" + value + "%";
+    }
 }

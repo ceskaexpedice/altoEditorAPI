@@ -22,6 +22,8 @@ import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import static cz.inovatika.altoEditor.db.empireDb.EmpireUtils.startWith;
+
 /**
  * Concrete implementation of the {@link DigitalObjectDao} interface for managing {@link DigitalObject}
  * entities using the Empire database framework. This class provides methods to create,
@@ -103,13 +105,13 @@ public class EmpireDigitalObjectDao extends EmpireDao implements DigitalObjectDa
             cmd.where(table.pid.in(filter.getPid()));
         }
         if (filter.getLabel() != null) {
-            cmd.where(table.label.is(filter.getLabel()));
+            cmd.where(table.label.likeLower(startWith(filter.getLabel())));
         }
         if (filter.getParentPath() != null) {
-            cmd.where(table.parentPath.is(filter.getParentPath()));
+            cmd.where(table.parentPath.likeLower(startWith(filter.getParentPath())));
         }
         if (filter.getParentLabel() != null) {
-            cmd.where(table.parentLabel.is(filter.getParentLabel()));
+            cmd.where(table.parentLabel.likeLower(startWith(filter.getParentLabel())));
         }
         if (filter.getVersion() != null) {
             cmd.where(table.version.is(filter.getVersion()));
@@ -180,13 +182,13 @@ public class EmpireDigitalObjectDao extends EmpireDao implements DigitalObjectDa
             cmd.where(table.pid.in(filter.getPid()));
         }
         if (filter.getLabel() != null) {
-            cmd.where(table.label.is(filter.getLabel()));
+            cmd.where(table.label.likeLower(startWith(filter.getLabel())));
         }
         if (filter.getParentPath() != null) {
-            cmd.where(table.parentPath.is(filter.getParentPath()));
+            cmd.where(table.parentPath.likeLower(startWith(filter.getParentPath())));
         }
         if (filter.getParentLabel() != null) {
-            cmd.where(table.parentLabel.is(filter.getParentLabel()));
+            cmd.where(table.parentLabel.likeLower(startWith(filter.getParentLabel())));
         }
         if (filter.getVersion() != null) {
             cmd.where(table.version.is(filter.getVersion()));
