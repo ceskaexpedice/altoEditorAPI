@@ -81,15 +81,15 @@ public class K7Client extends AbstractHttpClient {
     public List<String> getChildrenPids(String parentPid, String token, int start, int rows) throws IOException {
 
         HttpGet request = createHttpGet(baseUrl + Config.getKrameriusInstanceUrlModelInfo(instance.getId()) + "?q=own_parent.pid:" +
-                URLEncoder.encode("\"" + parentPid + "\"", StandardCharsets.UTF_8.name()) + "&fl=pid&rows=" + rows + "&start=" + start, token);
+                URLEncoder.encode("\"" + parentPid + "\"", StandardCharsets.UTF_8.name()) + "&fl=pid,model&rows=" + rows + "&start=" + start, token);
 
-        return execute(request, this::parseChildren);
+        return execute(request, body -> {return parseChildren(body, token);});
     }
 
     public int getChildrenSize(String parentPid, String token) throws IOException {
 
         HttpGet request = createHttpGet(baseUrl + Config.getKrameriusInstanceUrlModelInfo(instance.getId()) + "?q=own_parent.pid:" +
-                URLEncoder.encode("\"" + parentPid + "\"", StandardCharsets.UTF_8) + "&fl=pid", token);
+                URLEncoder.encode("\"" + parentPid + "\"", StandardCharsets.UTF_8) + "&fl=pid,model", token);
 
         return execute(request, this::parseChildrenSize);
     }
@@ -162,7 +162,7 @@ public class K7Client extends AbstractHttpClient {
         }
     }
 
-    private List<String> parseChildren(String body) {
+    private List<String> parseChildren(String body, String token) {
 
         List<String> pids = new ArrayList<>();
 
@@ -189,8 +189,15 @@ public class K7Client extends AbstractHttpClient {
                 }
 
                 String pid = doc.optString("pid", null);
+                String model = doc.optString("model", null);
                 if (pid != null && !pid.isBlank()) {
-                    pids.add(pid);
+                    if (model != null && !model.isBlank()) {
+                        if ("page".equalsIgnoreCase(model)) {
+                            pids.add(pid);
+                        } else {
+                            pids.addAll(getChildrenPids(pid, token));
+                        }
+                    }
                 }
             }
 

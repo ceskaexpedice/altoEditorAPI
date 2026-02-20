@@ -156,7 +156,8 @@ public class PeroOcrProcessor {
                     LOGGER.debug("All files processed for request {}", requestId);
                     return true;
                 } else {
-                    LOGGER.debug("Waiting for batch {}. Current states: {}", requestId, fileStates);
+                    LOGGER.info("Waiting for pero batch {}.", requestId);
+                    LOGGER.debug("Waiting for pero batch {}. Current states: {}", requestId, fileStates);
                 }
 
                 try {
