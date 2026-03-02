@@ -182,7 +182,7 @@ public final class DigitalObjectFilter {
         }
 
         public Builder version(String version) {
-            this.version = (version != null && !version.startsWith("ALTO.")) ? "ALTO." + version : version;
+            this.version = version;
             return this;
         }
 

@@ -78,7 +78,7 @@ Authorization: Bearer {{token}}
 {"userId":"6","login":"lu"}
 
 ### get digitalObjects
-GET {{url}}/db/objects?orderBy=datum&orderSort=asc&parentLabel=domácn
+GET {{url}}/db/objects?orderBy=datum&orderSort=asc
 Authorization: Bearer {{token}}
 
 ### get digital Object
@@ -110,7 +110,7 @@ GET {{url}}/object/image?pid={{uuid}}&instance=k7
 Authorization: Bearer {{token}}
 
 ### get Alto
-GET {{url}}/object/alto?pid={{uuidMono}}&instance=k7
+GET {{url}}/object/alto?pid={{uuid}}&instance=k7
 Authorization: Bearer {{token}}
 
 ### get Ocr
@@ -133,7 +133,7 @@ User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
 Authorization: Bearer {{token}}
 
-{"pid":"{{uuidMono}}","priority":"MEDIUM", "instance":"k7", "ocrEngine":"2"}
+{"pid":"{{uuid}}","priority":"MEDIUM", "instance":"k7", "ocrEngine":"2"}
 
 
 ### get pero engines
@@ -168,7 +168,7 @@ User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.6)
 Accept-Encoding: br,deflate,gzip,x-gzip
 Authorization: Bearer {{token}}
 
-{"id":{{digitalObjectId}},"login":"inovatika"}
+{"id":{{digitalObjectId}}}
 
 ### get object information
 GET {{url}}/object/objectInformation?pid={{uuid3}}&instance=k7

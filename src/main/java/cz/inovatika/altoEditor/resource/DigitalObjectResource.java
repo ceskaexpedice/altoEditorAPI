@@ -352,14 +352,11 @@ public class DigitalObjectResource {
         }
         UserProfile tmpUser = new UserProfile(Const.USER_ALTOEDITOR, userProfile.getToken());
 
-        DigitalObject digitalObject = digitalObjectManager.addNewDigitalObject(tmpUser.getUsername(), pid, "0", instanceId);
+        DigitalObject digitalObject = null;
         if (info != null) {
-            digitalObject.setLabel(info.getLabel());
-            digitalObject.setParentLabel(info.getParentLabel());
-            digitalObject.setParentPath(info.getParentPath());
-            digitalObject.setModel(info.getModel());
-
-            digitalObject = digitalObjectManager.updateDigitalObject(digitalObject);
+            digitalObject = digitalObjectManager.addNewDigitalObject(tmpUser.getUsername(), pid, "0", instanceId, Const.DIGITAL_OBJECT_STATE_NEW, info.getModel(), info.getLabel(), info.getParentLabel(), info.getParentPath());
+        } else {
+            digitalObject = digitalObjectManager.addNewDigitalObject(tmpUser.getUsername(), pid, "0", instanceId);
         }
 
         return getAltoStream(digitalObject);
@@ -425,8 +422,7 @@ public class DigitalObjectResource {
                     AkubraObject akubraObject = storage.find(pid);
                     AltoDatastreamEditor.updateAlto(akubraObject, data, "ALTO updated by user " + userProfile.getUsername(), versionId);
 
-                    digitalObject.setVersion(versionId);
-                    digitalObject = digitalObjectManager.addNewDigitalObject(userProfile.getUsername(), digitalObject.getPid(), versionId, digitalObject.getInstance(), Const.DIGITAL_OBJECT_STATE_EDITED);
+                    digitalObject = digitalObjectManager.addNewDigitalObject(userProfile.getUsername(), digitalObject.getPid(), versionId, digitalObject.getInstance(), Const.DIGITAL_OBJECT_STATE_EDITED, digitalObject);
 
                     AltoEditorStringRecordResponse response = getAltoStream(digitalObject);
                     setStringResult(context, response);

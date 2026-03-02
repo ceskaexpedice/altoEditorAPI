@@ -412,12 +412,12 @@ public class DbResource {
             DigitalObjectFilter filter = DigitalObjectFilter.builder().login(userProfile.getUsername()).pid(pid == null ? Collections.emptyList() : List.of(pid)).build();
             List<DigitalObjectView> digitalObjects = digitalObjectManager.findDigitalObject(filter);
             if (digitalObjects != null && !digitalObjects.isEmpty()) {
-                throw new IOException(String.format("User login \"%s\" already exists.", userProfile.getUsername()));
+                throw new IOException(String.format("Digital object \"%s\" already exists.", pid));
             } else {
                 digitalObjectManager.addNewDigitalObject(userProfile.getUsername(), pid, version, instance);
                 digitalObjects = digitalObjectManager.findDigitalObject(filter);
                 if (digitalObjects == null && digitalObjects.isEmpty()) {
-                    throw new IOException(String.format("Digital object with login \"%s\" and \"%s\" does not exists.", userProfile.getUsername(), pid));
+                    throw new IOException(String.format("Digital object with login \"%s\" and pid \"%s\" does not exists.", userProfile.getUsername(), pid));
                 } else if (digitalObjects.size() > 1) {
                     throw new IOException(String.format("There are more than 1 record with login \"%s\" and \"%s\" doees not exists.", userProfile.getUsername(), pid));
                 } else {

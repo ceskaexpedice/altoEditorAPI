@@ -111,13 +111,21 @@ public class FileGeneratorProcess implements Runnable {
                     AltoDatastreamEditor.importAlto(akubraObject, altoFile.toURI(), "ALTO updated by PERO.", AltoDatastreamEditor.ALTO_ID + ".1");
                     akubraObject.flush();
                     deleteFolder(folder);
-                    if (batch.getObjectId() == null || batch.getObjectId() == 0) {
-                        UserProfile tmpUser = new UserProfile(Const.USER_PERO, userProfile.getToken());
-                        digitalObject = digitalObjectManager.addNewDigitalObject(tmpUser.getUsername(), batch.getPid(), "1", batch.getInstance(), Const.DIGITAL_OBJECT_STATE_GENERATED);
-                    } else {
+                    if (Const.BATCH_TYPE_MULTIPLE.equals(batch.getType())) {
                         digitalObject.setState(Const.DIGITAL_OBJECT_STATE_GENERATED);
                         digitalObjectManager.updateDigitalObject(digitalObject);
-
+                    } else {
+                        UserProfile tmpUser = new UserProfile(Const.USER_PERO, userProfile.getToken());
+                        DigitalObject newDigitalObject = null;
+                        if (batch.getObjectId() != null && batch.getObjectId() > 0) {
+                            DigitalObject originalObject = digitalObjectManager.getDigitalObject(batch.getObjectId());
+                            if (originalObject != null) {
+                                newDigitalObject = digitalObjectManager.addNewDigitalObject(tmpUser.getUsername(), batch.getPid(), "1", batch.getInstance(), Const.DIGITAL_OBJECT_STATE_GENERATED, originalObject);
+                            }
+                        }
+                        if (newDigitalObject == null) {
+                            newDigitalObject = digitalObjectManager.addNewDigitalObject(tmpUser.getUsername(), batch.getPid(), "1", batch.getInstance(), Const.DIGITAL_OBJECT_STATE_GENERATED, Const.DIGITAL_OBJECT_MODEL_PAGE, null, null, null);
+                        }
                     }
                     batch = batchManager.finishedSuccesfully(batch);
                 } else {

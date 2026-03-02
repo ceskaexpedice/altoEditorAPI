@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 public class DigitalObjectView {
 
     private Integer id = null;
-    private String userLogin = null;
+    private String login = null;
     private String instance = null;
     private String pid = null;
     private String version = null;
@@ -29,12 +29,12 @@ public class DigitalObjectView {
         this.id = id;
     }
 
-    public String getUserLogin() {
-        return userLogin;
+    public String getLogin() {
+        return login;
     }
 
-    public void setUserLogin(String userLogin) {
-        this.userLogin = userLogin;
+    public void setLogin(String login) {
+        this.login = login;
     }
 
     public String getInstance() {

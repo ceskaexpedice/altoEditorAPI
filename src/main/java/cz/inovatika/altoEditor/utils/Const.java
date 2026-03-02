@@ -143,7 +143,7 @@ public class Const {
     public static final Integer DEFAULT_SQL_LIMIT_SIZE = 10;
 
     public static final String DATASTREAM_TYPE_ALTO = "ALTO";
-    public static final String DATASTREAM_TYPE_OCR = "OCR";
+    public static final String DATASTREAM_TYPE_OCR = "TEXT_OCR";
 
     public static final String CONTENT_TYPE_XML = "application/xml";
     public static final String CONTENT_TYPE_TEXT = "text/plain";

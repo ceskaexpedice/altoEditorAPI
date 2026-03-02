@@ -231,7 +231,12 @@ public final class AltoDatastreamEditor {
     }
 
     public static Integer getVersionId(String version) {
-        version = version.substring((AltoDatastreamEditor.ALTO_ID + ".").length());
+        if (version == null) {
+            return null;
+        }
+        if (version.startsWith(AltoDatastreamEditor.ALTO_ID + ".")) {
+            version = version.substring((AltoDatastreamEditor.ALTO_ID + ".").length());
+        }
         Integer versionId = Integer.valueOf(version);
         return versionId;
     }

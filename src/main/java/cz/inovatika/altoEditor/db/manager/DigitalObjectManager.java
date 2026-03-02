@@ -39,11 +39,19 @@ public class DigitalObjectManager {
         this.daos = daos;
     }
 
-    public DigitalObject addNewDigitalObject(String login, String pid, String version, String instance) {
-        return addNewDigitalObject(login, pid, version, instance, null);
+    public DigitalObject addNewDigitalObject(String login, String pid, String version, String instance, String state, DigitalObject digitalObject) {
+        if (digitalObject == null) {
+            return addNewDigitalObject(login, pid, version, instance, state, Const.DIGITAL_OBJECT_MODEL_PAGE, null, null, null);
+        } else {
+            return addNewDigitalObject(login, digitalObject.getPid(), version, digitalObject.getInstance(), state, digitalObject.getModel(), digitalObject.getLabel(), digitalObject.getParentLabel(), digitalObject.getParentPath());
+        }
     }
 
-    public DigitalObject addNewDigitalObject(String login, String pid, String version, String instance, String state) {
+    public DigitalObject addNewDigitalObject(String login, String pid, String version, String instance) {
+        return addNewDigitalObject(login, pid, version, instance, null, Const.DIGITAL_OBJECT_MODEL_PAGE, null, null, null);
+    }
+
+    public DigitalObject addNewDigitalObject(String login, String pid, String version, String instance, String state, String model, String label, String parentLabel, String parentPath) {
 
         UserManager userManager = UserManager.getInstance();
         Integer userId = userManager.getOrCreateUser(login);
@@ -53,6 +61,10 @@ public class DigitalObjectManager {
         digitalObject.setVersion(version);
         digitalObject.setrUserId(userId);
         digitalObject.setInstance(instance);
+        digitalObject.setModel(model);
+        digitalObject.setLabel(label);
+        digitalObject.setParentLabel(parentLabel);
+        digitalObject.setParentPath(parentPath);
 
         digitalObject.setState(state == null ? Const.DIGITAL_OBJECT_STATE_NEW : state);
 

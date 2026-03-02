@@ -264,9 +264,9 @@ public class K7Utility {
             throw new AltoEditorException(pid + "/" + versionId, "Alto to upload is null or empty");
         }
         String ocr = createOcrFromAlto(alto);
-        if (ocr == null || ocr.isBlank()) {
-            throw new AltoEditorException(pid + "/" + versionId, "OCR to upload is null or empty");
-        }
+//        if (ocr == null || ocr.isBlank()) {
+//            throw new AltoEditorException(pid + "/" + versionId, "OCR to upload is null or empty");
+//        }
 
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(KrameriusOptions.get().getKrameriusInstances(), instanceId);
         if (instance == null) {
