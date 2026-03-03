@@ -114,6 +114,7 @@ public class Const {
     public static final String PARAM_DIGITAL_OBJECT_ID = "id";
     public static final String PARAM_DIGITAL_OBJECT_RUSERID = "rUserId";
     public static final String PARAM_DIGITAL_OBJECT_USER_LOGIN = "userLogin";
+    public static final String PARAM_DIGITAL_OBJECT_MODEL = "model";
     public static final String PARAM_DIGITAL_OBJECT_INSTANCE = "instance";
     public static final String PARAM_DIGITAL_OBJECT_PID = "pid";
     public static final String PARAM_DIGITAL_OBJECT_VERSION_XML = "versionXml";

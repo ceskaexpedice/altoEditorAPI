@@ -286,6 +286,7 @@ public class DbResource {
             String parentLabel = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_LABEL);
             String parentPath = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_PATH);
             String login = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_USER_LOGIN);
+            String model = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_MODEL);
 
             String orderBy = getOptStringRequestValue(context, Const.PARAM_ORDER_BY);
             if (orderBy != null) {
@@ -294,7 +295,7 @@ public class DbResource {
                         || Const.PARAM_DIGITAL_OBJECT_VERSION_XML.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_DATUM.equals(orderBy)
                         || Const.PARAM_DIGITAL_OBJECT_STATE.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_LABEL.equals(orderBy)
                         || Const.PARAM_DIGITAL_OBJECT_PARENT_LABEL.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_PARENT_PATH.equals(orderBy)
-                        || Const.PARAM_DIGITAL_OBJECT_USER_LOGIN.equals(orderBy))) {
+                        || Const.PARAM_DIGITAL_OBJECT_USER_LOGIN.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_MODEL.equals(orderBy))) {
                     throw new RequestException(Const.PARAM_ORDER_BY, String.format("Unsupported param \"%s\".", orderBy));
                 }
             }
@@ -318,7 +319,7 @@ public class DbResource {
                     .pid(pid == null ? Collections.emptyList() : List.of(pid))
                     .rUserId(rUserId).instance(instance).version(versionXml)
                     .datumFrom(datumFrom).datumTo(datumTo).datum(datum).state(state).label(label)
-                    .parentLabel(parentLabel).parentPath(parentPath).login(login)
+                    .parentLabel(parentLabel).parentPath(parentPath).login(login).model(model)
                     .orderBy(orderBy).orderSort(orderSort).limit(limit).offset(offset).build();
 
             int totalCount = digitalObjectManager.getDigitalObjectsCount(filter);
@@ -350,6 +351,7 @@ public class DbResource {
             String parentLabel = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_LABEL);
             String parentPath = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_PARENT_PATH);
 //            String login = getStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_USER_LOGIN);
+            String model = getOptStringRequestValue(context, Const.PARAM_DIGITAL_OBJECT_MODEL);
 
             String orderBy = getOptStringRequestValue(context, Const.PARAM_ORDER_BY);
             if (orderBy != null) {
@@ -358,7 +360,7 @@ public class DbResource {
                         || Const.PARAM_DIGITAL_OBJECT_VERSION_XML.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_DATUM.equals(orderBy)
                         || Const.PARAM_DIGITAL_OBJECT_STATE.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_LABEL.equals(orderBy)
                         || Const.PARAM_DIGITAL_OBJECT_PARENT_LABEL.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_PARENT_PATH.equals(orderBy)
-                        || Const.PARAM_DIGITAL_OBJECT_USER_LOGIN.equals(orderBy))) {
+                        || Const.PARAM_DIGITAL_OBJECT_USER_LOGIN.equals(orderBy) || Const.PARAM_DIGITAL_OBJECT_MODEL.equals(orderBy))) {
                     throw new RequestException(Const.PARAM_ORDER_BY, String.format("Unsupported param \"%s\".", orderBy));
                 }
             }
@@ -381,7 +383,7 @@ public class DbResource {
             DigitalObjectFilter filter = DigitalObjectFilter.builder()
                     .id(id == null ? Collections.emptyList() : List.of(id))
                     .pid(pid == null ? Collections.emptyList() : List.of(pid))
-                    .rUserId(rUserId).instance(instance).version(versionXml)
+                    .rUserId(rUserId).instance(instance).version(versionXml).model(model)
                     .datumFrom(datumFrom).datumTo(datumTo).datum(datum).state(state).label(label)
                     .parentLabel(parentLabel).parentPath(parentPath).login(userProfile.getUsername())
                     .orderBy(orderBy).orderSort(orderSort).limit(limit).offset(offset).build();
