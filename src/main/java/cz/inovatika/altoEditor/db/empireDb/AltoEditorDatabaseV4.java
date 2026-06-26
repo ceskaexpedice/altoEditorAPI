@@ -169,7 +169,7 @@ public class AltoEditorDatabaseV4 extends DBDatabase {
             conn.commit();
             return schemaVersion;
         } finally {
-//            schema.close(conn);
+            schema.close(conn);
         }
     }
 
