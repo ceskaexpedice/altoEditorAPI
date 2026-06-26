@@ -5,12 +5,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
-import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBDatabase;
-import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBRecord;
-import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
 import org.apache.logging.log4j.LogManager;
@@ -22,12 +19,12 @@ import org.apache.logging.log4j.Logger;
  * and initialization logic required for managing the schema.
  */
 @Deprecated
-public class AltoEditorDatabaseV4 extends DBDatabase {
+public class AltoEditorDatabaseV5 extends DBDatabase {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger LOG = LogManager.getLogger(AltoEditorDatabaseV4.class.getName());
+    private static final Logger LOG = LogManager.getLogger(AltoEditorDatabaseV5.class.getName());
     /** the schema version */
-    public static final int VERSION = 4;
+    public static final int VERSION = 5;
 
     public final VersionTable tableVersion = new VersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -121,8 +118,10 @@ public class AltoEditorDatabaseV4 extends DBDatabase {
         public final DBTableColumn parentLabel;
         public final DBTableColumn version;
         public final DBTableColumn datum;
+        public final DBTableColumn updateTime;
         public final DBTableColumn state;
         public final DBTableColumn lock;
+        public final DBTableColumn model;
 
         public DigitalObjectTable(DBDatabase db) {
             super("DIGITALOBJECT", db);
@@ -131,11 +130,13 @@ public class AltoEditorDatabaseV4 extends DBDatabase {
             instance = addColumn("INSTANCE", DataType.TEXT, 2000, true);
             pid = addColumn("PID", DataType.TEXT, 2000, true);
             version = addColumn("VERSION", DataType.TEXT, 255, true);
-            datum = addColumn("DATUM", DataType.TIMESTAMP, 0, true);
+            datum = addColumn("DATUM", DataType.DATETIME, 0, true);
+            updateTime = addColumn("UPDATE_TIME", DataType.TIMESTAMP, 0, true);
             state = addColumn("STATE", DataType.TEXT, 20, true);
             label = addColumn("LABEL", DataType.TEXT, 1024, false);
             parentPath = addColumn("PARENT_PATH", DataType.TEXT, 255, false);
             parentLabel = addColumn("PARENT_LABEL", DataType.TEXT, 255, false);
+            model = addColumn("MODEL", DataType.TEXT, 255, false);
             lock = addColumn("LOCK", DataType.BOOL, 10, false);
 
             setPrimaryKey(id);
@@ -144,13 +145,14 @@ public class AltoEditorDatabaseV4 extends DBDatabase {
 
     }
 
-    public AltoEditorDatabaseV4() {
+    public AltoEditorDatabaseV5() {
+
         addRelation(tableDigitalObject.rUserId.referenceOn(tableUser.id));
     }
 
-    public static int upgradeToVersion5(int currentSchemaVersion, Connection conn, EmpireConfiguration conf) throws SQLException {
+    public static int upgradeToVersion6(int currentSchemaVersion, AltoEditorDatabase schema, Connection conn, EmpireConfiguration conf) throws SQLException {
         if (currentSchemaVersion < VERSION) {
-            currentSchemaVersion = AltoEditorDatabaseV3.upgradeToVersion4(currentSchemaVersion, conn, conf);
+            currentSchemaVersion = AltoEditorDatabaseV4.upgradeToVersion5(currentSchemaVersion, conn, conf);
         }
         if (currentSchemaVersion > VERSION) {
             // ignore higher versions
@@ -159,7 +161,6 @@ public class AltoEditorDatabaseV4 extends DBDatabase {
             throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
         }
 
-        AltoEditorDatabaseV5 schema = new AltoEditorDatabaseV5();
         try {
             schema.open(conf.getDriver(), conn);
             upgradeDdl(schema, conn);
@@ -169,27 +170,17 @@ public class AltoEditorDatabaseV4 extends DBDatabase {
             conn.commit();
             return schemaVersion;
         } finally {
-//            schema.close(conn);
+            schema.close(conn);
         }
     }
 
-    private static void upgradeDdl(AltoEditorDatabaseV5 schema, Connection conn) throws SQLException {
+    private static void upgradeDdl(AltoEditorDatabase schema, Connection conn) throws SQLException {
         try {
             conn.setAutoCommit(true);
 
-            DBDatabaseDriver driver = schema.getDriver();
-            DBSQLScript script = new DBSQLScript();
-
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableDigitalObject.model, script);
-
-
-            LOG.debug(script.toString());
-            script.executeAll(driver, conn);
-
             Statement statement = conn.createStatement();
-            statement.addBatch("UPDATE digitalobject SET model = 'PAGE'");
-
-            statement.addBatch("ALTER TABLE digitalobject ADD COLUMN update_time TIMESTAMP default NOW()");
+            statement.addBatch("DROP INDEX IF EXISTS digitalobject_r_user_id_idx");
+            statement.addBatch("CREATE UNIQUE INDEX IF NOT EXISTS digitalobject_r_user_id_idx ON digitalobject (r_user_id, pid)");
 
             LOG.debug(statement.toString());
             statement.executeBatch();
@@ -200,7 +191,7 @@ public class AltoEditorDatabaseV4 extends DBDatabase {
     }
 
     int initVersion(Connection conn) {
-        AltoEditorDatabaseV4 db = this;
+        AltoEditorDatabaseV5 db = this;
         DBRecord dbRecord = new DBRecord();
 
         dbRecord.create(db.tableVersion);

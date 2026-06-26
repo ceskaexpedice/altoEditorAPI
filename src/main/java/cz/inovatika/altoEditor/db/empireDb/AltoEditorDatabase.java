@@ -2,10 +2,8 @@ package cz.inovatika.altoEditor.db.empireDb;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
-import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
@@ -29,7 +27,7 @@ public class AltoEditorDatabase extends DBDatabase {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LogManager.getLogger(AltoEditorDatabase.class.getName());
     /** the schema version */
-    public static final int VERSION = 5;
+    public static final int VERSION = 6;
 
     public final VersionTable tableVersion = new VersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -145,7 +143,7 @@ public class AltoEditorDatabase extends DBDatabase {
             lock = addColumn("LOCK", DataType.BOOL, 10, false);
 
             setPrimaryKey(id);
-            addIndex(String.format("%s_%s_IDX", getName(), rUserId.getName()), true, new DBColumn[] { rUserId });
+            addIndex("DIGITALOBJECT_USERPID_INDEX", true, new DBColumn[] { rUserId, pid });
         }
 
     }
@@ -165,7 +163,7 @@ public class AltoEditorDatabase extends DBDatabase {
                 return;
             }
             if (schemaVersion > 0) {
-                schemaVersion = AltoEditorDatabaseV4.upgradeToVersion5(schemaVersion, this, conn, conf);
+                schemaVersion = AltoEditorDatabaseV5.upgradeToVersion6(schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     LOG.error("Failed to upgrade schema to version " + VERSION + ".");
                     throw new SQLException("Failed to upgrade schema to version " + VERSION + ".");
